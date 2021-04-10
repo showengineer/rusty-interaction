@@ -5,16 +5,12 @@ use ed25519_dalek::{PublicKey, Signature};
 use hex;
 use std::convert::TryInto;
 
-fn convert_to_arr<T>(v: Vec<T>) -> [T; SIGNATURE_LENGTH] {
-    v.try_into().unwrap_or_else(|v: Vec<T>| {
-        panic!(
-            "Expected a Vec of length {} but it was {}",
-            SIGNATURE_LENGTH,
-            v.len()
-        )
-    })
+fn convert_to_arr<T, const N: usize>(v: Vec<T>) -> [T; N] {
+    v.try_into()
+        .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
 }
 
+/// If verification failes, it will return the `ValidationError` enum.
 pub enum ValidationError {
     // For anything related to conversion errors
     KeyConversionError { name: &'static str },
@@ -38,6 +34,9 @@ pub fn verify_discord_message(
             return Err(ValidationError::KeyConversionError { name: "Signature" });
         }
         Ok(s) => {
+            if s.len() != SIGNATURE_LENGTH{
+                return Err(ValidationError::KeyConversionError {name: "Signature Length"});
+            }
             let sa = convert_to_arr(s);
             let sign = Signature::from(sa);
             match public_key.verify(msg.as_bytes(), &sign) {

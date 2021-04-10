@@ -185,7 +185,7 @@ struct ApplicationCommandOptionChoice {
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Interaction {
     pub id: Option<Snowflake>,
-    pub r#type: Option<InteractionType>,
+    pub r#type: InteractionType,
     pub data: Option<ApplicationCommandInteractionData>,
     pub guild_id: Option<Snowflake>,
     pub channel_id: Option<Snowflake>,

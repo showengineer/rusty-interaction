@@ -1,4 +1,4 @@
-use crate::handler::*;
+use crate::*;
 use crate::security::*;
 use crate::types;
 
@@ -7,10 +7,10 @@ use ed25519_dalek::PUBLIC_KEY_LENGTH;
 use ed25519_dalek::{PublicKey};
 use std::sync::Mutex;
 
-use actix_web::{test, HttpRequest, HttpResponse, HttpMessage, web, App};
+use actix_web::{test, http, HttpRequest, HttpResponse, HttpMessage, web, App};
 use actix_web::http::{header, StatusCode};
 
-const PUB_KEY: [u8; PUBLIC_KEY_LENGTH] = [
+const TEST_PUB_KEY: [u8; PUBLIC_KEY_LENGTH] = [
     0x82, 0xd8, 0xd9, 0x7f, 0xe0, 0x64, 0x1e, 0x68, 0xa1, 0xb0, 0xb1, 0x12, 0x20, 0xf0, 0x5e, 0x9e,
     0xa0, 0x53, 0x9a, 0xc, 0xdc, 0x0, 0x21, 0x19, 0xd4, 0xa9, 0xe9, 0xe0, 0x25, 0xab, 0xa1, 0xe9,
 ];
@@ -21,7 +21,7 @@ SECURITY TESTS
 #[test]
 // Discord interaction verification test OK 1
 fn crypto_verify_test_ok(){
-    let pbk = PublicKey::from_bytes(&PUB_KEY);
+    let pbk = PublicKey::from_bytes(&TEST_PUB_KEY);
     if pbk.is_err() {
         panic!("Failed to convert public key.");
     }
@@ -46,7 +46,7 @@ fn crypto_verify_test_ok(){
 #[should_panic]
 // Discord interacton verification test invalid 1
 fn crypto_verify_test_fail(){
-    let pbk = PublicKey::from_bytes(&PUB_KEY);
+    let pbk = PublicKey::from_bytes(&TEST_PUB_KEY);
     if pbk.is_err() {
         panic!("Failed to convert public key.");
     }
@@ -86,7 +86,7 @@ macro_rules! interaction_app_init {
 // Request with bad content with no Content-Type header present
 // Expected result: Return 400 without panicking
 async fn interactions_no_content_type_header_test(){
-    let ih = InteractionHandler::new(PUB_KEY);
+    let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
 
@@ -105,7 +105,7 @@ async fn interactions_no_content_type_header_test(){
 // Request with bad content with no Content-Type header present
 // Expected result: Return 400 without panicking
 async fn interactions_bad_content_type_header_test(){
-    let ih = InteractionHandler::new(PUB_KEY);
+    let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
 
@@ -125,7 +125,7 @@ async fn interactions_bad_content_type_header_test(){
 // Request with missing X-Signature-Ed25519 Header
 // Expected result: Return 400 without panicking
 async fn interactions_no_signature_header_test(){
-    let ih = InteractionHandler::new(PUB_KEY);
+    let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
 
@@ -146,7 +146,7 @@ async fn interactions_no_signature_header_test(){
 // Request with missing X-Signature-Timestamp Header
 // Expected result: Return 400 without panicking
 async fn interactions_no_timestamp_header_test(){
-    let ih = InteractionHandler::new(PUB_KEY);
+    let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
 
@@ -167,7 +167,7 @@ async fn interactions_no_timestamp_header_test(){
 // Request with missing a signature that is too short (< 512 bits)
 // Expected result: Return 400 without panicking
 async fn interactions_bad_signature_length_short_test(){
-    let ih = InteractionHandler::new(PUB_KEY);
+    let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
 
@@ -187,8 +187,8 @@ async fn interactions_bad_signature_length_short_test(){
 #[actix_rt::test]
 // Request with missing a signature that is too long (> 512 bits)
 // Expected result: Return 400 without panicking
-async fn interactions_bad_signature_length_long_test(){
-    let ih = InteractionHandler::new(PUB_KEY);
+async fn interactions_bad_signature_length_too_long_test(){
+    let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
 
@@ -206,10 +206,10 @@ async fn interactions_bad_signature_length_long_test(){
 }
 
 #[actix_rt::test]
-// Request with missing X-Signature Header
+// Normal ping request
 // Expected result: Return 200 with payload
 async fn interactions_ping_test(){
-    let ih = InteractionHandler::new(PUB_KEY);
+    let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
 
@@ -224,5 +224,27 @@ async fn interactions_ping_test(){
     let res: types::InteractionResponse = test::read_response_json(&mut app, req).await;
 
     assert_eq!(res.r#type, types::InteractionResponseType::PONG);
+
+}
+
+#[actix_rt::test]
+// Bad content but OK signature test 
+// Expected result: Return 400 with error, don't panic
+async fn interactions_bad_body_test(){
+    let ih = InteractionHandler::new(TEST_PUB_KEY);
+
+    let mut app = interaction_app_init!(ih);
+
+    let req = test::TestRequest::post()
+        .uri("/api/discord/interactions")
+        .header("Content-Type", "application/json")
+        .header("X-Signature-Ed25519", "51c5defa19cc2471a361c00c87a7f380d9e9d6cd21f05b65d3c223aac0b7d258277a09d0a016108e0be1338d985ed4ce0dae55e5ac93db5957a37ce31d007505")
+        .header("X-Signature-Timestamp", "1616343571")
+        .set_payload("this is some malformed {\"data\" : cant handle}")
+        .to_request();
+
+    let res = test::call_service(&mut app, req).await;
+
+    assert_eq!(res.status(), http::StatusCode::BAD_REQUEST);
 
 }
