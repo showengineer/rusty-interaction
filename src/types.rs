@@ -1,4 +1,7 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Deserializer, de};
+#[macro_use]
+use serde_with::*;
+use ::chrono::{DateTime, TimeZone, Utc};
 use std::time::SystemTime;
 use serde_repr::*;
 
@@ -111,40 +114,49 @@ struct EmbedField {
     value: String,
     inline: bool,
 }
-
+#[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 struct User {
     id: Snowflake,
     username: String,
     discriminator: String,
     avatar: Option<String>,
-    bot: bool,
-    system: bool,
-    mfa_enabled: bool,
-    locale: String,
-    verified: bool,
+    bot: Option<bool>,
+    system: Option<bool>,
+    mfa_enabled: Option<bool>,
+    locale: Option<String>,
+    verified: Option<bool>,
     email: Option<String>,
-    flags: i32,
-    premium_type: i8,
-    public_flags: i32,
+    
+    flags: Option<i32>,
+    
+    premium_type: Option<i8>,
+   
+    public_flags: Option<i32>,
 }
 
+#[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Member {
     user: User,
     nick: Option<String>,
+    #[serde_as(as = "Vec<DisplayFromStr>")]
     roles: Vec<Snowflake>,
-    joined_at: SystemTime,
-    premium_since: Option<SystemTime>,
+    #[serde_as(as = "DisplayFromStr")]
+    joined_at: DateTime::<Utc>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    premium_since: Option<DateTime::<Utc>>,
     deaf: bool,
     mute: bool,
     pending: bool,
     permissions: String,
 }
-
+#[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 struct ApplicationCommand {
+    #[serde_as(as = "DisplayFromStr")]
     id: Snowflake,
+    #[serde_as(as = "DisplayFromStr")]
     application_id: Snowflake,
     name: String,
     description: String,
@@ -164,7 +176,7 @@ struct ApplicationCommandOption {
 #[derive(Clone, Serialize_repr, Deserialize_repr, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(u8)]
-enum ApplicationCommandOptionType {
+pub enum ApplicationCommandOptionType {
     SUB_COMMAND = 1,
     SUB_COMMAND_GROUP = 2,
     STRING = 3,
@@ -181,15 +193,19 @@ struct ApplicationCommandOptionChoice {
     // This can be int
     value: String,
 }
-
+#[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Interaction {
-    pub id: Option<Snowflake>,
+    #[serde_as(as = "DisplayFromStr")]
+    pub id: Snowflake,
     pub r#type: InteractionType,
     pub data: Option<ApplicationCommandInteractionData>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
     pub guild_id: Option<Snowflake>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
     pub channel_id: Option<Snowflake>,
     pub member: Option<Member>,
+    //pub user: Option<User>,
     pub token: Option<String>,
     pub version: Option<i8>,
 }
@@ -201,19 +217,22 @@ pub enum InteractionType {
     PING = 1,
     APPLICATION_COMMAND = 2,
 }
-
+#[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct ApplicationCommandInteractionData {
-    id: Snowflake,
-    name: String,
-    options: Vec<ApplicationCommandInteractionDataOption>,
+    #[serde_as(as = "DisplayFromStr")]
+    pub id: Snowflake,
+    pub name: String,
+    pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
 }
 #[derive(Clone, Serialize, Deserialize, Debug)]
-struct ApplicationCommandInteractionDataOption {
-    name: String,
-    value: ApplicationCommandOptionType,
-    options: Vec<ApplicationCommandInteractionDataOption>,
+pub struct ApplicationCommandInteractionDataOption {
+    pub name: String,
+    pub value: String,
+    pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
 }
+
+#[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct InteractionResponse {
     pub r#type: InteractionResponseType,
