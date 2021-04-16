@@ -116,26 +116,28 @@ struct EmbedField {
 }
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
-struct User {
-    id: Snowflake,
-    username: String,
-    discriminator: String,
-    avatar: Option<String>,
-    bot: Option<bool>,
-    system: Option<bool>,
-    mfa_enabled: Option<bool>,
-    locale: Option<String>,
-    verified: Option<bool>,
-    email: Option<String>,
-    
-    flags: Option<i32>,
-    
-    premium_type: Option<i8>,
-   
-    public_flags: Option<i32>,
+pub struct User {
+    #[serde_as(as = "DisplayFromStr")]
+    pub id: Snowflake,
+    pub username: String,
+    pub discriminator: String,
+    pub avatar: Option<String>,
+    pub bot: Option<bool>,
+    pub system: Option<bool>,
+    pub mfa_enabled: Option<bool>,
+    pub locale: Option<String>,
+    pub verified: Option<bool>,
+    pub email: Option<String>,
+    pub flags: Option<i32>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    pub premium_type: Option<i8>,
+
+    pub public_flags: Option<i32>,
 }
 
 #[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Member {
     user: User,
@@ -144,7 +146,9 @@ pub struct Member {
     roles: Vec<Snowflake>,
     #[serde_as(as = "DisplayFromStr")]
     joined_at: DateTime::<Utc>,
+
     #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
     premium_since: Option<DateTime::<Utc>>,
     deaf: bool,
     mute: bool,
@@ -196,19 +200,27 @@ struct ApplicationCommandOptionChoice {
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Interaction {
+
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    pub application_id: Option<Snowflake>,
+
     #[serde_as(as = "DisplayFromStr")]
     pub id: Snowflake,
     pub r#type: InteractionType,
     pub data: Option<ApplicationCommandInteractionData>,
     #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
     pub guild_id: Option<Snowflake>,
     #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
     pub channel_id: Option<Snowflake>,
     pub member: Option<Member>,
-    //pub user: Option<User>,
+    pub user: Option<User>,
     pub token: Option<String>,
     pub version: Option<i8>,
 }
+
 
 #[allow(non_camel_case_types)]
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
