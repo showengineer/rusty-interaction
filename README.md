@@ -5,11 +5,11 @@ This library is intended to receive Discord Interactions though your own API end
 The code is a straight rip out of one of my bots. It might not be very flexible at this stage.
 
 ## What it has right now
-[x] - Receive Interactions from Discord
-[x] - Bind interactions to a function (with the help of a macro)
-[] - Properly respond to interactions from Discord
-[] - Nice system to make follow-up messages.
-[] - Not a pile of code spaghetti that just works (oops...👀)
+- [x] - Receive Interactions from Discord
+- [x] - Bind interactions to a function (with the help of a macro)
+- [ ] - Properly respond to interactions from Discord
+- [ ] - Nice system to make follow-up messages.
+- [ ] - Not a pile of code spaghetti that just works (oops...👀)
 
 
 ## Difference between receiving interactions through the gateway and your own endpoint
