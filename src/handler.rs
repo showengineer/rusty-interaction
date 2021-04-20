@@ -5,8 +5,6 @@ use crate::types::*;
 use actix_web::http::{StatusCode};
 use actix_web::{web, App, HttpServer, HttpRequest, HttpResponse, Result,};
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
-use crate::security::*;
-use crate::types::*;
 
 use log::{debug, error, log_enabled, info, Level};
 
@@ -23,14 +21,12 @@ macro_rules! ERROR_RESPONSE {
 use ed25519_dalek::{PublicKey};
 use hex;
 
-use rustls::internal::pemfile::{certs, pkcs8_private_keys};
-use rustls::{NoClientAuth, ServerConfig};
+use rustls::{ServerConfig};
 
 use std::collections::HashMap;
 use std::boxed::Box;
 use std::pin::Pin;
 use std::future::Future;
-use std::sync::Arc;
 
 
 
