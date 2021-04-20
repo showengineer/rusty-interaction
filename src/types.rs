@@ -2,8 +2,18 @@ use serde::{Deserialize, Serialize, Deserializer, de};
 #[macro_use]
 use serde_with::*;
 use ::chrono::{DateTime, TimeZone, Utc};
-use std::time::SystemTime;
+
 use serde_repr::*;
+
+
+mod embed;
+use embed::*;
+
+mod user;
+use user::*;
+
+/// Discord's 'snowflake'. It's a 64bit integer that is mainly used for identifying anything Discord.  
+type Snowflake = i64;
 
 /// HTTP Error return struct
 #[derive(Clone, Serialize, Deserialize)]
@@ -43,118 +53,7 @@ impl From<Error> for MessageError{
     }
 }
 
-/// Discord's 'snowflake'. It's a 64bit integer that is mainly used for identifying objects.  
-type Snowflake = i64;
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-struct Embed {
-    title: String,
-    r#type: String,
-    description: String,
-    url: String,
-    timestamp: SystemTime,
-    color: i32,
-    footer: EmbedFooter,
-    image: EmbedImage,
-    thumbnail: EmbedThumbnail,
-    video: EmbedVideo,
-    provider: EmbedProvider,
-    author: EmbedAuthor,
-    fields: Vec<EmbedField>,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-struct EmbedThumbnail {
-    url: String,
-    proxy_url: String,
-    height: i32,
-    width: i32,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-struct EmbedVideo {
-    url: String,
-    proxy_url: String,
-    height: i32,
-    witdh: i32,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-struct EmbedImage {
-    url: String,
-    proxy_url: String,
-    height: i32,
-    width: i32,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-struct EmbedProvider {
-    name: String,
-    url: String,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-struct EmbedAuthor {
-    name: String,
-    url: String,
-    icon_url: String,
-    proxy_icon_url: String,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-struct EmbedFooter {
-    text: String,
-    icon_url: String,
-    proxy_icon_url: String,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-struct EmbedField {
-    name: String,
-    value: String,
-    inline: bool,
-}
-#[serde_as]
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct User {
-    #[serde_as(as = "DisplayFromStr")]
-    pub id: Snowflake,
-    pub username: String,
-    pub discriminator: String,
-    pub avatar: Option<String>,
-    pub bot: Option<bool>,
-    pub system: Option<bool>,
-    pub mfa_enabled: Option<bool>,
-    pub locale: Option<String>,
-    pub verified: Option<bool>,
-    pub email: Option<String>,
-    pub flags: Option<i32>,
-    #[serde_as(as = "Option<DisplayFromStr>")]
-    #[serde(default)]
-    pub premium_type: Option<i8>,
-
-    pub public_flags: Option<i32>,
-}
-
-#[serde_as]
-#[skip_serializing_none]
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct Member {
-    user: User,
-    nick: Option<String>,
-    #[serde_as(as = "Vec<DisplayFromStr>")]
-    roles: Vec<Snowflake>,
-    #[serde_as(as = "DisplayFromStr")]
-    joined_at: DateTime::<Utc>,
-
-    #[serde_as(as = "Option<DisplayFromStr>")]
-    #[serde(default)]
-    premium_since: Option<DateTime::<Utc>>,
-    deaf: bool,
-    mute: bool,
-    pending: bool,
-    permissions: String,
-}
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 struct ApplicationCommand {
@@ -222,6 +121,16 @@ pub struct Interaction {
 }
 
 
+impl Interaction{
+    pub fn response(&self, rtype: InteractionResponseType) -> InteractionResponse{
+        InteractionResponse{
+            r#type: rtype,
+            data: None
+        }
+    }
+}
+
+
 #[allow(non_camel_case_types)]
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
 #[repr(u8)]
@@ -244,6 +153,9 @@ pub struct ApplicationCommandInteractionDataOption {
     pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
 }
 
+// InteractonResponse
+
+#[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct InteractionResponse {
@@ -258,6 +170,72 @@ impl InteractionResponse{
             data: data,
         }
     }
+
+    /// Fills the `InteractionResponse` with some `InteractionApplicationCommandCallbackData`
+    pub fn data(&mut self, d: InteractionApplicationCommandCallbackData) -> &Self{
+        self.data = Some(d);
+        self
+    }
+
+    /// Sets the Text-To-Speech value of this `InteractionResponse` to `true`
+    pub fn tts(&mut self) -> &Self{
+        // Does data exist?
+        if self.data.is_none(){
+            let mut d = InteractionApplicationCommandCallbackData::new();
+            d.tts = Some(true);
+            self.data = Some(d);
+        }
+        else{
+            self.data.as_mut().unwrap().tts = Some(true);
+        }
+        self
+    }
+    /// This sets the `content` for an `InteractionResponse`
+    pub fn content(&mut self, c: &String) -> &Self{
+        match self.data.as_mut(){
+            None => {
+                let mut d = InteractionApplicationCommandCallbackData::new();
+                d.content = Some(c.to_string());
+                self.data = Some(d);
+            },
+            Some(mut d) => {
+                d.content = Some(c.to_string());
+            },
+        }
+        self
+    }
+
+    /// Sets the `content` for an `InteractionResponse`. Alias for `content()`
+    pub fn message(&mut self, c: &String) -> &Self{
+        self.content(c);
+        self
+    }
+
+    pub fn add_embed(&mut self, e: Embed) -> &Self{
+        match self.data.as_mut(){
+            None => {
+                let mut d = InteractionApplicationCommandCallbackData::new();
+                d.embeds = Some(vec![e]);
+                self.data = Some(d);
+            },
+            Some(mut d) => {
+                if d.embeds.is_none(){
+                    d.embeds = Some(vec![e]);
+                }
+                else{
+                    let v = d.embeds.as_mut().unwrap();
+                    v.push(e);
+                }
+            },
+        }
+        self
+    }
+
+    // Returns a copy of the current `InteractionResponse`, consuming itself.
+    pub fn finish(&self) -> Self{
+        self.clone()
+    }
+
 }
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, Debug, PartialEq)]
@@ -271,12 +249,25 @@ pub enum InteractionResponseType {
     DEFFERED_CHANNEL_MESSAGE_WITH_SOURCE = 5,
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct InteractionApplicationCommandCallbackData {
-    tts: bool,
-    content: String,
-    embeds: Vec<Embed>,
+    tts: Option<bool>,
+    content: Option<String>,
+    embeds: Option<Vec<Embed>>,
     allowed_mentions: Option<AllowedMentions>,
+}
+
+impl InteractionApplicationCommandCallbackData{
+    pub fn new() -> Self{
+        Self{
+            tts: None,
+            content: None,
+            embeds: None,
+            allowed_mentions: None,
+        }
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
