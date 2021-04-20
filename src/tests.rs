@@ -1,19 +1,21 @@
-use crate::*;
+
 use crate::security::*;
 use crate::types;
-
+use crate::handler::{InteractionHandler};
 use actix_rt;
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
 use ed25519_dalek::{PublicKey};
-use std::sync::Mutex;
+use hex;
+use actix_web::{test, http, HttpRequest, web, App};
 
-use actix_web::{test, http, HttpRequest, HttpResponse, HttpMessage, web, App};
-use actix_web::http::{header, StatusCode};
 
-const TEST_PUB_KEY: [u8; PUBLIC_KEY_LENGTH] = [
+
+/*const TEST_PUB_KEY: [u8; PUBLIC_KEY_LENGTH] = [
     0x82, 0xd8, 0xd9, 0x7f, 0xe0, 0x64, 0x1e, 0x68, 0xa1, 0xb0, 0xb1, 0x12, 0x20, 0xf0, 0x5e, 0x9e,
     0xa0, 0x53, 0x9a, 0xc, 0xdc, 0x0, 0x21, 0x19, 0xd4, 0xa9, 0xe9, 0xe0, 0x25, 0xab, 0xa1, 0xe9,
-];
+];*/
+
+const TEST_PUB_KEY: &str = "82d8d97fe0641e68a1b012f05e9ea0539a0cdc002119d4a9e9e025aba1e9";
 
 /*------------------------------
 SECURITY TESTS
@@ -21,7 +23,9 @@ SECURITY TESTS
 #[test]
 // Discord interaction verification test OK 1
 fn crypto_verify_test_ok(){
-    let pbk = PublicKey::from_bytes(&TEST_PUB_KEY);
+    let bytes = hex::decode(TEST_PUB_KEY);
+    let a = convert_to_arr::<u8, PUBLIC_KEY_LENGTH>(bytes.unwrap());
+    let pbk = PublicKey::from_bytes(&a);
     if pbk.is_err() {
         panic!("Failed to convert public key.");
     }
@@ -46,7 +50,9 @@ fn crypto_verify_test_ok(){
 #[should_panic]
 // Discord interacton verification test invalid 1
 fn crypto_verify_test_fail(){
-    let pbk = PublicKey::from_bytes(&TEST_PUB_KEY);
+    let bytes = hex::decode(TEST_PUB_KEY);
+    let a = convert_to_arr::<u8, PUBLIC_KEY_LENGTH>(bytes.unwrap());
+    let pbk = PublicKey::from_bytes(&a);
     if pbk.is_err() {
         panic!("Failed to convert public key.");
     }
