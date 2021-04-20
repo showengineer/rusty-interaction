@@ -15,7 +15,7 @@ use actix_web::{test, http, HttpRequest, web, App};
     0xa0, 0x53, 0x9a, 0xc, 0xdc, 0x0, 0x21, 0x19, 0xd4, 0xa9, 0xe9, 0xe0, 0x25, 0xab, 0xa1, 0xe9,
 ];*/
 
-const TEST_PUB_KEY: &str = "82d8d97fe0641e68a1b012f05e9ea0539a0cdc002119d4a9e9e025aba1e9";
+const TEST_PUB_KEY: &str = "82d8d97fe0641e68a1b0b11220f05e9ea0539a0cdc002119d4a9e9e025aba1e9";
 
 /*------------------------------
 SECURITY TESTS

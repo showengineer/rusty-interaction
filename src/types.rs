@@ -103,8 +103,9 @@ pub struct Interaction {
     #[serde(default)]
     pub application_id: Option<Snowflake>,
 
-    #[serde_as(as = "DisplayFromStr")]
-    pub id: Snowflake,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    pub id: Option<Snowflake>,
     pub r#type: InteractionType,
     pub data: Option<ApplicationCommandInteractionData>,
     #[serde_as(as = "Option<DisplayFromStr>")]
