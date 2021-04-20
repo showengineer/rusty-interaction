@@ -13,8 +13,9 @@ Follow the following steps:
 [dependencies.rusty_interaction]
 path = "../rusty-interaction"
 ```
-`path` is the location of the repo you just cloned. The library comes with the `types` and `security` features by default. If you wish to use the `handler` feature, add `features = ["handler"]` to the dependency entry.
-1. Profit!
+`path` is the location of the repo you just cloned, change it accordingly. The library comes with the `types` and `security` features by default. If you wish to use the `handler` feature, add `features = ["handler"]` to the dependency entry.
+
+3. Profit!
 
 ## Contributing
 More than welcome! :D
