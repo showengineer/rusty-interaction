@@ -18,5 +18,5 @@ Setting up your own endpoint makes Discord send the interactions to your own API
 
 If you already have an API that runs your service and you're looking to integrate with Discord, this way of receiving interactions is really interesting.
 
-### Ok, I want to receive interactions through the gateway. Does your library support that.
+### Ok, I want to receive interactions through the gateway. Does your library support that?
 No. If you want to receive interactions through the gateway [Serenity](https://github.com/serenity-rs/serenity) is your friend.
