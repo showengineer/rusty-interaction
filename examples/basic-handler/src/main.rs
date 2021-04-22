@@ -41,7 +41,7 @@ async fn main() -> std::io::Result<()> {
     // not command management.
     handle.add_command("summon", test);
 
-    // Run the API server!
+    // Run the API server! NOTE: the server runs at port 10080 (Socket binds to 0.0.0.0:10080)
     return handle.run(config).await;
     
 }
