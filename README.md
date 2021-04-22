@@ -25,7 +25,7 @@ More than welcome! :D
 - [x] - Interaction validation (`crate::security::verify_discord_message()`)
 - [x] - Receive Interactions from Discord
 - [x] - Bind interactions to a function (with the help of a macro)
-- [ ] - Properly respond to interactions from Discord
+- [x] - Properly respond to interactions from Discord
 - [ ] - Nice system to make follow-up messages.
 - [ ] - Not a pile of code spaghetti that just works (oops...👀)
 
