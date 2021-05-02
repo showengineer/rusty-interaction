@@ -7,6 +7,7 @@ use serde_repr::*;
 use super::embed::*;
 use super::user::*;
 use super::Snowflake;
+use super::application::*;
 
 #[cfg(feature = "handler")]
 use log::{error, info};
@@ -15,37 +16,53 @@ use reqwest::{Client, StatusCode};
 
 #[cfg(feature = "handler")]
 #[derive(Clone)]
+/// 
 pub struct Context {
     client: Client,
+
+    /// The [`Interaction`] sent by Discord. 
     pub interaction: Interaction,
 }
 
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
+/// The base Interaction structure. When Interactions are received, this structure is wrapped inside a [`Context`] 
+/// and can be used to get information about the Interaction.
 pub struct Interaction {
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
+    /// The application id of your applicaton
     pub application_id: Option<Snowflake>,
 
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
+    /// Unique id identifying the interaction
     pub id: Option<Snowflake>,
+    /// The type of interaction
     pub r#type: InteractionType,
+    /// Interaction data, if applicable
     pub data: Option<ApplicationCommandInteractionData>,
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
+    /// The ID of the guild where the Interaction took place (None if in DM)
     pub guild_id: Option<Snowflake>,
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
+    /// The channel ID where the Interaction took place
     pub channel_id: Option<Snowflake>,
+    /// The [`Member`] who invoked the command (None if in DM, use [`User`] instead)
     pub member: Option<Member>,
+    /// The [`User`] who invoked the command (None if in guild, use [`Member`] instead)
     pub user: Option<User>,
+    /// Unique token used for editing messages and managing follow-up messages
     pub token: Option<String>,
+    /// Read-only. Always `1`
     pub version: Option<i8>,
 }
 
 #[cfg(feature = "handler")]
 impl Context {
+    /// Creates a new [`Context`]
     pub fn new(c: Client, i: Interaction) -> Self {
         Self {
             client: c,
@@ -54,10 +71,23 @@ impl Context {
     }
 
     /// Respond to an Interaction
+    /// 
+    /// This returns an [`InteractionResponseBuilder`] which you can use to build an [`InteractionResponse`]
+    /// 
+    /// # Example
+    /// ```rust
+    /// let response = ctx.respond()
+    ///                     .content("Example message")
+    ///                     .tts(true)
+    ///                     .finish();
+    /// ```
     pub fn respond(&self) -> InteractionResponseBuilder {
         InteractionResponseBuilder::default()
     }
 
+    /// Edit the original interaction response
+    /// 
+    /// This takes an [`WebhookMessage`]. You can convert an [`InteractionResponse`] using [`WebhookMessage::from`].
     pub async fn edit_original(&self, new_content: &WebhookMessage) {
         let url = format!(
             "{}/webhooks/{:?}/{}/messages/@original",
@@ -65,9 +95,6 @@ impl Context {
             self.interaction.application_id.unwrap(),
             self.interaction.token.as_ref().unwrap().to_string()
         );
-        println!("{}", url);
-        println!("{:#?}", new_content);
-        println!("Excluding any headers");
         let c = self.client.patch(&url).json(new_content).send().await;
 
         match c {
@@ -82,7 +109,7 @@ impl Context {
                         r.text().await
                     );
                 } else {
-                    info!("Sucessfully edited original message: {:#?}", r.text().await)
+                    // info!("Sucessfully edited original message: {:#?}", r.text().await)
                 }
             }
         }
@@ -92,43 +119,44 @@ impl Context {
 #[allow(non_camel_case_types)]
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
 #[repr(u8)]
+/// Represents the type of interaction that comes in.
 pub enum InteractionType {
+    /// Discord requested a ping
     PING = 1,
+    /// A slash command
     APPLICATION_COMMAND = 2,
 }
-#[serde_as]
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct ApplicationCommandInteractionData {
-    #[serde_as(as = "DisplayFromStr")]
-    pub id: Snowflake,
-    pub name: String,
-    pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
-}
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct ApplicationCommandInteractionDataOption {
-    pub name: String,
-    pub value: String,
-    pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
-}
 
-// InteractonResponse
+
+
 
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
+/// Struct repesenting an Interaction response
+/// 
+/// This is used to respond to incoming interactions. 
 pub struct InteractionResponse {
+    /// Type of response
     pub r#type: InteractionResponseType,
+
+    /// Optional data field
     pub data: Option<InteractionApplicationCommandCallbackData>,
 }
 
 #[cfg(feature = "handler")]
 #[derive(Clone, Debug)]
+/// Builder for making a [`InteractionResponse`]
+
 pub struct InteractionResponseBuilder {
+    #[doc(hidden)]
     pub r#type: InteractionResponseType,
+    #[doc(hidden)]
     pub data: Option<InteractionApplicationCommandCallbackData>,
 }
 
 impl InteractionResponse {
+    /// Creates a new InteractionResponse
     pub fn new(
         rtype: InteractionResponseType,
         data: Option<InteractionApplicationCommandCallbackData>,
@@ -161,12 +189,13 @@ impl InteractionResponseBuilder {
         }
     }
 
+    /// Sets the [`InteractionResponseType`]
     pub fn respond_type(mut self, t: InteractionResponseType) -> Self {
         self.r#type = t;
         self
     }
 
-    /// Fills the `InteractionResponse` with some `InteractionApplicationCommandCallbackData`
+    /// Fills the [`InteractionResponse`] with some [`InteractionApplicationCommandCallbackData`]
     /// This returns an `InteractionResponse` and consumes itself.
     pub fn data(mut self, d: InteractionApplicationCommandCallbackData) -> InteractionResponse {
         self.data = Some(d);
@@ -206,7 +235,7 @@ impl InteractionResponseBuilder {
         return self.content(c);
     }
 
-    /// Add an `Embed` to the response.
+    /// Add an [`Embed`] to the response.
     /// You can add up to 10 embeds.
     pub fn add_embed(mut self, e: Embed) -> Self {
         match self.data.as_mut() {
@@ -243,15 +272,20 @@ impl InteractionResponseBuilder {
 #[derive(Clone, Serialize_repr, Deserialize_repr, Debug, PartialEq)]
 #[repr(u8)]
 #[allow(non_camel_case_types)]
+/// Representing the type of response to an [`Interaction`]
 pub enum InteractionResponseType {
+    /// ACK a PING
     PONG = 1,
+    /// Respond to an [`Interaction`] with a message
     CHANNEL_MESSAGE_WITH_SOURCE = 4,
+    /// ACK an interaction and edit a response later, the user sees a loading state
     DEFFERED_CHANNEL_MESSAGE_WITH_SOURCE = 5,
 }
 
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
+/// Representing the data used to respond to an [`Interaction`]
 pub struct InteractionApplicationCommandCallbackData {
     tts: Option<bool>,
     content: Option<String>,
@@ -261,6 +295,7 @@ pub struct InteractionApplicationCommandCallbackData {
 }
 
 impl InteractionApplicationCommandCallbackData {
+    /// Creates a new [`InteractionApplicationCommandCallbackData`]
     pub fn new() -> Self {
         Self {
             tts: None,
@@ -274,14 +309,19 @@ impl InteractionApplicationCommandCallbackData {
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[allow(non_camel_case_types)]
-enum AllowedMentionTypes {
+/// Representing the allowed mention type
+pub enum AllowedMentionTypes {
+    /// Role mentions
     ROLES,
+    /// User mentions
     USERS,
+    /// @everyone mentions
     EVERYONE,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
-struct AllowedMentions {
+/// Representing the AllowedMentions data model
+pub struct AllowedMentions {
     parse: Vec<AllowedMentionTypes>,
     roles: Vec<Snowflake>,
     users: Vec<Snowflake>,
@@ -290,9 +330,13 @@ struct AllowedMentions {
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
+/// Representing a webhook message
 pub struct WebhookMessage {
+    /// The message contents
     pub content: Option<String>,
+    /// Embeds in the message (max 10)
     pub embeds: Option<Vec<Embed>>,
+    /// Used for files.
     pub payload_json: Option<String>,
     allowed_mentions: Option<AllowedMentions>,
 }

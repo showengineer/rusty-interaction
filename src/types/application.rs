@@ -47,3 +47,26 @@ struct ApplicationCommandOptionChoice {
     // This can be int
     value: String,
 }
+
+#[serde_as]
+#[derive(Clone, Serialize, Deserialize, Debug)]
+/// Representing a slash command
+pub struct ApplicationCommandInteractionData {
+    #[serde_as(as = "DisplayFromStr")]
+    /// The unique id of the command
+    pub id: Snowflake,
+    /// The name of the command
+    pub name: String,
+    /// An array of [`ApplicationCommandInteractionDataOption`]
+    pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
+}
+#[derive(Clone, Serialize, Deserialize, Debug)]
+/// Representing a bunch of options for slash commands
+pub struct ApplicationCommandInteractionDataOption {
+    /// Name of the option
+    pub name: String,
+    /// Value of the option
+    pub value: String,
+    /// More options
+    pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
+}
