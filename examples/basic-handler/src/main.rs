@@ -1,7 +1,7 @@
 #[macro_use] extern crate rusty_interaction;
 
-use rusty_interaction::handler::{InteractionHandler};
-use rusty_interaction::types::*;
+use rusty_interaction::handler::InteractionHandler;
+use rusty_interaction::types::interaction::*;
 
 
 // This key is needed for verifying incoming Interactions. This verification is mandatory. 
@@ -10,21 +10,17 @@ const PUB_KEY: &str = "YOUR_APP'S_PUBLIC_KEY";
 
 
 // This macro will transform the function to something the handler can use
-// I am planning on making this an attribute macro in the future.
-SLASH_COMMAND!{
-
-    // Function handlers should take an `Interaction` object and should return an `InteractionResponse`
-    async fn test(interaction: &'interaction Interaction) -> InteractionResponse{
-        println!("I HAVE BEEN SUMMONED!!!");
+#[slash_command]
+// Function handlers should take an `Interaction` object and should return an `InteractionResponse`
+async fn test(ctx: Context) -> InteractionResponse{
+    println!("I HAVE BEEN SUMMONED!!!");
         
-        // Return a response by using the `Interaction.response` function.
-        // `Interaction.response()` returns an `InteractionResponse` without any data
-        // You can now manipulate this object by using it's functions.
-        return interaction.response(InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE)
-                .message(&String::from("Oh hey there :D!"))
-                // Finish returns self and takes ownership over the object. 
-                .finish();
-    }
+    // Return a response by using the `Context.respond` function.
+    // `Context.respond` returns an `InteractionResponseBuilder`.
+    // You can now build a `InteractionResponse` by using it's functions.
+    return ctx.respond()
+            .message("I was summoned?")
+            .finish();
 }
 
 #[actix_web::main]
