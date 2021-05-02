@@ -1,14 +1,11 @@
-
+use crate::handler::InteractionHandler;
 use crate::security::*;
 use crate::types;
-use crate::handler::{InteractionHandler};
 use actix_rt;
+use actix_web::{http, test, web, App, HttpRequest};
+use ed25519_dalek::PublicKey;
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
-use ed25519_dalek::{PublicKey};
 use hex;
-use actix_web::{test, http, HttpRequest, web, App};
-
-
 
 /*const TEST_PUB_KEY: [u8; PUBLIC_KEY_LENGTH] = [
     0x82, 0xd8, 0xd9, 0x7f, 0xe0, 0x64, 0x1e, 0x68, 0xa1, 0xb0, 0xb1, 0x12, 0x20, 0xf0, 0x5e, 0x9e,
@@ -22,25 +19,28 @@ SECURITY TESTS
 */
 #[test]
 // Discord interaction verification test OK 1
-fn crypto_verify_test_ok(){
+fn crypto_verify_test_ok() {
     let bytes = hex::decode(TEST_PUB_KEY);
     let a = convert_to_arr::<u8, PUBLIC_KEY_LENGTH>(bytes.unwrap());
     let pbk = PublicKey::from_bytes(&a);
     if pbk.is_err() {
         panic!("Failed to convert public key.");
     }
-    let res = verify_discord_message(pbk.unwrap(), 
+    let res = verify_discord_message(pbk.unwrap(),
         "c41278a0cf22bf8f3061756063cd7ef548a3df23d0ffc5496209aa0ad4d9593343801bf11e099f41bca1afcac2c70734eebafede3dec7aac1caa5d8fade5af0c",
         "1616343571",
         &String::from("{\"type\" : 1}"));
-    match res{
-        Err(e) => {
-            match e {
-                ValidationError::KeyConversionError {name} => panic!("One of the keys failed to convert to proper types! Key: {}", name),
-                ValidationError::InvalidSignatureError => panic!("Unexpected invalidation of signature"),
+    match res {
+        Err(e) => match e {
+            ValidationError::KeyConversionError { name } => panic!(
+                "One of the keys failed to convert to proper types! Key: {}",
+                name
+            ),
+            ValidationError::InvalidSignatureError => {
+                panic!("Unexpected invalidation of signature")
             }
         },
-        Ok(_) =>{
+        Ok(_) => {
             // Good!
         }
     }
@@ -49,25 +49,30 @@ fn crypto_verify_test_ok(){
 #[test]
 #[should_panic]
 // Discord interacton verification test invalid 1
-fn crypto_verify_test_fail(){
+fn crypto_verify_test_fail() {
     let bytes = hex::decode(TEST_PUB_KEY);
     let a = convert_to_arr::<u8, PUBLIC_KEY_LENGTH>(bytes.unwrap());
     let pbk = PublicKey::from_bytes(&a);
     if pbk.is_err() {
         panic!("Failed to convert public key.");
     }
-    let res = verify_discord_message(pbk.unwrap(), 
+    let res = verify_discord_message(pbk.unwrap(),
         "69696969696969696696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696696969",
         "1616343571",
         &String::from("{\"type\" : 1}"));
-    match res{
+    match res {
         Err(e) => {
             match e {
-                ValidationError::KeyConversionError {name} => panic!("One of the keys failed to convert to proper types! Key: {}", name),
-                ValidationError::InvalidSignatureError => panic!("Unexpected invalidation of signature"), // This is what it should be!
+                ValidationError::KeyConversionError { name } => panic!(
+                    "One of the keys failed to convert to proper types! Key: {}",
+                    name
+                ),
+                ValidationError::InvalidSignatureError => {
+                    panic!("Unexpected invalidation of signature")
+                } // This is what it should be!
             }
-        },
-        Ok(_) =>{
+        }
+        Ok(_) => {
             // Good!
         }
     }
@@ -78,12 +83,15 @@ Discord Interactions API tests (endpoint: /api/discord/interactions)
 
 macro_rules! interaction_app_init {
     ($ih: ident) => {
-        
-        test::init_service(App::new()
-        .data($ih.clone())
-        .route("/api/discord/interactions", web::post().to(|data: web::Data<InteractionHandler>, req: HttpRequest, body: web::Bytes| {let data = data.into_inner(); async move{
-            (*data).clone().interaction(req, body).await
-        }})))
+        test::init_service(App::new().data($ih.clone()).route(
+            "/api/discord/interactions",
+            web::post().to(
+                |data: web::Data<InteractionHandler>, req: HttpRequest, body: web::Bytes| {
+                    let data = data.into_inner();
+                    async move { (*data).clone().interaction(req, body).await }
+                },
+            ),
+        ))
         .await;
     };
 }
@@ -91,7 +99,7 @@ macro_rules! interaction_app_init {
 #[actix_rt::test]
 // Request with bad content with no Content-Type header present
 // Expected result: Return 400 without panicking
-async fn interactions_no_content_type_header_test(){
+async fn interactions_no_content_type_header_test() {
     let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
@@ -104,13 +112,12 @@ async fn interactions_no_content_type_header_test(){
     let res: types::MessageError = test::read_response_json(&mut app, req).await;
 
     assert_eq!(res.message, "Bad Content-Type");
-
 }
 
 #[actix_rt::test]
 // Request with bad content with no Content-Type header present
 // Expected result: Return 400 without panicking
-async fn interactions_bad_content_type_header_test(){
+async fn interactions_bad_content_type_header_test() {
     let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
@@ -124,13 +131,12 @@ async fn interactions_bad_content_type_header_test(){
     let res: types::MessageError = test::read_response_json(&mut app, req).await;
 
     assert_eq!(res.message, "Bad Content-Type");
-
 }
 
 #[actix_rt::test]
 // Request with missing X-Signature-Ed25519 Header
 // Expected result: Return 400 without panicking
-async fn interactions_no_signature_header_test(){
+async fn interactions_no_signature_header_test() {
     let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
@@ -145,13 +151,12 @@ async fn interactions_no_signature_header_test(){
     let res: types::MessageError = test::read_response_json(&mut app, req).await;
 
     assert_eq!(res.message, "Bad signature data");
-
 }
 
 #[actix_rt::test]
 // Request with missing X-Signature-Timestamp Header
 // Expected result: Return 400 without panicking
-async fn interactions_no_timestamp_header_test(){
+async fn interactions_no_timestamp_header_test() {
     let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
@@ -166,13 +171,12 @@ async fn interactions_no_timestamp_header_test(){
     let res: types::MessageError = test::read_response_json(&mut app, req).await;
 
     assert_eq!(res.message, "Bad signature data");
-
 }
 
 #[actix_rt::test]
 // Request with missing a signature that is too short (< 512 bits)
 // Expected result: Return 400 without panicking
-async fn interactions_bad_signature_length_short_test(){
+async fn interactions_bad_signature_length_short_test() {
     let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
@@ -180,20 +184,22 @@ async fn interactions_bad_signature_length_short_test(){
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
         .header("Content-Type", "application/json")
-        .header("X-Signature-Ed25519", "69696969696969696696969696969696969696969696969696969696969696969")
+        .header(
+            "X-Signature-Ed25519",
+            "69696969696969696696969696969696969696969696969696969696969696969",
+        )
         .set_payload("This is some malformed text { the system : can't really handle }")
         .to_request();
 
     let res: types::MessageError = test::read_response_json(&mut app, req).await;
 
     assert_eq!(res.message, "Bad signature data");
-
 }
 
 #[actix_rt::test]
 // Request with missing a signature that is too long (> 512 bits)
 // Expected result: Return 400 without panicking
-async fn interactions_bad_signature_length_too_long_test(){
+async fn interactions_bad_signature_length_too_long_test() {
     let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
@@ -208,13 +214,12 @@ async fn interactions_bad_signature_length_too_long_test(){
     let res: types::MessageError = test::read_response_json(&mut app, req).await;
 
     assert_eq!(res.message, "Bad signature data");
-
 }
 
 #[actix_rt::test]
 // Normal ping request
 // Expected result: Return 200 with payload
-async fn interactions_ping_test(){
+async fn interactions_ping_test() {
     let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
@@ -227,16 +232,19 @@ async fn interactions_ping_test(){
         .set_payload("{\"type\" : 1}")
         .to_request();
 
-    let res: types::interaction::InteractionResponse = test::read_response_json(&mut app, req).await;
+    let res: types::interaction::InteractionResponse =
+        test::read_response_json(&mut app, req).await;
 
-    assert_eq!(res.r#type, types::interaction::InteractionResponseType::PONG);
-
+    assert_eq!(
+        res.r#type,
+        types::interaction::InteractionResponseType::PONG
+    );
 }
 
 #[actix_rt::test]
-// Bad content but OK signature test 
+// Bad content but OK signature test
 // Expected result: Return 400 with error, don't panic
-async fn interactions_bad_body_test(){
+async fn interactions_bad_body_test() {
     let ih = InteractionHandler::new(TEST_PUB_KEY);
 
     let mut app = interaction_app_init!(ih);
@@ -252,5 +260,4 @@ async fn interactions_bad_body_test(){
     let res = test::call_service(&mut app, req).await;
 
     assert_eq!(res.status(), http::StatusCode::BAD_REQUEST);
-
 }

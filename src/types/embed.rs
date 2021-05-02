@@ -4,7 +4,6 @@ use serde_with::*;
 
 use std::time::SystemTime;
 
-
 // ======== Structures =========
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -75,6 +74,5 @@ struct EmbedField {
     value: String,
     inline: bool,
 }
-
 
 // ========== IMPLS ===========

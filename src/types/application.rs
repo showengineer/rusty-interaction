@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::*;
 
-use super::{Snowflake};
+use super::Snowflake;
 use serde_repr::*;
 
 #[serde_as]

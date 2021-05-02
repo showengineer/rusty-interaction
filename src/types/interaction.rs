@@ -6,14 +6,13 @@ use serde_repr::*;
 
 use super::embed::*;
 use super::user::*;
-use super::{Snowflake};
+use super::Snowflake;
 
-use log::{info, error};
+use log::{error, info};
 use reqwest::{Client, StatusCode};
 
-
 #[derive(Clone)]
-pub struct Context{
+pub struct Context {
     client: Client,
     pub interaction: Interaction,
 }
@@ -21,7 +20,6 @@ pub struct Context{
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Interaction {
-
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
     pub application_id: Option<Snowflake>,
@@ -43,45 +41,49 @@ pub struct Interaction {
     pub version: Option<i8>,
 }
 
-
-
-impl Context{
-    pub fn new(c: Client, i: Interaction) -> Self{
-        Self{
+impl Context {
+    pub fn new(c: Client, i: Interaction) -> Self {
+        Self {
             client: c,
             interaction: i,
         }
     }
 
     /// Respond to an Interaction
-    pub fn respond(&self) -> InteractionResponseBuilder{
+    pub fn respond(&self) -> InteractionResponseBuilder {
         InteractionResponseBuilder::default()
     }
 
-    pub async fn edit_original(&self, new_content: &WebhookMessage){
-        let url = format!("{}/webhooks/{:?}/{}/messages/@original", crate::BASE_URL, self.interaction.application_id.unwrap(), self.interaction.token.as_ref().unwrap().to_string());
+    pub async fn edit_original(&self, new_content: &WebhookMessage) {
+        let url = format!(
+            "{}/webhooks/{:?}/{}/messages/@original",
+            crate::BASE_URL,
+            self.interaction.application_id.unwrap(),
+            self.interaction.token.as_ref().unwrap().to_string()
+        );
         println!("{}", url);
         println!("{:#?}", new_content);
         println!("Excluding any headers");
-        let c = self.client.patch(&url)
-            .json(new_content)
-            .send()
-            .await;
+        let c = self.client.patch(&url).json(new_content).send().await;
 
-        match c{
-            Err(e) => {error!("Editing original message failed: {:?}", e)},
+        match c {
+            Err(e) => {
+                error!("Editing original message failed: {:?}", e)
+            }
             Ok(r) => {
-                if r.status() != StatusCode::OK{
-                    error!("Editing original message failed: API Returned {:?}{:#?}", r.status(), r.text().await);
-                }
-                else{
+                if r.status() != StatusCode::OK {
+                    error!(
+                        "Editing original message failed: API Returned {:?}{:#?}",
+                        r.status(),
+                        r.text().await
+                    );
+                } else {
                     info!("Sucessfully edited original message: {:#?}", r.text().await)
                 }
             }
         }
     }
 }
-
 
 #[allow(non_camel_case_types)]
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
@@ -116,128 +118,119 @@ pub struct InteractionResponse {
 }
 
 #[derive(Clone, Debug)]
-pub struct InteractionResponseBuilder{
+pub struct InteractionResponseBuilder {
     pub r#type: InteractionResponseType,
     pub data: Option<InteractionApplicationCommandCallbackData>,
 }
 
-impl InteractionResponse{
-    pub fn new(rtype: InteractionResponseType, data: Option<InteractionApplicationCommandCallbackData>) -> InteractionResponse{
-        InteractionResponse{
+impl InteractionResponse {
+    pub fn new(
+        rtype: InteractionResponseType,
+        data: Option<InteractionApplicationCommandCallbackData>,
+    ) -> InteractionResponse {
+        InteractionResponse {
             r#type: rtype,
             data: data,
         }
     }
 }
 
-
-impl Default for InteractionResponseBuilder{
+impl Default for InteractionResponseBuilder {
     /// This will default to responding with the `InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE` response type and no data.
     /// Adding data yourself is expected.
-    fn default() -> Self{
-        Self{
+    fn default() -> Self {
+        Self {
             r#type: InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE,
             data: None,
         }
     }
 }
 
-
-impl InteractionResponseBuilder{
-
-    fn ret(self) -> InteractionResponse{
-        InteractionResponse{
+impl InteractionResponseBuilder {
+    fn ret(self) -> InteractionResponse {
+        InteractionResponse {
             r#type: self.r#type,
             data: self.data,
         }
     }
 
-    pub fn respond_type(mut self, t: InteractionResponseType) -> Self{
+    pub fn respond_type(mut self, t: InteractionResponseType) -> Self {
         self.r#type = t;
         self
     }
 
     /// Fills the `InteractionResponse` with some `InteractionApplicationCommandCallbackData`
-    /// This returns an `InteractionResponse` and consumes itself. 
-    pub fn data(mut self, d: InteractionApplicationCommandCallbackData) -> InteractionResponse{
+    /// This returns an `InteractionResponse` and consumes itself.
+    pub fn data(mut self, d: InteractionApplicationCommandCallbackData) -> InteractionResponse {
         self.data = Some(d);
         self.ret()
     }
 
-    
-
     /// Sets the Text-To-Speech value of this `InteractionResponse`.
-    pub fn tts(mut self, enable: bool) -> Self{
+    pub fn tts(mut self, enable: bool) -> Self {
         // Does data exist?
-        if self.data.is_none(){
+        if self.data.is_none() {
             let mut d = InteractionApplicationCommandCallbackData::new();
             d.tts = Some(enable);
             self.data = Some(d);
-        }
-        else{
+        } else {
             self.data.as_mut().unwrap().tts = Some(enable);
         }
         self
     }
-    
+
     /// This sets the `content` for an `InteractionResponse`
-    pub fn content(mut self, c: &str) -> Self{
-        match self.data.as_mut(){
+    pub fn content(mut self, c: &str) -> Self {
+        match self.data.as_mut() {
             None => {
                 let mut d = InteractionApplicationCommandCallbackData::new();
                 d.content = Some(String::from(c));
                 self.data = Some(d);
-            },
+            }
             Some(mut d) => {
                 d.content = Some(String::from(c));
-            },
+            }
         }
         self
     }
 
     /// Sets the `content` for an `InteractionResponse`. Alias for `content()`
-    pub fn message(self, c: &str) -> Self{
+    pub fn message(self, c: &str) -> Self {
         return self.content(c);
     }
 
     /// Add an `Embed` to the response.
     /// You can add up to 10 embeds.
-    pub fn add_embed(mut self, e: Embed) -> Self{
-
-        
-
-        match self.data.as_mut(){
+    pub fn add_embed(mut self, e: Embed) -> Self {
+        match self.data.as_mut() {
             None => {
                 let mut d = InteractionApplicationCommandCallbackData::new();
                 d.embeds = Some(vec![e]);
                 self.data = Some(d);
-            },
+            }
             Some(mut d) => {
-                if d.embeds.is_none(){
+                if d.embeds.is_none() {
                     d.embeds = Some(vec![e]);
-                }
-                else{
+                } else {
                     let v = d.embeds.as_mut().unwrap();
                     // Check if this will exceed the embed limit
-                    if v.len() <= 9{
+                    if v.len() <= 9 {
                         v.push(e);
-                    }
-                    else{
+                    } else {
                         // Log an error for now.
                         error!("Tried to add embed while embed limit (max. 10 embeds) was already reached. Ignoring")
                     }
                 }
-            },
+            }
         }
         self
     }
 
     /// Returns an `InteractionResponse`, consuming itself.
     /// You can't use the builder anymore after you called this function.
-    pub fn finish(self) -> InteractionResponse{
+    pub fn finish(self) -> InteractionResponse {
         self.ret()
     }
-
 }
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, Debug, PartialEq)]
@@ -260,9 +253,9 @@ pub struct InteractionApplicationCommandCallbackData {
     flags: Option<i32>,
 }
 
-impl InteractionApplicationCommandCallbackData{
-    pub fn new() -> Self{
-        Self{
+impl InteractionApplicationCommandCallbackData {
+    pub fn new() -> Self {
+        Self {
             tts: None,
             content: None,
             embeds: None,
@@ -290,18 +283,18 @@ struct AllowedMentions {
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct WebhookMessage{
+pub struct WebhookMessage {
     pub content: Option<String>,
     pub embeds: Option<Vec<Embed>>,
     pub payload_json: Option<String>,
-    allowed_mentions: Option<AllowedMentions>
+    allowed_mentions: Option<AllowedMentions>,
 }
 
-impl From<InteractionResponse> for WebhookMessage{
-    fn from(o: InteractionResponse) -> WebhookMessage{
+impl From<InteractionResponse> for WebhookMessage {
+    fn from(o: InteractionResponse) -> WebhookMessage {
         let data = o.data.unwrap();
 
-        WebhookMessage{
+        WebhookMessage {
             content: data.content,
             embeds: data.embeds,
             payload_json: None,

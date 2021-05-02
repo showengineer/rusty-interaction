@@ -1,43 +1,23 @@
-#[cfg(feature="security")]
+#![warn(missing_docs)]
+//! Rusty-interaction is a library that allows you to work with Discord's new [Interactions](https://blog.discord.com/slash-commands-are-here-8db0a385d9e6).
+//! It can expose types and provides helper functions to validate your Interactions.
+//! It can optionally provide a handler that allows you to receive interactions via outgoing webhook.
+
+#[cfg(feature = "types")]
+/// Exposes useful data models
+pub mod types;
+
+/// Provides a helper function to validate Discord interactions.
+#[cfg(feature = "security")]
 pub mod security;
 
-#[cfg(feature="types")]
-pub mod types;
-#[cfg(feature="handler")]
+/// Provides an entire handler to handle Discord interactions.
+#[cfg(feature = "handler")]
 pub mod handler;
 
-
 pub use attributes::*;
-
-pub mod macros;
 
 #[cfg(test)]
 mod tests;
 
 const BASE_URL: &str = "https://discord.com/api/v9";
-
-
-#[macro_export]
-macro_rules! SLASH_COMMAND {(
-    $( #[$attr:meta] )* // includes doc strings
-    $pub:vis
-    async
-    fn $fname:ident ( $($args:tt)* ) $(-> $Ret:ty)?
-    {
-        $($body:tt)*
-    }
-) => (
-    $( #[$attr] )*
-    #[allow(unused_parens)]
-    $pub
-    fn $fname<'context> ( $($args)* ) -> ::std::pin::Pin<::std::boxed::Box<
-        dyn 'context + Send + ::std::future::Future<Output = ($($Ret)?)>
-    >>
-    {
-        Box::pin(async move { $($body)* })
-    }
-)}
-
-
-
-

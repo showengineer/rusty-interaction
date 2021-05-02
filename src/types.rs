@@ -1,15 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-
 // async_trait::async_trait;
-
-
 
 pub mod embed;
 
-pub mod user;
-pub mod interaction;
 pub mod application;
+pub mod interaction;
+pub mod user;
 
 //use interaction::{InteractionResponse, Interaction};
 
@@ -23,7 +20,6 @@ pub struct Error {
     pub message: String,
 }
 
-
 impl Error {
     pub fn new(code: i32, msg: String) -> Error {
         Error {
@@ -34,26 +30,18 @@ impl Error {
 }
 /// Lame Message Error structure
 #[derive(Clone, Serialize, Deserialize)]
-pub struct MessageError{
+pub struct MessageError {
     pub message: String,
 }
 
-impl MessageError{
-    pub fn new(msg: String) -> MessageError{
-        MessageError{
-            message: msg,
-        }
+impl MessageError {
+    pub fn new(msg: String) -> MessageError {
+        MessageError { message: msg }
     }
 }
 
-impl From<Error> for MessageError{
-    fn from(e: Error) -> MessageError{
-        MessageError{
-            message: e.message,
-        }
+impl From<Error> for MessageError {
+    fn from(e: Error) -> MessageError {
+        MessageError { message: e.message }
     }
 }
-
-
-
-

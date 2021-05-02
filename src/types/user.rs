@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use serde_with::*;
 use ::chrono::{DateTime, Utc};
+use serde_with::*;
 
-use super::{Snowflake};
+use super::Snowflake;
 
 // ======= STRUCTS =======
 
@@ -38,11 +38,11 @@ pub struct Member {
     #[serde_as(as = "Vec<DisplayFromStr>")]
     roles: Vec<Snowflake>,
     #[serde_as(as = "DisplayFromStr")]
-    joined_at: DateTime::<Utc>,
+    joined_at: DateTime<Utc>,
 
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
-    premium_since: Option<DateTime::<Utc>>,
+    premium_since: Option<DateTime<Utc>>,
     deaf: bool,
     mute: bool,
     pending: bool,

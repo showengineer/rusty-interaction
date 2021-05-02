@@ -1,55 +1,51 @@
 use crate::security::*;
 use crate::types::{interaction::*, MessageError};
 
-
-use actix_web::http::{StatusCode};
-use actix_web::{web, App, HttpServer, HttpRequest, HttpResponse, Result,};
-use reqwest::{Client};
-
+use actix_web::http::StatusCode;
+use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
+use reqwest::Client;
 
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
 
-use log::{ error, info};
+use log::{error, info};
 
 macro_rules! ERROR_RESPONSE {
     ($status:expr, $message:expr) => {
         let emsg = MessageError::new(String::from($message));
-        
+
         return Ok(HttpResponse::build(StatusCode::from_u16($status).unwrap())
             .content_type("application/json")
             .json(emsg));
     };
 }
 
-use ed25519_dalek::{PublicKey};
+use ed25519_dalek::PublicKey;
 use hex;
 
-use rustls::{ServerConfig};
+use rustls::ServerConfig;
 
-use std::collections::HashMap;
 use std::boxed::Box;
-use std::pin::Pin;
+use std::collections::HashMap;
 use std::future::Future;
-
-
+use std::pin::Pin;
 
 pub type HandlerResponse = InteractionResponse;
 
 #[derive(Clone)]
+/// The InteractionHandler is the 'thing' that will handle your incoming interactions.
+/// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
+/// with [`InteractionHandler::run`] and [`InteractionHandler::run_ssl`]
 pub struct InteractionHandler {
     /// The public key of your application.
     pub app_public_key: PublicKey,
     client: Client,
     /// Your bot token or bearer
     //auth_key: &'static str,
-    // Might want to change this to use the command id rather than the name of the command: prone to duplicates. 
-    handles: HashMap::<&'static str, fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>>,
+    // Might want to change this to use the command id rather than the name of the command: prone to duplicates.
+    handles:
+        HashMap<&'static str, fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>>,
 }
 
-
-/// The InteractionHandler is the 'thing' that will handle your incoming interactions.
-/// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
-/// with [`run()`] and [`run_ssl()`]
 impl InteractionHandler {
     #[allow(unused_assignments)]
     /// Initalizes a new `InteractionHandler`
@@ -57,12 +53,12 @@ impl InteractionHandler {
         let bytes = hex::decode(pbk_str);
 
         // Init a normal array.
-        let mut pbk_bytes: [u8; PUBLIC_KEY_LENGTH] = [0;PUBLIC_KEY_LENGTH];
+        let mut pbk_bytes: [u8; PUBLIC_KEY_LENGTH] = [0; PUBLIC_KEY_LENGTH];
 
-        match bytes{
+        match bytes {
             Err(_) => panic!("Failed to parse the public key"),
             Ok(k) => {
-                if k.len() != PUBLIC_KEY_LENGTH{
+                if k.len() != PUBLIC_KEY_LENGTH {
                     panic!("Failed to parse the public key (bad length)");
                 }
                 pbk_bytes = convert_to_arr::<u8, PUBLIC_KEY_LENGTH>(k);
@@ -80,31 +76,59 @@ impl InteractionHandler {
     }
 
     /// Binds an async function to a command.
-    /// Your function must take a [`Context`] as an argument and must return a [`InteractionResponse`]
-    /// 
-    pub fn add_command(&mut self, name: &'static str, func: fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>){
-        self.handles.insert(name, func);
+    /// Your function must take a [`Context`] as an argument and must return a [`InteractionResponse`].
+    /// Make sure to use the `#[slash_command]` procedural macro to make it usable for the handler.
+    ///
+    /// Like:
+    /// ```rust
+    /// #[slash_command]
+    /// async fn do_work(ctx: Context) -> InteractionResponse{
+    ///     // Do work and return a response
+    /// }
+    /// ```
+    /// # Example
+    /// ```rust
+    /// const PUB_KEY: &str = "my_public_key"
+    ///
+    /// #[slash_command]
+    /// async fn pong_handler(ctx: Context) -> InteractionResponse{
+    ///     return ctx.respond()
+    ///             .content("Pong!")
+    ///             .finish();
+    /// }
+    ///
+    /// #[actix_web::main]
+    /// async fn main() -> std::io::Result<()> {
+    ///
+    ///     let mut handle = InteractionHandler::new(PUB_KEY);
 
+    ///     handle.add_command("ping", pong_handler);
+    ///     
+
+    ///     return handle.run().await;
+    /// }
+    /// ```
+    pub fn add_command(
+        &mut self,
+        name: &'static str,
+        func: fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>,
+    ) {
+        self.handles.insert(name, func);
     }
 
     /// Entry point function for handling `Interactions`
     pub async fn interaction(&self, req: HttpRequest, body: web::Bytes) -> Result<HttpResponse> {
-
         // Check for good content type --> must be application/json
         let ct = get_header(&req, "Content-Type");
         if ct.is_some() {
-            
             if ct.unwrap() != "application/json" {
                 error!("BAD CONTENT");
                 ERROR_RESPONSE!(400, "Bad Content-Type");
-                
             }
         } else {
             error!("BAD CONTENT");
             ERROR_RESPONSE!(400, "Bad Content-Type");
-            
         }
-
 
         let se = get_header(&req, "X-Signature-Ed25519");
         let st = get_header(&req, "X-Signature-Timestamp");
@@ -113,7 +137,6 @@ impl InteractionHandler {
         if se.is_none() || st.is_none() {
             error!("NO HEADERS");
             ERROR_RESPONSE!(400, "Bad signature data");
-            
         }
 
         // TODO: Domain check might be a good one.
@@ -128,7 +151,6 @@ impl InteractionHandler {
             Err(_) => {
                 error!("BAD SIGNATURE");
                 ERROR_RESPONSE!(401, "Invalid request signature");
-                
             }
 
             // Signature OK. Continue with interaction processing.
@@ -136,32 +158,27 @@ impl InteractionHandler {
         }
 
         // Security checks passed, try deserializing request to Interaction.
-        match serde_json::from_slice::<Interaction>(&body){
+        match serde_json::from_slice::<Interaction>(&body) {
             Err(e) => {
                 error!("BAD FORM: {:?}. Error: {}", body, e);
                 ERROR_RESPONSE!(400, format!("Bad body: {}", e));
-                
-            },
-            Ok(v) =>{
-                if v.r#type == InteractionType::PING{
+            }
+            Ok(v) => {
+                if v.r#type == InteractionType::PING {
                     let response = InteractionResponse::new(InteractionResponseType::PONG, None);
                     info!("RESP: PONG");
                     return Ok(HttpResponse::build(StatusCode::OK)
                         .content_type("application/json")
                         .json(response));
-
-                    
-                }
-                else{
-                    if v.data.is_none(){
+                } else {
+                    if v.data.is_none() {
                         ERROR_RESPONSE!(500, "Failed to unwrap");
                     }
 
                     let dat = v.clone().data.unwrap();
 
-
-                    match self.handles.get(dat.name.as_str()){
-                        Some(f) =>{
+                    match self.handles.get(dat.name.as_str()) {
+                        Some(f) => {
                             let cpy = v.clone();
 
                             // construct a Context
@@ -175,58 +192,59 @@ impl InteractionHandler {
                             return Ok(HttpResponse::build(StatusCode::OK)
                                 .content_type("application/json")
                                 .json(r));
-                        },
-                        None => {ERROR_RESPONSE!(500, "No associated handler found");}
+                        }
+                        None => {
+                            ERROR_RESPONSE!(500, "No associated handler found");
+                        }
                     }
-                   
                 }
-                
             }
         }
-        
     }
 
-    /// This is a predefined function that starts an `actix_web::HttpServer` and binds `self.interaction` to `/api/discord/interacitons`. 
+    /// This is a predefined function that starts an `actix_web::HttpServer` and binds `self.interaction` to `/api/discord/interacitons`.
     /// Note that you'll eventually have to switch to an HTTPS server. This function does not provide this.
-    pub async fn run(self) -> std::io::Result<()>{
+    ///
+    /// **The server runs on port 10080!**
+    pub async fn run(self) -> std::io::Result<()> {
         HttpServer::new(move || {
-            App::new()
-            .data(self.clone())
-            .route("/api/discord/interactions", web::post().to(|data: web::Data<InteractionHandler>, req: HttpRequest, body: web::Bytes|{ 
-                let data = data.into_inner();
-                async move{
-                    (*data).clone().interaction(req, body).await
-                }
-            }))
+            App::new().data(self.clone()).route(
+                "/api/discord/interactions",
+                web::post().to(
+                    |data: web::Data<InteractionHandler>, req: HttpRequest, body: web::Bytes| {
+                        let data = data.into_inner();
+                        async move { (*data).clone().interaction(req, body).await }
+                    },
+                ),
+            )
         })
         .bind("0.0.0.0:10080")?
         .run()
         .await
     }
 
-    /// Starts an HTTPS server running the API.
-    pub async fn run_ssl(self, server_conf: ServerConfig) -> std::io::Result<()>{
+    /// Same as [`InteractionHandler::run`] but starts a server with SSL/TLS.
+    ///
+    /// **The server runs on port 10443!**
+    pub async fn run_ssl(self, server_conf: ServerConfig) -> std::io::Result<()> {
         HttpServer::new(move || {
-            App::new()
-            .data(self.clone())
-            .route("/api/discord/interactions", web::post().to(|data: web::Data<InteractionHandler>, req: HttpRequest, body: web::Bytes|{ 
-                let data = data.into_inner();
-                async move{
-                    (*data).clone().interaction(req, body).await
-                }
-            }))
+            App::new().data(self.clone()).route(
+                "/api/discord/interactions",
+                web::post().to(
+                    |data: web::Data<InteractionHandler>, req: HttpRequest, body: web::Bytes| {
+                        let data = data.into_inner();
+                        async move { (*data).clone().interaction(req, body).await }
+                    },
+                ),
+            )
         })
         .bind_rustls("0.0.0.0:10443", server_conf)?
         .run()
         .await
     }
-
-
-   
-
 }
 
 /// Simpler header getter from a HTTP request
-fn get_header<'a>(req: &'a HttpRequest, header: &str) -> Option<&'a str>{
+fn get_header<'a>(req: &'a HttpRequest, header: &str) -> Option<&'a str> {
     req.headers().get(header)?.to_str().ok()
 }
