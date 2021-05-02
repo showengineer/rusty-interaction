@@ -227,9 +227,9 @@ async fn interactions_ping_test(){
         .set_payload("{\"type\" : 1}")
         .to_request();
 
-    let res: types::InteractionResponse = test::read_response_json(&mut app, req).await;
+    let res: types::interaction::InteractionResponse = test::read_response_json(&mut app, req).await;
 
-    assert_eq!(res.r#type, types::InteractionResponseType::PONG);
+    assert_eq!(res.r#type, types::interaction::InteractionResponseType::PONG);
 
 }
 

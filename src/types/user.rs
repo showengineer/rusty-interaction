@@ -1,8 +1,10 @@
-use serde::{Deserialize, Serialize, Deserializer, de};
-#[macro_use]
+use serde::{Deserialize, Serialize};
+
 use serde_with::*;
 use ::chrono::{DateTime, Utc};
-use crate::types::{Snowflake};
+
+use super::{Snowflake};
+
 // ======= STRUCTS =======
 
 #[serde_as]
@@ -19,8 +21,6 @@ pub struct User {
     pub locale: Option<String>,
     pub verified: Option<bool>,
     pub email: Option<String>,
-    // Has anyone noticed Discord's inconsistency with datatypes in JSON? 
-    // One field may be presented as a string while the other as an integer. Tf?!
     pub flags: Option<i32>,
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]

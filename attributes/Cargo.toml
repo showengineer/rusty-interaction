@@ -1,8 +1,12 @@
 [package]
-name = "discord_interactions_macros"
-version = "0.1.0"
+name = "attributes"
+version = "0.0.0"
 authors = ["Hugo Woesthuis <hugow2011@outlook.com>"]
 edition = "2018"
 
 [lib]
 proc-macro = true
+
+[dependencies]
+syn = {version = "1.0.71", features=["full"]}
+quote = {version = "1.0.9"}

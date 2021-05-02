@@ -1,12 +1,15 @@
 use crate::security::*;
-use crate::types::*;
+use crate::types::{interaction::*, MessageError};
 
 
 use actix_web::http::{StatusCode};
 use actix_web::{web, App, HttpServer, HttpRequest, HttpResponse, Result,};
+use reqwest::{Client};
+
+
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
 
-use log::{debug, error, log_enabled, info, Level};
+use log::{ error, info};
 
 macro_rules! ERROR_RESPONSE {
     ($status:expr, $message:expr) => {
@@ -34,13 +37,22 @@ pub type HandlerResponse = InteractionResponse;
 
 #[derive(Clone)]
 pub struct InteractionHandler {
-    app_public_key: PublicKey,
-    //handles: HashMap::<&'static str, fn(&'_ Interaction) -> Pin<Box<dyn Future<Output = ()> + Send + '_>>>,
-    handles: HashMap::<&'static str, fn(&'_ Interaction) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send + '_>>>,
+    /// The public key of your application.
+    pub app_public_key: PublicKey,
+    client: Client,
+    /// Your bot token or bearer
+    //auth_key: &'static str,
+    // Might want to change this to use the command id rather than the name of the command: prone to duplicates. 
+    handles: HashMap::<&'static str, fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>>,
 }
 
 
+/// The InteractionHandler is the 'thing' that will handle your incoming interactions.
+/// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
+/// with [`run()`] and [`run_ssl()`]
 impl InteractionHandler {
+    #[allow(unused_assignments)]
+    /// Initalizes a new `InteractionHandler`
     pub fn new(pbk_str: &str) -> InteractionHandler {
         let bytes = hex::decode(pbk_str);
 
@@ -62,11 +74,15 @@ impl InteractionHandler {
         }
         return InteractionHandler {
             app_public_key: pbk.unwrap(),
+            client: Client::new(),
             handles: HashMap::new(),
         };
     }
 
-    pub fn add_command(&mut self, name: &'static str, func: fn(&'_ Interaction) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send + '_>>){
+    /// Binds an async function to a command.
+    /// Your function must take a [`Context`] as an argument and must return a [`InteractionResponse`]
+    /// 
+    pub fn add_command(&mut self, name: &'static str, func: fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>){
         self.handles.insert(name, func);
 
     }
@@ -127,7 +143,6 @@ impl InteractionHandler {
                 
             },
             Ok(v) =>{
-                //TODO: Reponds with OK PONG, parse it to interaction handler
                 if v.r#type == InteractionType::PING{
                     let response = InteractionResponse::new(InteractionResponseType::PONG, None);
                     info!("RESP: PONG");
@@ -147,11 +162,19 @@ impl InteractionHandler {
 
                     match self.handles.get(dat.name.as_str()){
                         Some(f) =>{
+                            let cpy = v.clone();
+
+                            // construct a Context
+                            let ctx = Context::new(self.client.clone(), cpy);
                             // Call the handler
-                            let r = f(&v).await;
+                            let r = f(ctx).await;
+
+                            // do stuff with v if needed
 
                             // Send out a response to Discord
-                            return Ok(HttpResponse::build(StatusCode::OK).content_type("application/json").json(r));
+                            return Ok(HttpResponse::build(StatusCode::OK)
+                                .content_type("application/json")
+                                .json(r));
                         },
                         None => {ERROR_RESPONSE!(500, "No associated handler found");}
                     }
@@ -181,6 +204,7 @@ impl InteractionHandler {
         .await
     }
 
+    /// Starts an HTTPS server running the API.
     pub async fn run_ssl(self, server_conf: ServerConfig) -> std::io::Result<()>{
         HttpServer::new(move || {
             App::new()

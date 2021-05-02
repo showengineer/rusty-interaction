@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
-#[macro_use]
+
 use serde_with::*;
 
 use std::time::SystemTime;
 
 
 // ======== Structures =========
-
+#[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Embed {
     title: String,
