@@ -8,9 +8,12 @@ use super::embed::*;
 use super::user::*;
 use super::Snowflake;
 
+#[cfg(feature = "handler")]
 use log::{error, info};
+#[cfg(feature = "handler")]
 use reqwest::{Client, StatusCode};
 
+#[cfg(feature = "handler")]
 #[derive(Clone)]
 pub struct Context {
     client: Client,
@@ -41,6 +44,7 @@ pub struct Interaction {
     pub version: Option<i8>,
 }
 
+#[cfg(feature = "handler")]
 impl Context {
     pub fn new(c: Client, i: Interaction) -> Self {
         Self {
@@ -117,6 +121,7 @@ pub struct InteractionResponse {
     pub data: Option<InteractionApplicationCommandCallbackData>,
 }
 
+#[cfg(feature = "handler")]
 #[derive(Clone, Debug)]
 pub struct InteractionResponseBuilder {
     pub r#type: InteractionResponseType,
@@ -135,6 +140,7 @@ impl InteractionResponse {
     }
 }
 
+#[cfg(feature = "handler")]
 impl Default for InteractionResponseBuilder {
     /// This will default to responding with the `InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE` response type and no data.
     /// Adding data yourself is expected.
@@ -146,6 +152,7 @@ impl Default for InteractionResponseBuilder {
     }
 }
 
+#[cfg(feature = "handler")]
 impl InteractionResponseBuilder {
     fn ret(self) -> InteractionResponse {
         InteractionResponse {

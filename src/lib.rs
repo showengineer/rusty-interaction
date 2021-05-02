@@ -14,7 +14,7 @@ pub mod security;
 /// Provides an entire handler to handle Discord interactions.
 #[cfg(feature = "handler")]
 pub mod handler;
-
+#[cfg(feature = "handler")]
 pub use attributes::*;
 
 #[cfg(test)]
