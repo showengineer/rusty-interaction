@@ -5,17 +5,14 @@ This library provides types and helper functions for handling Discord's [Interac
 The code is a straight rip out of one of my bots and it needs work.
 
 ## Install instructions
-Due to the fact that this library is far from done, it hasn't been published to the crates.io repo (yet). However, installing the library isn't very hard.
+Due to the fact that this library is far from done, it hasn't been published to the crates.io repo (yet). However, installing the library is just as easy as normal.
 Follow the following steps:
-1. Clone this repository. I'd recommend adding this to your project using git's submodules: `git submodule add https://github.com/hugopilot/rusty-interaction`
-1. Go to your `Cargo.toml` file. Add the following to this file:
+Add this dependency entry to your `cargo.toml` file:
 ```toml
-[dependencies.rusty_interaction]
-path = "../rusty-interaction"
+rusty-interaction = { git = "https://github.com/hugopilot/rusty-interaction" } 
 ```
 `path` is the location of the repo you just cloned, change it accordingly. The library comes with the `types` and `security` features by default. If you also wish to use the `handler` feature, add `features = ["handler"]` to the dependency entry.
 
-3. Profit!
 
 ## Contributing
 More than welcome! :D
