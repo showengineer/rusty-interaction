@@ -1,5 +1,5 @@
 use crate::security::*;
-use crate::types::{interaction::*, MessageError};
+use crate::types::interaction::*;
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use reqwest::Client;
@@ -93,11 +93,11 @@ impl InteractionHandler {
         if let Some(ct) = req.headers().get("Content-Type") {
             if ct != "application/json" {
                 error!("BAD CONTENT");
-                ERROR_RESPONSE!(400, "Bad Content-Type");
+                return ERROR_RESPONSE!(400, "Bad Content-Type");
             }
         } else {
             error!("BAD CONTENT");
-            ERROR_RESPONSE!(400, "Bad Content-Type");
+            return ERROR_RESPONSE!(400, "Bad Content-Type");
         }
 
         let se = get_header(&req, "X-Signature-Ed25519");
@@ -114,20 +114,20 @@ impl InteractionHandler {
                 // TODO: Switch error response
 
                 error!("BAD SIGNATURE");
-                ERROR_RESPONSE!(401, "Invalid request signature");
+                return ERROR_RESPONSE!(401, "Invalid request signature");
             }
         } else {
             // If proper headers are not present reject.
 
             error!("MISSING HEADERS");
-            ERROR_RESPONSE!(400, "Bad signature data");
+            return ERROR_RESPONSE!(400, "Bad signature data");
         }
 
         // Security checks passed, try deserializing request to Interaction.
         match serde_json::from_str::<Interaction>(&body) {
             Err(e) => {
                 error!("BAD FORM: {:?}. Error: {}", body, e);
-                ERROR_RESPONSE!(400, format!("Bad body: {}", e));
+                return ERROR_RESPONSE!(400, format!("Bad body: {}", e));
             }
             Ok(interaction) => {
                 if interaction.r#type == InteractionType::PING {
@@ -141,7 +141,7 @@ impl InteractionHandler {
                 let data = if let Some(ref data) = interaction.data {
                     data
                 } else {
-                    ERROR_RESPONSE!(500, "Failed to unwrap");
+                    return ERROR_RESPONSE!(500, "Failed to unwrap");
                 };
 
                 if let Some(handler) = self.handles.get(data.name.as_str()) {
@@ -156,7 +156,7 @@ impl InteractionHandler {
                     // Send out a response to Discord
                     Ok(HttpResponse::build(StatusCode::OK).json(response))
                 } else {
-                    ERROR_RESPONSE!(500, "No associated handler found");
+                    ERROR_RESPONSE!(500, "No associated handler found")
                 }
             }
         }
