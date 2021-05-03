@@ -9,9 +9,9 @@ Due to the fact that this library is far from done, it hasn't been published to 
 Follow the following steps:
 Add this dependency entry to your `cargo.toml` file:
 ```toml
-rusty-interaction = { git = "https://github.com/hugopilot/rusty-interaction" } 
+rusty-interaction = { version = "0.1.0", git = "https://github.com/hugopilot/rusty-interaction" } 
 ```
-`path` is the location of the repo you just cloned, change it accordingly. The library comes with the `types` and `security` features by default. If you also wish to use the `handler` feature, add `features = ["handler"]` to the dependency entry.
+The library comes with the `types` and `security` features by default. If you also wish to use the `handler` feature, add `features = ["handler"]` to the dependency entry.
 
 
 ## Contributing

@@ -33,7 +33,7 @@ pub fn verify_discord_message(
     let msg = format!("{}{}", timestamp, body);
     match hex::decode(signature) {
         Err(_) => {
-            return Err(ValidationError::KeyConversionError { name: "Signature" });
+            Err(ValidationError::KeyConversionError { name: "Signature" })
         }
         Ok(s) => {
             if s.len() != SIGNATURE_LENGTH {
@@ -45,10 +45,10 @@ pub fn verify_discord_message(
             let sign = Signature::from(sa);
             match public_key.verify(msg.as_bytes(), &sign) {
                 Err(_) => {
-                    return Err(ValidationError::InvalidSignatureError);
+                    Err(ValidationError::InvalidSignatureError)
                 }
                 Ok(()) => {
-                    return Ok(());
+                    Ok(())
                 }
             }
         }

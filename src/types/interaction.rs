@@ -163,7 +163,7 @@ impl InteractionResponse {
     ) -> InteractionResponse {
         InteractionResponse {
             r#type: rtype,
-            data: data,
+            data,
         }
     }
 }

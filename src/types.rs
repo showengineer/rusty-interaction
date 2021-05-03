@@ -23,7 +23,7 @@ pub struct Error {
 impl Error {
     pub fn new(code: i32, msg: String) -> Error {
         Error {
-            code: code,
+            code,
             message: msg,
         }
     }
