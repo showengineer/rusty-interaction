@@ -84,9 +84,8 @@ macro_rules! interaction_app_init {
         test::init_service(App::new().data($ih.clone()).route(
             "/api/discord/interactions",
             web::post().to(
-                |data: web::Data<InteractionHandler>, req: HttpRequest, body: web::Bytes| {
-                    let data = data.into_inner();
-                    async move { (*data).clone().interaction(req, body).await }
+                |data: web::Data<InteractionHandler>, req: HttpRequest, body: String| async move {
+                    data.interaction(req, body).await
                 },
             ),
         ))

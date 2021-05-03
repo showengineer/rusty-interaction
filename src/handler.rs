@@ -3,32 +3,18 @@ use crate::types::{interaction::*, MessageError};
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use reqwest::Client;
-use std::convert::TryInto;
-
-use ed25519_dalek::PUBLIC_KEY_LENGTH;
 
 use log::{error, info};
-
-macro_rules! ERROR_RESPONSE {
-    ($status:expr, $message:expr) => {
-        let emsg = MessageError::new(String::from($message));
-
-        return Ok(HttpResponse::build(StatusCode::from_u16($status).unwrap())
-            .content_type("application/json")
-            .json(emsg));
-    };
-}
 
 use ed25519_dalek::PublicKey;
 
 use rustls::ServerConfig;
 
-use std::boxed::Box;
-use std::collections::HashMap;
-use std::future::Future;
-use std::pin::Pin;
+use std::{collections::HashMap, future::Future, pin::Pin};
 
 pub type HandlerResponse = InteractionResponse;
+
+type HandlerFunction = fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>;
 
 #[derive(Clone)]
 /// The InteractionHandler is the 'thing' that will handle your incoming interactions.
@@ -41,8 +27,7 @@ pub struct InteractionHandler {
     /// Your bot token or bearer
     //auth_key: &'static str,
     // Might want to change this to use the command id rather than the name of the command: prone to duplicates.
-    handles:
-        HashMap<&'static str, fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>>,
+    handles: HashMap<&'static str, HandlerFunction>,
 }
 
 impl InteractionHandler {
@@ -97,20 +82,16 @@ impl InteractionHandler {
     ///     return handle.run().await;
     /// }
     /// ```
-    pub fn add_command(
-        &mut self,
-        name: &'static str,
-        func: fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>,
-    ) {
+    pub fn add_command(&mut self, name: &'static str, func: HandlerFunction) {
         self.handles.insert(name, func);
     }
 
     /// Entry point function for handling `Interactions`
-    pub async fn interaction(&self, req: HttpRequest, body: web::Bytes) -> Result<HttpResponse> {
+    pub async fn interaction(&self, req: HttpRequest, body: String) -> Result<HttpResponse> {
         // Check for good content type --> must be application/json
-        let ct = get_header(&req, "Content-Type");
-        if ct.is_some() {
-            if ct.unwrap() != "application/json" {
+
+        if let Some(ct) = req.headers().get("Content-Type") {
+            if ct != "application/json" {
                 error!("BAD CONTENT");
                 ERROR_RESPONSE!(400, "Bad Content-Type");
             }
@@ -122,32 +103,30 @@ impl InteractionHandler {
         let se = get_header(&req, "X-Signature-Ed25519");
         let st = get_header(&req, "X-Signature-Timestamp");
 
-        // Check if proper headers are present. If not, reject.
-        if se.is_none() || st.is_none() {
-            error!("NO HEADERS");
-            ERROR_RESPONSE!(400, "Bad signature data");
-        }
-
         // TODO: Domain check might be a good one.
 
         // Get request body
-        let sta = String::from(std::str::from_utf8(&body).unwrap());
 
-        // Verify timestamp + body against given signature
-        match verify_discord_message(self.app_public_key, se.unwrap(), st.unwrap(), &sta) {
-            // Verification failed, reject.
-            // TODO: Switch error response
-            Err(_) => {
+        if let Some((se, st)) = se.zip(st) {
+            // Verify timestamp + body against given signature
+            if verify_discord_message(self.app_public_key, se, st, &body).is_ok() {
+                // Signature OK. Continue with interaction processing.
+            } else {
+                // Verification failed, reject.
+                // TODO: Switch error response
+
                 error!("BAD SIGNATURE");
                 ERROR_RESPONSE!(401, "Invalid request signature");
             }
+        } else {
+            // If proper headers are not present reject.
 
-            // Signature OK. Continue with interaction processing.
-            Ok(()) => {}
+            error!("MISSING HEADERS");
+            ERROR_RESPONSE!(400, "Bad signature data");
         }
 
         // Security checks passed, try deserializing request to Interaction.
-        match serde_json::from_slice::<Interaction>(&body) {
+        match serde_json::from_str::<Interaction>(&body) {
             Err(e) => {
                 error!("BAD FORM: {:?}. Error: {}", body, e);
                 ERROR_RESPONSE!(400, format!("Bad body: {}", e));
@@ -200,9 +179,8 @@ impl InteractionHandler {
             App::new().data(self.clone()).route(
                 "/api/discord/interactions",
                 web::post().to(
-                    |data: web::Data<InteractionHandler>, req: HttpRequest, body: web::Bytes| {
-                        let data = data.into_inner();
-                        async move { (*data).clone().interaction(req, body).await }
+                    |data: web::Data<InteractionHandler>, req: HttpRequest, body: String| async move {
+                        data.interaction(req, body).await
                     },
                 ),
             )
@@ -220,9 +198,8 @@ impl InteractionHandler {
             App::new().data(self.clone()).route(
                 "/api/discord/interactions",
                 web::post().to(
-                    |data: web::Data<InteractionHandler>, req: HttpRequest, body: web::Bytes| {
-                        let data = data.into_inner();
-                        async move { (*data).clone().interaction(req, body).await }
+                    |data: web::Data<InteractionHandler>, req: HttpRequest, body: String| async move {
+                        data.interaction(req, body).await
                     },
                 ),
             )

@@ -3,6 +3,9 @@
 //! It can expose types and provides helper functions to validate your Interactions.
 //! It can optionally provide a handler that allows you to receive interactions via outgoing webhook.
 
+#[macro_use]
+mod macros;
+
 #[allow(dead_code)]
 const BASE_URL: &str = "https://discord.com/api/v9";
 
