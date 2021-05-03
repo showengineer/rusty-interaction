@@ -47,7 +47,7 @@ pub struct InteractionHandler {
 }
 
 impl InteractionHandler {
-    #[allow(unused_assignments)]
+    
     /// Initalizes a new `InteractionHandler`
     pub fn new(pbk_str: &str) -> InteractionHandler {
         let bytes = hex::decode(pbk_str);

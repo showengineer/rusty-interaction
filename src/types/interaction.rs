@@ -294,6 +294,12 @@ pub struct InteractionApplicationCommandCallbackData {
 impl InteractionApplicationCommandCallbackData {
     /// Creates a new [`InteractionApplicationCommandCallbackData`]
     pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for InteractionApplicationCommandCallbackData {
+    fn default() -> Self {
         Self {
             tts: None,
             content: None,
