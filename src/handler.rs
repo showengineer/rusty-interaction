@@ -171,7 +171,7 @@ impl InteractionHandler {
         }
     }
 
-    /// This is a predefined function that starts an `actix_web::HttpServer` and binds `self.interaction` to `/api/discord/interacitons`.
+    /// This is a predefined function that starts an `actix_web::HttpServer` and binds `self.interaction` to `/api/discord/interactions`.
     /// Note that you'll eventually have to switch to an HTTPS server. This function does not provide this.
     ///
     /// **The server runs on port 10080!**
