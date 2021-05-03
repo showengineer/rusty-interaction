@@ -18,9 +18,9 @@ async fn test(ctx: Context) -> InteractionResponse{
     // Return a response by using the `Context.respond` function.
     // `Context.respond` returns an `InteractionResponseBuilder`.
     // You can now build a `InteractionResponse` by using it's functions.
-    return ctx.respond()
+    ctx.respond()
             .message("I was summoned?")
-            .finish();
+            .finish()
 }
 
 #[actix_web::main]
@@ -38,6 +38,6 @@ async fn main() -> std::io::Result<()> {
     handle.add_command("summon", test);
 
     // Run the API server! NOTE: the server runs at port 10080 (Socket binds to 0.0.0.0:10080)
-    return handle.run().await;
+    handle.run().await
     
 }

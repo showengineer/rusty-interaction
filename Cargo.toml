@@ -45,7 +45,7 @@ version = "0"
 optional = true
 
 [features]
-default = ["types", "security", "handler"]
+default = ["types", "security"]
 security = ["ed25519-dalek", "hex", "types"]
 types = []
 handler = ["types", "security", "actix", "actix-web", "actix-files", "actix-rt", "rustls", "async-trait", "attributes", "log", "reqwest"]
