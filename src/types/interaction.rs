@@ -10,7 +10,7 @@ use super::user::*;
 use super::Snowflake;
 
 #[cfg(feature = "handler")]
-use log::{error, info};
+use log::{error};
 #[cfg(feature = "handler")]
 use reqwest::{Client, StatusCode};
 
@@ -229,7 +229,7 @@ impl InteractionResponseBuilder {
 
     /// Sets the `content` for an `InteractionResponse`. Alias for `content()`
     pub fn message(self, c: &str) -> Self {
-        return self.content(c);
+        self.content(c)
     }
 
     /// Add an [`Embed`] to the response.

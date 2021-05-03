@@ -1,9 +1,9 @@
 use crate::security::*;
 use crate::types::{interaction::*, MessageError};
-
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use reqwest::Client;
+use std::convert::TryInto;
 
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
 
@@ -20,7 +20,6 @@ macro_rules! ERROR_RESPONSE {
 }
 
 use ed25519_dalek::PublicKey;
-use hex;
 
 use rustls::ServerConfig;
 
@@ -47,32 +46,19 @@ pub struct InteractionHandler {
 }
 
 impl InteractionHandler {
-    
     /// Initalizes a new `InteractionHandler`
     pub fn new(pbk_str: &str) -> InteractionHandler {
-        let bytes = hex::decode(pbk_str);
+        let pbk_bytes =
+            hex::decode(pbk_str).expect("Failed to parse the public key from hexadecimal");
 
-        // Init a normal array.
-        let mut pbk_bytes: [u8; PUBLIC_KEY_LENGTH] = [0; PUBLIC_KEY_LENGTH];
+        let app_public_key =
+            PublicKey::from_bytes(&pbk_bytes).expect("Failed to parse public key.");
 
-        match bytes {
-            Err(_) => panic!("Failed to parse the public key"),
-            Ok(k) => {
-                if k.len() != PUBLIC_KEY_LENGTH {
-                    panic!("Failed to parse the public key (bad length)");
-                }
-                pbk_bytes = convert_to_arr::<u8, PUBLIC_KEY_LENGTH>(k);
-            }
-        };
-        let pbk = PublicKey::from_bytes(&pbk_bytes);
-        if pbk.is_err() {
-            panic!("Failed to convert public key.");
-        }
-        return InteractionHandler {
-            app_public_key: pbk.unwrap(),
+        InteractionHandler {
+            app_public_key,
             client: Client::new(),
             handles: HashMap::new(),
-        };
+        }
     }
 
     /// Binds an async function to a command.
