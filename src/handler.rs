@@ -153,8 +153,14 @@ impl InteractionHandler {
                     // Call the handler
                     let response = handler(ctx).await;
 
-                    // Send out a response to Discord
-                    Ok(HttpResponse::build(StatusCode::OK).json(response))
+                    if response.r#type == InteractionResponseType::DefferedChannelMessageWithSource{
+                        // The use of HTTP Code 202 is more appropiate when a Interaction is deffered. 
+                        Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
+                    }
+                    else{
+                        // Send out a response to Discord
+                        Ok(HttpResponse::build(StatusCode::OK).json(response))
+                    }
                 } else {
                     ERROR_RESPONSE!(500, "No associated handler found")
                 }
