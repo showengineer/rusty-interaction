@@ -17,7 +17,12 @@ pub mod handler;
 #[cfg(feature = "handler")]
 pub use attributes::*;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "handler")))]
+compile_error!(
+    "cannot run tests without the 'handler' feature enabled (run with --features handler)"
+);
+
+#[cfg(all(test, feature = "handler"))]
 mod tests;
 
 const BASE_URL: &str = "https://discord.com/api/v9";

@@ -81,17 +81,22 @@ impl InteractionHandler {
     ///
     /// Like:
     /// ```rust
+    /// # use rusty_interaction::types::interaction::{Context, InteractionResponse};
+    /// # use attributes::slash_command;
     /// #[slash_command]
-    /// async fn do_work(ctx: Context) -> InteractionResponse{
-    ///     // Do work and return a response
+    /// async fn do_work(ctx: Context) -> InteractionResponse {
+    ///     todo!("Do work and return a response")
     /// }
     /// ```
     /// # Example
-    /// ```rust
-    /// const PUB_KEY: &str = "my_public_key"
+    /// ```ignore
+    /// # use rusty_interaction::types::interaction::{Context, InteractionResponse};
+    /// # use rusty_interaction::handler::InteractionHandler;
+    /// # use attributes::slash_command;
+    /// const PUB_KEY: &str = "my_public_key";
     ///
     /// #[slash_command]
-    /// async fn pong_handler(ctx: Context) -> InteractionResponse{
+    /// async fn pong_handler(ctx: Context) -> InteractionResponse {
     ///     return ctx.respond()
     ///             .content("Pong!")
     ///             .finish();
@@ -101,10 +106,8 @@ impl InteractionHandler {
     /// async fn main() -> std::io::Result<()> {
     ///
     ///     let mut handle = InteractionHandler::new(PUB_KEY);
-
     ///     handle.add_command("ping", pong_handler);
     ///     
-
     ///     return handle.run().await;
     /// }
     /// ```

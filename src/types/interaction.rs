@@ -4,10 +4,10 @@ use serde_with::*;
 
 use serde_repr::*;
 
+use super::application::*;
 use super::embed::*;
 use super::user::*;
 use super::Snowflake;
-use super::application::*;
 
 #[cfg(feature = "handler")]
 use log::{error, info};
@@ -16,17 +16,17 @@ use reqwest::{Client, StatusCode};
 
 #[cfg(feature = "handler")]
 #[derive(Clone)]
-/// 
+///
 pub struct Context {
     client: Client,
 
-    /// The [`Interaction`] sent by Discord. 
+    /// The [`Interaction`] sent by Discord.
     pub interaction: Interaction,
 }
 
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
-/// The base Interaction structure. When Interactions are received, this structure is wrapped inside a [`Context`] 
+/// The base Interaction structure. When Interactions are received, this structure is wrapped inside a [`Context`]
 /// and can be used to get information about the Interaction.
 pub struct Interaction {
     #[serde_as(as = "Option<DisplayFromStr>")]
@@ -71,22 +71,22 @@ impl Context {
     }
 
     /// Respond to an Interaction
-    /// 
+    ///
     /// This returns an [`InteractionResponseBuilder`] which you can use to build an [`InteractionResponse`]
-    /// 
+    ///
     /// # Example
-    /// ```rust
+    /// ```ignore
     /// let response = ctx.respond()
-    ///                     .content("Example message")
-    ///                     .tts(true)
-    ///                     .finish();
+    ///                   .content("Example message")
+    ///                   .tts(true)
+    ///                   .finish();
     /// ```
     pub fn respond(&self) -> InteractionResponseBuilder {
         InteractionResponseBuilder::default()
     }
 
     /// Edit the original interaction response
-    /// 
+    ///
     /// This takes an [`WebhookMessage`]. You can convert an [`InteractionResponse`] using [`WebhookMessage::from`].
     pub async fn edit_original(&self, new_content: &WebhookMessage) {
         let url = format!(
@@ -127,15 +127,12 @@ pub enum InteractionType {
     APPLICATION_COMMAND = 2,
 }
 
-
-
-
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 /// Struct repesenting an Interaction response
-/// 
-/// This is used to respond to incoming interactions. 
+///
+/// This is used to respond to incoming interactions.
 pub struct InteractionResponse {
     /// Type of response
     pub r#type: InteractionResponseType,

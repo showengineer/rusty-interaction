@@ -1,11 +1,9 @@
 use crate::handler::InteractionHandler;
 use crate::security::*;
 use crate::types;
-use actix_rt;
 use actix_web::{http, test, web, App, HttpRequest};
 use ed25519_dalek::PublicKey;
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
-use hex;
 
 /*const TEST_PUB_KEY: [u8; PUBLIC_KEY_LENGTH] = [
     0x82, 0xd8, 0xd9, 0x7f, 0xe0, 0x64, 0x1e, 0x68, 0xa1, 0xb0, 0xb1, 0x12, 0x20, 0xf0, 0x5e, 0x9e,
