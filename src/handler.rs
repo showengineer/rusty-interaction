@@ -130,8 +130,8 @@ impl InteractionHandler {
                 return ERROR_RESPONSE!(400, format!("Bad body: {}", e));
             }
             Ok(interaction) => {
-                if interaction.r#type == InteractionType::PING {
-                    let response = InteractionResponse::new(InteractionResponseType::PONG, None);
+                if interaction.r#type == InteractionType::Ping {
+                    let response = InteractionResponse::new(InteractionResponseType::Pong, None);
                     info!("RESP: PONG");
                     return Ok(HttpResponse::build(StatusCode::OK)
                         .content_type("application/json")

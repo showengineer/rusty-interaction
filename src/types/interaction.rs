@@ -10,7 +10,7 @@ use super::user::*;
 use super::Snowflake;
 
 #[cfg(feature = "handler")]
-use log::{error};
+use log::error;
 #[cfg(feature = "handler")]
 use reqwest::{Client, StatusCode};
 
@@ -116,15 +116,14 @@ impl Context {
     }
 }
 
-#[allow(non_camel_case_types)]
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
 #[repr(u8)]
 /// Represents the type of interaction that comes in.
 pub enum InteractionType {
     /// Discord requested a ping
-    PING = 1,
+    Ping = 1,
     /// A slash command
-    APPLICATION_COMMAND = 2,
+    ApplicationCommand = 2,
 }
 
 #[serde_as]
@@ -171,7 +170,7 @@ impl Default for InteractionResponseBuilder {
     /// Adding data yourself is expected.
     fn default() -> Self {
         Self {
-            r#type: InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE,
+            r#type: InteractionResponseType::ChannelMessageWithSource,
             data: None,
         }
     }
@@ -268,15 +267,15 @@ impl InteractionResponseBuilder {
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, Debug, PartialEq)]
 #[repr(u8)]
-#[allow(non_camel_case_types)]
+
 /// Representing the type of response to an [`Interaction`]
 pub enum InteractionResponseType {
     /// ACK a PING
-    PONG = 1,
+    Pong = 1,
     /// Respond to an [`Interaction`] with a message
-    CHANNEL_MESSAGE_WITH_SOURCE = 4,
+    ChannelMessageWithSource = 4,
     /// ACK an interaction and edit a response later, the user sees a loading state
-    DEFFERED_CHANNEL_MESSAGE_WITH_SOURCE = 5,
+    DefferedChannelMessageWithSource = 5,
 }
 
 #[serde_as]
@@ -311,15 +310,15 @@ impl Default for InteractionApplicationCommandCallbackData {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
-#[allow(non_camel_case_types)]
+
 /// Representing the allowed mention type
 pub enum AllowedMentionTypes {
     /// Role mentions
-    ROLES,
+    Roles,
     /// User mentions
-    USERS,
+    Users,
     /// @everyone mentions
-    EVERYONE,
+    Everyone,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
