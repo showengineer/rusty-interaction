@@ -133,7 +133,7 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
             #vis fn #fname<'context> (#params) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
                 Box::pin(async move {
 
-                    ::actix::Arbiter::spawn(async move {
+                    ::rusty_interaction::actix::Arbiter::spawn(async move {
                         #vbody
                         #ctxname.edit_original(&WebhookMessage::from(#expra)).await;
                     });
