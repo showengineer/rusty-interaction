@@ -3,6 +3,12 @@
 //! It can expose types and provides helper functions to validate your Interactions.
 //! It can optionally provide a handler that allows you to receive interactions via outgoing webhook.
 
+#[macro_use]
+mod macros;
+
+#[allow(dead_code)]
+const BASE_URL: &str = "https://discord.com/api/v9";
+
 #[cfg(feature = "types")]
 /// Exposes useful data models
 pub mod types;
@@ -17,7 +23,10 @@ pub mod handler;
 #[cfg(feature = "handler")]
 pub use attributes::*;
 
-#[cfg(test)]
-mod tests;
+#[cfg(all(test, not(feature = "handler")))]
+compile_error!(
+    "cannot run tests without the 'handler' feature enabled (run with --features handler)"
+);
 
-const BASE_URL: &str = "https://discord.com/api/v9";
+#[cfg(all(test, feature = "handler"))]
+mod tests;

@@ -4,29 +4,29 @@ use serde_with::*;
 
 use serde_repr::*;
 
+use super::application::*;
 use super::embed::*;
 use super::user::*;
 use super::Snowflake;
-use super::application::*;
 
 #[cfg(feature = "handler")]
-use log::{error, info};
+use log::error;
 #[cfg(feature = "handler")]
 use reqwest::{Client, StatusCode};
 
 #[cfg(feature = "handler")]
 #[derive(Clone)]
-/// 
+///
 pub struct Context {
     client: Client,
 
-    /// The [`Interaction`] sent by Discord. 
+    /// The [`Interaction`] sent by Discord.
     pub interaction: Interaction,
 }
 
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
-/// The base Interaction structure. When Interactions are received, this structure is wrapped inside a [`Context`] 
+/// The base Interaction structure. When Interactions are received, this structure is wrapped inside a [`Context`]
 /// and can be used to get information about the Interaction.
 pub struct Interaction {
     #[serde_as(as = "Option<DisplayFromStr>")]
@@ -71,22 +71,22 @@ impl Context {
     }
 
     /// Respond to an Interaction
-    /// 
+    ///
     /// This returns an [`InteractionResponseBuilder`] which you can use to build an [`InteractionResponse`]
-    /// 
+    ///
     /// # Example
-    /// ```rust
+    /// ```ignore
     /// let response = ctx.respond()
-    ///                     .content("Example message")
-    ///                     .tts(true)
-    ///                     .finish();
+    ///                   .content("Example message")
+    ///                   .tts(true)
+    ///                   .finish();
     /// ```
     pub fn respond(&self) -> InteractionResponseBuilder {
         InteractionResponseBuilder::default()
     }
 
     /// Edit the original interaction response
-    /// 
+    ///
     /// This takes an [`WebhookMessage`]. You can convert an [`InteractionResponse`] using [`WebhookMessage::from`].
     pub async fn edit_original(&self, new_content: &WebhookMessage) {
         let url = format!(
@@ -116,26 +116,22 @@ impl Context {
     }
 }
 
-#[allow(non_camel_case_types)]
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
 #[repr(u8)]
 /// Represents the type of interaction that comes in.
 pub enum InteractionType {
     /// Discord requested a ping
-    PING = 1,
+    Ping = 1,
     /// A slash command
-    APPLICATION_COMMAND = 2,
+    ApplicationCommand = 2,
 }
-
-
-
 
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 /// Struct repesenting an Interaction response
-/// 
-/// This is used to respond to incoming interactions. 
+///
+/// This is used to respond to incoming interactions.
 pub struct InteractionResponse {
     /// Type of response
     pub r#type: InteractionResponseType,
@@ -163,7 +159,7 @@ impl InteractionResponse {
     ) -> InteractionResponse {
         InteractionResponse {
             r#type: rtype,
-            data: data,
+            data,
         }
     }
 }
@@ -174,7 +170,7 @@ impl Default for InteractionResponseBuilder {
     /// Adding data yourself is expected.
     fn default() -> Self {
         Self {
-            r#type: InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE,
+            r#type: InteractionResponseType::ChannelMessageWithSource,
             data: None,
         }
     }
@@ -232,7 +228,7 @@ impl InteractionResponseBuilder {
 
     /// Sets the `content` for an `InteractionResponse`. Alias for `content()`
     pub fn message(self, c: &str) -> Self {
-        return self.content(c);
+        self.content(c)
     }
 
     /// Add an [`Embed`] to the response.
@@ -271,15 +267,15 @@ impl InteractionResponseBuilder {
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, Debug, PartialEq)]
 #[repr(u8)]
-#[allow(non_camel_case_types)]
+
 /// Representing the type of response to an [`Interaction`]
 pub enum InteractionResponseType {
     /// ACK a PING
-    PONG = 1,
+    Pong = 1,
     /// Respond to an [`Interaction`] with a message
-    CHANNEL_MESSAGE_WITH_SOURCE = 4,
+    ChannelMessageWithSource = 4,
     /// ACK an interaction and edit a response later, the user sees a loading state
-    DEFFERED_CHANNEL_MESSAGE_WITH_SOURCE = 5,
+    DefferedChannelMessageWithSource = 5,
 }
 
 #[serde_as]
@@ -297,6 +293,12 @@ pub struct InteractionApplicationCommandCallbackData {
 impl InteractionApplicationCommandCallbackData {
     /// Creates a new [`InteractionApplicationCommandCallbackData`]
     pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for InteractionApplicationCommandCallbackData {
+    fn default() -> Self {
         Self {
             tts: None,
             content: None,
@@ -308,15 +310,15 @@ impl InteractionApplicationCommandCallbackData {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
-#[allow(non_camel_case_types)]
+
 /// Representing the allowed mention type
 pub enum AllowedMentionTypes {
     /// Role mentions
-    ROLES,
+    Roles,
     /// User mentions
-    USERS,
+    Users,
     /// @everyone mentions
-    EVERYONE,
+    Everyone,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

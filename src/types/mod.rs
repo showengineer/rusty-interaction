@@ -21,11 +21,8 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn new(code: i32, msg: String) -> Error {
-        Error {
-            code: code,
-            message: msg,
-        }
+    pub fn new(code: i32, message: String) -> Error {
+        Error { code, message }
     }
 }
 /// Lame Message Error structure
@@ -35,13 +32,13 @@ pub struct MessageError {
 }
 
 impl MessageError {
-    pub fn new(msg: String) -> MessageError {
-        MessageError { message: msg }
+    pub fn new(message: String) -> MessageError {
+        MessageError { message }
     }
 }
 
 impl From<Error> for MessageError {
-    fn from(e: Error) -> MessageError {
-        MessageError { message: e.message }
+    fn from(Error { message, .. }: Error) -> MessageError {
+        MessageError { message }
     }
 }

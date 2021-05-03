@@ -1,16 +1,7 @@
 use ed25519_dalek::Verifier;
-use ed25519_dalek::SIGNATURE_LENGTH;
 use ed25519_dalek::{PublicKey, Signature};
 
-use hex;
 use std::convert::TryInto;
-
-#[doc(hidden)]
-/// Simple vector to array convertor.
-pub fn convert_to_arr<T, const N: usize>(v: Vec<T>) -> [T; N] {
-    v.try_into()
-        .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
-}
 
 /// If verification failes, it will return the `ValidationError` enum.
 pub enum ValidationError {
@@ -27,30 +18,24 @@ pub fn verify_discord_message(
     public_key: PublicKey,
     signature: &str,
     timestamp: &str,
-    body: &String,
+    body: &str,
 ) -> Result<(), ValidationError> {
+    let signature_bytes = hex::decode(signature)
+        .map_err(|_| ValidationError::KeyConversionError { name: "Signature" })?;
+
+    let signature_bytes =
+        signature_bytes
+            .try_into()
+            .map_err(|_| ValidationError::KeyConversionError {
+                name: "Signature Length",
+            })?;
+
+    let signature = Signature::new(signature_bytes);
+
     // Format the data to verify (Timestamp + body)
     let msg = format!("{}{}", timestamp, body);
-    match hex::decode(signature) {
-        Err(_) => {
-            return Err(ValidationError::KeyConversionError { name: "Signature" });
-        }
-        Ok(s) => {
-            if s.len() != SIGNATURE_LENGTH {
-                return Err(ValidationError::KeyConversionError {
-                    name: "Signature Length",
-                });
-            }
-            let sa = convert_to_arr(s);
-            let sign = Signature::from(sa);
-            match public_key.verify(msg.as_bytes(), &sign) {
-                Err(_) => {
-                    return Err(ValidationError::InvalidSignatureError);
-                }
-                Ok(()) => {
-                    return Ok(());
-                }
-            }
-        }
-    }
+
+    public_key
+        .verify(msg.as_bytes(), &signature)
+        .map_err(|_| ValidationError::InvalidSignatureError)
 }

@@ -28,17 +28,16 @@ struct ApplicationCommandOption {
 }
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, Debug)]
-#[allow(non_camel_case_types)]
 #[repr(u8)]
 pub enum ApplicationCommandOptionType {
-    SUB_COMMAND = 1,
-    SUB_COMMAND_GROUP = 2,
-    STRING = 3,
-    INTEGER = 4,
-    BOOLEAN = 5,
-    USER = 6,
-    CHANNEL = 7,
-    ROLE = 8,
+    SubCommand = 1,
+    SubCommandGroup = 2,
+    String = 3,
+    Integer = 4,
+    Boolean = 5,
+    User = 6,
+    Channel = 7,
+    Role = 8,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
