@@ -4,7 +4,7 @@ use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use reqwest::Client;
 
-use log::{error, info};
+use log::{debug, error, info};
 
 use ed25519_dalek::PublicKey;
 
@@ -92,11 +92,11 @@ impl InteractionHandler {
 
         if let Some(ct) = req.headers().get("Content-Type") {
             if ct != "application/json" {
-                error!("BAD CONTENT");
+                debug!("Incoming interaction rejected, bad Content-Type specified. Origin: {:?}", req.connection_info().realip_remote_addr());
                 return ERROR_RESPONSE!(400, "Bad Content-Type");
             }
         } else {
-            error!("BAD CONTENT");
+            debug!("Incoming interaction rejected, no Content-Type specified. Origin: {:?}", req.connection_info().realip_remote_addr());
             return ERROR_RESPONSE!(400, "Bad Content-Type");
         }
 
@@ -112,27 +112,28 @@ impl InteractionHandler {
             } else {
                 // Verification failed, reject.
                 // TODO: Switch error response
-
-                error!("BAD SIGNATURE");
+                debug!("Incoming interaction rejected, invalid signature. Origin: {:?}", req.connection_info().realip_remote_addr());
                 return ERROR_RESPONSE!(401, "Invalid request signature");
             }
         } else {
             // If proper headers are not present reject.
-
-            error!("MISSING HEADERS");
+            debug!("Incoming interaction rejected, missing headers. Origin: {:?}", req.connection_info().realip_remote_addr());
             return ERROR_RESPONSE!(400, "Bad signature data");
         }
 
         // Security checks passed, try deserializing request to Interaction.
         match serde_json::from_str::<Interaction>(&body) {
             Err(e) => {
-                error!("BAD FORM: {:?}. Error: {}", body, e);
+
+                // It's probably bad on our end if this code is reached.
+                error!("Failed to decode interaction! Error: {}", e);
+                debug!("Body sent: {}", body);
                 return ERROR_RESPONSE!(400, format!("Bad body: {}", e));
             }
             Ok(interaction) => {
                 if interaction.r#type == InteractionType::Ping {
                     let response = InteractionResponse::new(InteractionResponseType::Pong, None);
-                    info!("RESP: PONG");
+                    debug!("Got a ping, responding with pong.");
                     return Ok(HttpResponse::build(StatusCode::OK)
                         .content_type("application/json")
                         .json(response));
@@ -141,6 +142,7 @@ impl InteractionHandler {
                 let data = if let Some(ref data) = interaction.data {
                     data
                 } else {
+                    error!("Failed to unwrap Interaction!");
                     return ERROR_RESPONSE!(500, "Failed to unwrap");
                 };
 
@@ -162,6 +164,7 @@ impl InteractionHandler {
                         Ok(HttpResponse::build(StatusCode::OK).json(response))
                     }
                 } else {
+                    error!("No associated handler found for {}", data.name.as_str());
                     ERROR_RESPONSE!(500, "No associated handler found")
                 }
             }
