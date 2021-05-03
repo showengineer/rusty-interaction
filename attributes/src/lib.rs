@@ -138,7 +138,7 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
                         #ctxname.edit_original(&WebhookMessage::from(#expra)).await;
                     });
 
-                    return InteractionResponseBuilder::default().respond_type(InteractionResponseType::DEFFERED_CHANNEL_MESSAGE_WITH_SOURCE).finish();
+                    return InteractionResponseBuilder::default().respond_type(InteractionResponseType::DefferedChannelMessageWithSource).finish();
 
                 })
             }
