@@ -105,8 +105,6 @@ impl InteractionHandler {
 
         // TODO: Domain check might be a good one.
 
-        // Get request body
-
         if let Some((se, st)) = se.zip(st) {
             // Verify timestamp + body against given signature
             if verify_discord_message(self.app_public_key, se, st, &body).is_ok() {
@@ -131,40 +129,34 @@ impl InteractionHandler {
                 error!("BAD FORM: {:?}. Error: {}", body, e);
                 ERROR_RESPONSE!(400, format!("Bad body: {}", e));
             }
-            Ok(v) => {
-                if v.r#type == InteractionType::PING {
+            Ok(interaction) => {
+                if interaction.r#type == InteractionType::PING {
                     let response = InteractionResponse::new(InteractionResponseType::PONG, None);
                     info!("RESP: PONG");
                     return Ok(HttpResponse::build(StatusCode::OK)
                         .content_type("application/json")
                         .json(response));
+                }
+
+                let data = if let Some(ref data) = interaction.data {
+                    data
                 } else {
-                    if v.data.is_none() {
-                        ERROR_RESPONSE!(500, "Failed to unwrap");
-                    }
+                    ERROR_RESPONSE!(500, "Failed to unwrap");
+                };
 
-                    let dat = v.clone().data.unwrap();
+                if let Some(handler) = self.handles.get(data.name.as_str()) {
+                    // do stuff with v if needed
 
-                    match self.handles.get(dat.name.as_str()) {
-                        Some(f) => {
-                            let cpy = v.clone();
+                    // construct a Context
+                    let ctx = Context::new(self.client.clone(), interaction);
 
-                            // construct a Context
-                            let ctx = Context::new(self.client.clone(), cpy);
-                            // Call the handler
-                            let r = f(ctx).await;
+                    // Call the handler
+                    let response = handler(ctx).await;
 
-                            // do stuff with v if needed
-
-                            // Send out a response to Discord
-                            return Ok(HttpResponse::build(StatusCode::OK)
-                                .content_type("application/json")
-                                .json(r));
-                        }
-                        None => {
-                            ERROR_RESPONSE!(500, "No associated handler found");
-                        }
-                    }
+                    // Send out a response to Discord
+                    Ok(HttpResponse::build(StatusCode::OK).json(response))
+                } else {
+                    ERROR_RESPONSE!(500, "No associated handler found");
                 }
             }
         }
