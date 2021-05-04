@@ -6,8 +6,68 @@ use serde_repr::*;
 
 use super::application::*;
 use super::embed::*;
+use super::HttpError;
 use super::user::*;
 use super::Snowflake;
+
+// ===== USEFUL MACROS =====
+macro_rules! expect_successful_api_response {
+    ($response:ident, $succret:expr) => {
+        match $response {
+            Err(e) => {
+                Err(
+                    HttpError{
+                        code: 0,
+                        message: format!("{:#?}", e),
+                    }
+                )
+            }
+            Ok(r) => {
+                if !r.status().is_success() {
+                    Err(
+                        HttpError{
+                            code: 0,
+                            message: format!("{:#?}", r.text().await),
+                        }
+                    )
+                } else {
+                    $succret
+                }
+            }
+        }
+    };
+}
+
+macro_rules! expect_specific_api_response {
+    ($response:ident, $expres:expr, $succret:expr) => {
+        match $response {
+            Err(e) => {
+                Err(
+                    HttpError{
+                        code: 0,
+                        message: format!("{:#?}", e),
+                    }
+                )
+            }
+            Ok(r) => {
+                if r.status() != $expres {
+                    Err(
+                        HttpError{
+                            code: 0,
+                            message: format!("{:#?}", r.text().await),
+                        }
+                    )
+                } else {
+                    $succret
+                }
+            }
+        }
+    };
+}
+
+
+
+
 
 #[cfg(feature = "handler")]
 use log::error;
@@ -88,7 +148,7 @@ impl Context {
     /// Edit the original interaction response
     ///
     /// This takes an [`WebhookMessage`]. You can convert an [`InteractionResponse`] using [`WebhookMessage::from`].
-    pub async fn edit_original(&self, new_content: &WebhookMessage) {
+    pub async fn edit_original(&self, new_content: &WebhookMessage) -> Result<(), HttpError>{
         let url = format!(
             "{}/webhooks/{:?}/{}/messages/@original",
             crate::BASE_URL,
@@ -97,22 +157,20 @@ impl Context {
         );
         let c = self.client.patch(&url).json(new_content).send().await;
 
-        match c {
-            Err(e) => {
-                error!("Editing original message failed: {:?}", e)
-            }
-            Ok(r) => {
-                if r.status() != StatusCode::OK {
-                    error!(
-                        "Editing original message failed: API Returned {:?}{:#?}",
-                        r.status(),
-                        r.text().await
-                    );
-                } else {
-                    // info!("Sucessfully edited original message: {:#?}", r.text().await)
-                }
-            }
-        }
+        expect_successful_api_response!(c, Ok(()))
+    }
+
+    /// Delete the original interaction response
+    pub async fn delete_original(&self) -> Result<(), HttpError>{
+        let url = format!(
+            "{}/webhooks/{:?}/{}/messages/@original",
+            crate::BASE_URL,
+            self.interaction.application_id.unwrap(),
+            self.interaction.token.as_ref().unwrap().to_string()
+        );
+        let c = self.client.delete(&url).send().await;
+
+        expect_specific_api_response!(c, StatusCode::NO_CONTENT, Ok(()))
     }
 }
 
@@ -128,7 +186,7 @@ pub enum InteractionType {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 /// Struct repesenting an Interaction response
 ///
 /// This is used to respond to incoming interactions.
@@ -280,7 +338,7 @@ pub enum InteractionResponseType {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 /// Representing the data used to respond to an [`Interaction`]
 pub struct InteractionApplicationCommandCallbackData {
     tts: Option<bool>,
@@ -309,8 +367,7 @@ impl Default for InteractionApplicationCommandCallbackData {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 /// Representing the allowed mention type
 pub enum AllowedMentionTypes {
     /// Role mentions
@@ -321,7 +378,7 @@ pub enum AllowedMentionTypes {
     Everyone,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 /// Representing the AllowedMentions data model
 pub struct AllowedMentions {
     parse: Vec<AllowedMentionTypes>,

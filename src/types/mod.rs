@@ -20,14 +20,14 @@ type Snowflake = u64;
 
 #[doc(hidden)]
 #[derive(Clone, Serialize, Deserialize)]
-pub struct Error {
+pub struct HttpError {
     pub code: i32,
     pub message: String,
 }
 #[doc(hidden)]
-impl Error {
-    pub fn new(code: i32, message: String) -> Error {
-        Error { code, message }
+impl HttpError {
+    pub fn new(code: i32, message: String) -> HttpError {
+        HttpError { code, message }
     }
 }
 #[doc(hidden)]
@@ -42,8 +42,8 @@ impl MessageError {
     }
 }
 #[doc(hidden)]
-impl From<Error> for MessageError {
-    fn from(Error { message, .. }: Error) -> MessageError {
+impl From<HttpError> for MessageError {
+    fn from(HttpError { message, .. }: HttpError) -> MessageError {
         MessageError { message }
     }
 }

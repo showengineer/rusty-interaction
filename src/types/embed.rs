@@ -6,7 +6,7 @@ use std::time::SystemTime;
 
 // ======== Structures =========
 #[skip_serializing_none]
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Embed {
     title: String,
     r#type: String,
@@ -23,7 +23,7 @@ pub struct Embed {
     fields: Vec<EmbedField>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 struct EmbedThumbnail {
     url: String,
     proxy_url: String,
@@ -31,7 +31,7 @@ struct EmbedThumbnail {
     width: i32,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 struct EmbedVideo {
     url: String,
     proxy_url: String,
@@ -39,7 +39,7 @@ struct EmbedVideo {
     witdh: i32,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 struct EmbedImage {
     url: String,
     proxy_url: String,
@@ -47,13 +47,13 @@ struct EmbedImage {
     width: i32,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 struct EmbedProvider {
     name: String,
     url: String,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 struct EmbedAuthor {
     name: String,
     url: String,
@@ -61,14 +61,14 @@ struct EmbedAuthor {
     proxy_icon_url: String,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 struct EmbedFooter {
     text: String,
     icon_url: String,
     proxy_icon_url: String,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 struct EmbedField {
     name: String,
     value: String,

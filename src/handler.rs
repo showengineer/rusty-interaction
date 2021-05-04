@@ -156,7 +156,10 @@ impl InteractionHandler {
                     let response = handler(ctx).await;
 
                     if response.r#type == InteractionResponseType::DefferedChannelMessageWithSource{
-                        // The use of HTTP Code 202 is more appropriate when an Interaction is deffered. 
+                        /* The use of HTTP code 202 is more appropriate when an Interaction is deffered. 
+                        If an application is first sending a deffered channel message response, this usually means the system
+                        is still processing whatever it is doing.
+                        See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
                         Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
                     }
                     else{
