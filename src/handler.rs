@@ -93,11 +93,17 @@ impl InteractionHandler {
 
         if let Some(ct) = req.headers().get("Content-Type") {
             if ct != "application/json" {
-                debug!("Incoming interaction rejected, bad Content-Type specified. Origin: {:?}", req.connection_info().realip_remote_addr());
+                debug!(
+                    "Incoming interaction rejected, bad Content-Type specified. Origin: {:?}",
+                    req.connection_info().realip_remote_addr()
+                );
                 return ERROR_RESPONSE!(400, "Bad Content-Type");
             }
         } else {
-            debug!("Incoming interaction rejected, no Content-Type specified. Origin: {:?}", req.connection_info().realip_remote_addr());
+            debug!(
+                "Incoming interaction rejected, no Content-Type specified. Origin: {:?}",
+                req.connection_info().realip_remote_addr()
+            );
             return ERROR_RESPONSE!(400, "Bad Content-Type");
         }
 
@@ -113,19 +119,24 @@ impl InteractionHandler {
             } else {
                 // Verification failed, reject.
                 // TODO: Switch error response
-                debug!("Incoming interaction rejected, invalid signature. Origin: {:?}", req.connection_info().realip_remote_addr());
+                debug!(
+                    "Incoming interaction rejected, invalid signature. Origin: {:?}",
+                    req.connection_info().realip_remote_addr()
+                );
                 return ERROR_RESPONSE!(401, "Invalid request signature");
             }
         } else {
             // If proper headers are not present reject.
-            debug!("Incoming interaction rejected, missing headers. Origin: {:?}", req.connection_info().realip_remote_addr());
+            debug!(
+                "Incoming interaction rejected, missing headers. Origin: {:?}",
+                req.connection_info().realip_remote_addr()
+            );
             return ERROR_RESPONSE!(400, "Bad signature data");
         }
 
         // Security checks passed, try deserializing request to Interaction.
         match serde_json::from_str::<Interaction>(&body) {
             Err(e) => {
-
                 // It's probably bad on our end if this code is reached.
                 error!("Failed to decode interaction! Error: {}", e);
                 debug!("Body sent: {}", body);
@@ -156,14 +167,14 @@ impl InteractionHandler {
                     // Call the handler
                     let response = handler(ctx).await;
 
-                    if response.r#type == InteractionResponseType::DefferedChannelMessageWithSource{
-                        /* The use of HTTP code 202 is more appropriate when an Interaction is deffered. 
+                    if response.r#type == InteractionResponseType::DefferedChannelMessageWithSource
+                    {
+                        /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
                         If an application is first sending a deffered channel message response, this usually means the system
                         is still processing whatever it is doing.
                         See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
                         Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
-                    }
-                    else{
+                    } else {
                         // Send out a response to Discord
                         Ok(HttpResponse::build(StatusCode::OK).json(response))
                     }

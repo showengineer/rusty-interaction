@@ -21,9 +21,9 @@ pub mod security;
 #[cfg(feature = "handler")]
 pub mod handler;
 #[cfg(feature = "handler")]
-pub use attributes::*;
-#[cfg(feature = "handler")]
 pub use actix;
+#[cfg(feature = "handler")]
+pub use attributes::*;
 
 #[cfg(all(test, not(feature = "handler")))]
 compile_error!(
