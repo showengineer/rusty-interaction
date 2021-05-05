@@ -292,3 +292,46 @@ impl EmbedField{
         self
     }
 }
+
+impl Default for EmbedAuthor{
+    fn default() -> Self{
+        Self{
+            name: None,
+            icon_url: None,
+            proxy_icon_url: None,
+            url: None,
+        }
+    }
+}
+
+impl EmbedAuthor{
+    /// Set the author name
+    pub fn name(mut self, name: impl ToString) -> Self{
+        let n = name.to_string();
+        self.name = Some(n);
+        self
+    }
+
+    /// Sets the URL users can click on.
+    pub fn url(mut self, url: impl ToString) -> Self{
+        let n = url.to_string();
+        self.url = Some(n);
+        self
+    }
+
+    /// Add an icon to the embed
+    pub fn icon_url(mut self, url: impl ToString) -> Self{
+        let u = url.to_string();
+
+        self.icon_url = Some(u);
+        self
+    }
+
+    /// Set the proxy url for the icon
+    pub fn proxy_url(mut self, url: impl ToString) -> Self{
+        let u = url.to_string();
+
+        self.proxy_icon_url = Some(u);
+        self
+    }
+}
