@@ -30,11 +30,16 @@ pub struct Embed {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+/// Representing a Thumbnail for an [`Embed`]
 pub struct EmbedThumbnail {
-    url: String,
-    proxy_url: String,
-    height: i32,
-    width: i32,
+    /// Url of the thumbnail
+    pub url: Option<String>,
+    /// Proxied url of the thumbnail
+    pub proxy_url: Option<String>,
+    /// Height of the image
+    pub height: Option<u32>,
+    /// Width of the image
+    pub width: Option<u32>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
@@ -98,8 +103,11 @@ pub struct EmbedBuilder{
     obj: Embed
 }
 #[derive(Clone, Copy, Debug, PartialEq)]
-/// Representing RGB colors. 
+/// Representing RGB colors.
+/// 
+/// Each color is an 8bit unsigned integer.  
 pub struct Color{
+    /// Red value 
     pub red: u8,
     pub green: u8,
     pub blue: u8,
@@ -345,6 +353,45 @@ impl EmbedAuthor{
         let u = url.to_string();
 
         self.proxy_icon_url = Some(u);
+        self
+    }
+}
+
+impl Default for EmbedThumbnail{
+    fn default() -> Self{
+        Self{
+            url: None,
+            proxy_url:None,
+            height:None,
+            width:None,
+        }
+    }
+}
+
+impl EmbedThumbnail{
+    /// Sets the URL of the thumbnail
+    pub fn url(mut self, url: impl ToString) -> Self{
+        let u = url.to_string();
+        self.url = Some(u);
+        self
+
+    }
+
+    /// Sets a proxied url for the thumbnail
+    pub fn proxy_url(mut self, url: impl ToString) -> Self{
+        let u = url.to_string();
+        self.url = Some(u);
+        self
+    }
+
+    /// Sets the dimensions of the thumbnail
+    pub fn dimensions(mut self, height: impl Into<u32>, width: impl Into<u32>) -> Self{
+        let x = width.into();
+        let y = height.into();
+
+        self.height = Some(y);
+        self.width = Some(x);
+
         self
     }
 }
