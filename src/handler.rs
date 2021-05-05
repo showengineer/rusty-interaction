@@ -17,6 +17,7 @@ pub type HandlerResponse = InteractionResponse;
 
 type HandlerFunction = fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>;
 
+
 #[derive(Clone)]
 /// The InteractionHandler is the 'thing' that will handle your incoming interactions.
 /// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
