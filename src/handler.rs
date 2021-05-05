@@ -4,7 +4,7 @@ use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use reqwest::Client;
 
-use log::{debug, error, info};
+use log::{debug, error};
 
 use ed25519_dalek::PublicKey;
 
@@ -12,6 +12,7 @@ use rustls::ServerConfig;
 
 use std::{collections::HashMap, future::Future, pin::Pin};
 
+/// Alias for InteractionResponse
 pub type HandlerResponse = InteractionResponse;
 
 type HandlerFunction = fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>;
