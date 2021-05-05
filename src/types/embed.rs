@@ -13,19 +13,32 @@ use log::{error};
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 /// An embed in Discord is a way to display rich content in messages
 pub struct Embed {
+    /// Title of the embed
     pub title: Option<String>,
+    /// Description of the embed
     pub description: Option<String>,
+    // Type field is not implemented since it's considered deprecated
+    /// url of embed
     pub url: Option<String>,
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
+    /// Timestamp of embed content
     pub timestamp: Option<DateTime<Utc>>,
+    /// Color code of embed
     pub color: Option<u32>,
+    /// Footer information
     pub footer: Option<EmbedFooter>,
+    /// Image information
     pub image: Option<EmbedImage>,
+    /// Thumbnail information
     pub thumbnail: Option<EmbedThumbnail>,
+    /// Video information
     pub video: Option<EmbedVideo>,
+    /// Provider information
     pub provider: Option<EmbedProvider>,
+    /// Author information
     pub author: Option<EmbedAuthor>,
+    /// Fields of the embed
     pub fields: Option<Vec<EmbedField>>,
 }
 
@@ -43,6 +56,7 @@ pub struct EmbedThumbnail {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+/// Representing video information in an [`Embed`]
 pub struct EmbedVideo {
     url: String,
     proxy_url: String,
@@ -51,6 +65,7 @@ pub struct EmbedVideo {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+/// Representing image information in an [`Embed`]
 pub struct EmbedImage {
     url: String,
     proxy_url: String,
@@ -59,6 +74,7 @@ pub struct EmbedImage {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+/// Representing provider information in an [`Embed`]
 pub struct EmbedProvider {
     name: String,
     url: String,
@@ -99,6 +115,7 @@ pub struct EmbedField {
     inline: Option<bool>,
 }
 #[derive(Clone, Debug, PartialEq)]
+/// Builder to construct an [`Embed`]
 pub struct EmbedBuilder{
     obj: Embed
 }
