@@ -323,22 +323,22 @@ impl InteractionResponseBuilder {
     }
 
     /// This sets the `content` for an `InteractionResponse`
-    pub fn content(mut self, c: &str) -> Self {
+    pub fn content(mut self, c: impl ToString) -> Self {
         match self.data.as_mut() {
             None => {
                 let mut d = InteractionApplicationCommandCallbackData::new();
-                d.content = Some(String::from(c));
+                d.content = Some(c.to_string());
                 self.data = Some(d);
             }
             Some(mut d) => {
-                d.content = Some(String::from(c));
+                d.content = Some(c.to_string());
             }
         }
         self
     }
 
     /// Sets the `content` for an `InteractionResponse`. Alias for `content()`
-    pub fn message(self, c: &str) -> Self {
+    pub fn message(self, c: impl ToString) -> Self {
         self.content(c)
     }
 
