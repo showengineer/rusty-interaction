@@ -5,9 +5,12 @@ use std::convert::TryInto;
 
 /// If verification failes, it will return the `ValidationError` enum.
 pub enum ValidationError {
-    // For anything related to conversion errors
-    KeyConversionError { name: &'static str },
-    // For invalid keys
+    /// For anything related to conversion errors
+    KeyConversionError { 
+        /// What error?
+        name: &'static str 
+    },
+    /// For invalid keys
     InvalidSignatureError,
 }
 

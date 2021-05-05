@@ -29,14 +29,23 @@ struct ApplicationCommandOption {
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, Debug)]
 #[repr(u8)]
+/// Representing a type of [`ApplicationCommandOption`]
 pub enum ApplicationCommandOptionType {
+    /// A subcommand
     SubCommand = 1,
+    /// A group of subcommands
     SubCommandGroup = 2,
+    /// A string
     String = 3,
+    /// An integer
     Integer = 4,
+    /// A boolean
     Boolean = 5,
+    /// A user
     User = 6,
+    /// A channel
     Channel = 7,
+    /// A role
     Role = 8,
 }
 

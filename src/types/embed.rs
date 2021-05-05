@@ -126,7 +126,9 @@ pub struct EmbedBuilder{
 pub struct Color{
     /// Red value 
     pub red: u8,
+    /// Green value
     pub green: u8,
+    /// Blue value
     pub blue: u8,
 }
 
@@ -285,7 +287,8 @@ impl EmbedFooter{
         self
     }
 
-    pub fn proxy(mut self, url: impl ToString) -> Self{
+    /// Sets a proxied url to the footer icon
+    pub fn proxy_url(mut self, url: impl ToString) -> Self{
         let u = url.to_string();
 
         self.proxy_icon_url = Some(u);
