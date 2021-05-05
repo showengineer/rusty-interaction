@@ -19,14 +19,14 @@ pub mod user;
 type Snowflake = u64;
 
 #[doc(hidden)]
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct HttpError {
-    pub code: i32,
+    pub code: u16,
     pub message: String,
 }
 #[doc(hidden)]
 impl HttpError {
-    pub fn new(code: i32, message: String) -> HttpError {
+    pub fn new(code: u16, message: String) -> HttpError {
         HttpError { code, message }
     }
 }

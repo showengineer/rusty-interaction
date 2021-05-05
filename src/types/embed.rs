@@ -7,6 +7,7 @@ use std::time::SystemTime;
 // ======== Structures =========
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+/// An embed in Discord is a way to display rich content in messages
 pub struct Embed {
     title: String,
     r#type: String,

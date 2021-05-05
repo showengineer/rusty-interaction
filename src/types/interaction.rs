@@ -9,12 +9,18 @@ use super::embed::*;
 use super::HttpError;
 use super::user::*;
 use super::Snowflake;
+use ::chrono::{DateTime, Utc};
+#[cfg(feature = "handler")]
+use log::{error, debug};
+#[cfg(feature = "handler")]
+use reqwest::{Client, StatusCode};
 
 // ===== USEFUL MACROS =====
 macro_rules! expect_successful_api_response {
     ($response:ident, $succret:expr) => {
         match $response {
             Err(e) => {
+                debug!("Discord API request failed: {:#?}", e);
                 Err(
                     HttpError{
                         code: 0,
@@ -23,11 +29,14 @@ macro_rules! expect_successful_api_response {
                 )
             }
             Ok(r) => {
-                if !r.status().is_success() {
+                let st = r.status();
+                if !st.is_success() {
+                    let e = format!("{:#?}", r.text().await);
+                    debug!("Discord API returned an error: {:#?}", e);
                     Err(
                         HttpError{
-                            code: 0,
-                            message: format!("{:#?}", r.text().await),
+                            code: st.as_u16(),
+                            message: e,
                         }
                     )
                 } else {
@@ -37,11 +46,15 @@ macro_rules! expect_successful_api_response {
         }
     };
 }
+
+
 
 macro_rules! expect_specific_api_response {
     ($response:ident, $expres:expr, $succret:expr) => {
         match $response {
             Err(e) => {
+                debug!("Discord API request failed: {:#?}", e);
+                
                 Err(
                     HttpError{
                         code: 0,
@@ -50,11 +63,14 @@ macro_rules! expect_specific_api_response {
                 )
             }
             Ok(r) => {
-                if r.status() != $expres {
+                let st = r.status();
+                if st != $expres {
+                    let e = format!("{:#?}", r.text().await);
+                    debug!("Discord API returned an error: {:#?}", e);
                     Err(
                         HttpError{
-                            code: 0,
-                            message: format!("{:#?}", r.text().await),
+                            code: st.as_u16(),
+                            message: e,
                         }
                     )
                 } else {
@@ -65,14 +81,11 @@ macro_rules! expect_specific_api_response {
     };
 }
 
+// ======================
 
 
 
 
-#[cfg(feature = "handler")]
-use log::error;
-#[cfg(feature = "handler")]
-use reqwest::{Client, StatusCode};
 
 #[cfg(feature = "handler")]
 #[derive(Clone)]
@@ -171,6 +184,61 @@ impl Context {
         let c = self.client.delete(&url).send().await;
 
         expect_specific_api_response!(c, StatusCode::NO_CONTENT, Ok(()))
+    }
+
+    /// Create a follow-up message
+    pub async fn create_followup(&self, content: &WebhookMessage) -> Result<FollowupMessage, HttpError>{
+        let url = format!(
+            "{}/webhooks/{:?}/{}?wait=true",
+            crate::BASE_URL,
+            self.interaction.application_id.unwrap(),
+            self.interaction.token.as_ref().unwrap().to_string()
+        );
+
+        let c = self.client.post(&url).json(content).send().await;
+
+        match c {
+            Err(e) => {
+                debug!("Discord API request failed: {:#?}", e);
+                Err(
+                    HttpError{
+                        code: 0,
+                        message: format!("{:#?}", e),
+                    }
+                )
+            }
+            Ok(r) => {
+                let st = r.status();
+                if !st.is_success() {
+                    let e = format!("{:#?}", r.text().await);
+                    debug!("Discord API returned an error: {:#?}", e);
+                    Err(
+                        HttpError{
+                            code: st.as_u16(),
+                            message: e,
+                        }
+                    )
+                } else {
+                    let a: Result<FollowupMessage, serde_json::Error> = serde_json::from_str(&r.text().await.unwrap());
+
+                    match a{
+                        Err(e) => {
+                            debug!("Failed to decode response: {:#?}", e);
+                            Err(
+                                HttpError{
+                                    code: 500,
+                                    message: String::from(format!("{:?}", e)),
+                                }
+                            )
+                        },
+                        Ok(mut f) => {
+                            f.interaction_token = self.interaction.token.as_ref().unwrap().to_string();
+                            Ok(f)
+                        }
+                    }	
+                }
+            }
+        }
     }
 }
 
@@ -400,6 +468,17 @@ pub struct WebhookMessage {
     allowed_mentions: Option<AllowedMentions>,
 }
 
+impl Default for WebhookMessage{
+    fn default() -> Self{
+        WebhookMessage{
+            content: None,
+            embeds: None,
+            payload_json: None,
+            allowed_mentions: None
+        }
+    }
+}
+
 impl From<InteractionResponse> for WebhookMessage {
     fn from(o: InteractionResponse) -> WebhookMessage {
         let data = o.data.unwrap();
@@ -409,6 +488,187 @@ impl From<InteractionResponse> for WebhookMessage {
             embeds: data.embeds,
             payload_json: None,
             allowed_mentions: None,
+        }
+    }
+}
+
+#[serde_as]
+#[skip_serializing_none]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+/// Reference to a message. Contains useful identifiers.
+pub struct MessageReference{
+    #[serde_as(as = "DisplayFromStr")]
+    message_id: Snowflake,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    guild_id: Option<Snowflake>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    channel_id: Option<Snowflake>
+}
+
+impl MessageReference{
+    /// Get the message id of this message
+    pub fn message_id(&self) -> Snowflake{
+        self.message_id.clone()
+    }
+    /// Get the guild id of this message
+    /// 
+    /// `None` if message is in DM
+    pub fn guild_id(&self) -> Option<Snowflake>{
+        self.guild_id.clone()
+    }
+
+    /// Get the channel ID of this message
+    /// 
+    /// `None` if message is in DM
+    pub fn channel_id(&self) -> Option<Snowflake>{
+        self.channel_id.clone()
+    }
+}
+
+#[serde_as]
+#[skip_serializing_none]
+#[derive(Clone, Serialize, Deserialize, Debug)]
+/// Read-only struct representing a Followup message sent by some application.
+pub struct FollowupMessage{
+    #[serde_as(as = "DisplayFromStr")]
+    id: Snowflake,
+    r#type: u8,
+    content: Option<String>,
+    embeds: Vec<Embed>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    channel_id: Option<Snowflake>,
+    author: Option<User>,
+    tts: bool,
+    #[serde_as(as = "DisplayFromStr")]
+    timestamp: DateTime<Utc>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    edited_timestamp: Option<DateTime<Utc>>,
+    flags: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    application_id: Snowflake,
+    #[serde_as(as = "DisplayFromStr")]
+    webhook_id: Snowflake,
+    message_reference: MessageReference,
+
+    #[serde(skip)]
+    interaction_token: String,
+    #[serde(skip)]
+    client: Client,
+}
+
+// Getter functions
+// Might make this a proc macro later.
+// Also is cloning all of this necessary? 
+impl FollowupMessage{
+    /// Get the ID of this follow up
+    pub fn id(&self) -> Snowflake{
+        self.id
+    }
+    /// Get the type of message of this follow up
+    pub fn get_type(&self) -> u8{
+        self.r#type.clone()
+    }
+
+    /// Get the embeds of this follow up
+    pub fn embeds(&self) -> Vec<Embed>{
+        self.embeds.clone()
+    }
+
+    /// Gets the contents of this followup message
+    pub fn get_content(&self) -> Option<String>{
+        self.content.clone()
+    }
+    /// Get the creation time of this followup message
+    pub fn timestamp(&self) -> DateTime<Utc>{
+        self.timestamp.clone()
+    }
+    /// Get the time when this message was edited
+    /// 
+    /// `None` if message was never edited
+    pub fn edited_timestamp(&self) -> Option<DateTime<Utc>>{
+        self.edited_timestamp.clone()
+    }
+
+    /// Get the message flags of this message
+    pub fn flags(&self) -> u32{
+        self.flags.clone()
+    }
+
+    /// Get the application id of the application that made this message
+    pub fn app_id(&self) -> Snowflake{
+        self.application_id.clone()
+    }
+
+    /// Get the webhook id associated with this message
+    pub fn webhook_id(&self) -> Snowflake{
+        self.webhook_id.clone()
+    }
+
+    /// Get the message reference of this message
+    /// 
+    /// The [`MessageReference`] contains the message ID, aswell as the channel and guild id.
+    pub fn message_reference(&self) -> MessageReference{
+        self.message_reference.clone()
+    }
+
+}
+
+// 'Do' functions
+impl FollowupMessage{
+    /// Edit this followup message
+    pub async fn edit_message(&mut self, new_content: &WebhookMessage) -> Result<(), HttpError>{
+        let url = format!(
+            "/webhooks/{:?}/{:?}/messages/{:?}",
+            self.application_id,
+            self.interaction_token,
+            self.id);
+        
+        let exec = self.client.post(&url).json(new_content).send().await;
+
+        expect_successful_api_response!(exec, {
+            // TODO: Update edited fields
+            Ok(())
+        })
+    }
+
+    /// Delete this followup message. 
+    /// 
+    /// If the deletion succeeded, you'll get an `Ok(())`. However, if this somehow fails, it will return `Err(Self)`.
+    /// That means that if the deletion did not succeed, this reference does not go out of scope.
+    /// 
+    /// Errors get printed using the [`::log::debug!`] macro
+    pub async fn delete_message(self) -> Result<(), Self>{
+        let url = format!(
+            "{}/webhooks/{:?}/{}/messages/{:?}",
+            crate::BASE_URL,
+            self.application_id,
+            self.interaction_token,
+            self.id);
+
+        let exec = self.client.delete(&url).send().await;
+
+        match exec {
+            Err(e) => {
+                debug!("Discord API returned an error: {:#?}", e);
+                Err(
+                    self
+                )
+            }
+            Ok(r) => {
+                if r.status() != StatusCode::NO_CONTENT {
+                    let e = format!("{:#?}", r.text().await);
+                    debug!("Discord API request did not return {}: {:#?}", StatusCode::NO_CONTENT , e);
+                    Err(
+                        self
+                    )
+                } else {
+                    Ok(())
+                }
+            }
         }
     }
 }
