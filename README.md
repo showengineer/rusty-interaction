@@ -21,7 +21,7 @@ More than welcome! :D
 - [x] - Receive Interactions from Discord
 - [x] - Bind interactions to a function (with the help of a macro)
 - [x] - Properly respond to interactions from Discord
-- [ ] - Nice system to make follow-up messages.
+- [x] - Nice system to make follow-up messages.
 - [ ] - Nice system to manage guild-specific commands.
 - [ ] - Not a pile of code spaghetti that just works (oops...👀)
 
