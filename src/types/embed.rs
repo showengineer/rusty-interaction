@@ -60,24 +60,37 @@ pub struct EmbedProvider {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+/// Representing the author of an [`Embed`]
 pub struct EmbedAuthor {
-    name: Option<String>,
-    url: Option<String>,
-    icon_url: Option<String>,
-    proxy_icon_url: Option<String>,
+    /// Name of author
+    pub name: Option<String>,
+    /// Url of author
+    pub url: Option<String>,
+    /// Url of author icon (only supports http(s) and attachments)
+    pub icon_url: Option<String>,
+    /// A proxied url of author icon
+    pub proxy_icon_url: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+/// Representing the footer of an [`Embed`]
 pub struct EmbedFooter {
+    /// Footer text
     text: String,
+    /// Url of footer icon (only supports http(s) and attachments)
     icon_url: Option<String>,
+    /// A proxied url of footer icon
     proxy_icon_url: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+/// Representing a field of an [`Embed`]
 pub struct EmbedField {
+    /// Name of the field
     name: String,
+    /// Value of the field
     value: String,
+    /// Whether or not this field should display inline
     inline: Option<bool>,
 }
 #[derive(Clone, Debug, PartialEq)]
