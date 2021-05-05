@@ -73,26 +73,20 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
         for n in 0..body.stmts.len() {
             let s = &body.stmts[n];
             match s {
-                Stmt::Expr(e) => match e {
-                    Expr::Return(a) => {
-                        expr = Some(a.clone());
-                        ind = Some(n);
-                        break;
-                    }
-                    _ => (),
-                },
-                Stmt::Semi(e, _) => match e {
-                    Expr::Return(a) => {
-                        expr = Some(a.clone());
-                        ind = Some(n);
-                        break;
-                    }
-                    _ => (),
+                Stmt::Expr(Expr::Return(a)) => {
+                    expr = Some(a.clone());
+                    ind = Some(n);
+                    break;
+                }
+                ,
+                Stmt::Semi(Expr::Return(a), _) => {
+                    expr = Some(a.clone());
+                    ind = Some(n);
+                    break;
                 },
                 _ => (),
             }
         }
-
         let (nbody, _reta) = body.stmts.split_at(ind.unwrap_or_else(|| {
             panic!(
                 "Could not find return statement in slash-command. Explicit returns are required."
@@ -108,15 +102,11 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
         // Find the name of the Context parameter
         let mut ctxname: Option<syn::Ident> = None;
         for p in params {
-            match p {
-                FnArg::Typed(t) => match &*t.pat {
-                    syn::Pat::Ident(a) => {
+            if let FnArg::Typed(t) = p {
+                if let syn::Pat::Ident(a) = &*t.pat {
                         ctxname = Some(a.ident.clone());
                         break;
-                    }
-                    _ => (),
-                },
-                _ => (),
+                }
             }
         }
 
@@ -222,26 +212,20 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
         for n in 0..body.stmts.len() {
             let s = &body.stmts[n];
             match s {
-                Stmt::Expr(e) => match e {
-                    Expr::Return(a) => {
-                        expr = Some(a.clone());
-                        ind = Some(n);
-                        break;
-                    }
-                    _ => (),
-                },
-                Stmt::Semi(e, _) => match e {
-                    Expr::Return(a) => {
-                        expr = Some(a.clone());
-                        ind = Some(n);
-                        break;
-                    }
-                    _ => (),
+                Stmt::Expr(Expr::Return(a)) => {
+                    expr = Some(a.clone());
+                    ind = Some(n);
+                    break;
+                }
+                ,
+                Stmt::Semi(Expr::Return(a), _) => {
+                    expr = Some(a.clone());
+                    ind = Some(n);
+                    break;
                 },
                 _ => (),
             }
         }
-
         let (nbody, _reta) = body.stmts.split_at(ind.unwrap_or_else(|| {
             panic!(
                 "Could not find return statement in slash-command. Explicit returns are required."
@@ -257,15 +241,11 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
         // Find the name of the Context parameter
         let mut ctxname: Option<syn::Ident> = None;
         for p in params {
-            match p {
-                FnArg::Typed(t) => match &*t.pat {
-                    syn::Pat::Ident(a) => {
+            if let FnArg::Typed(t) = p {
+                if let syn::Pat::Ident(a) = &*t.pat {
                         ctxname = Some(a.ident.clone());
                         break;
-                    }
-                    _ => (),
-                },
-                _ => (),
+                }
             }
         }
 

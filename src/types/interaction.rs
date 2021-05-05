@@ -212,7 +212,7 @@ impl Context {
                             debug!("Failed to decode response: {:#?}", e);
                             Err(HttpError {
                                 code: 500,
-                                message: String::from(format!("{:?}", e)),
+                                message: format!("{:?}", e),
                             })
                         }
                         Ok(mut f) => {
@@ -495,20 +495,20 @@ pub struct MessageReference {
 impl MessageReference {
     /// Get the message id of this message
     pub fn message_id(&self) -> Snowflake {
-        self.message_id.clone()
+        self.message_id
     }
     /// Get the guild id of this message
     ///
     /// `None` if message is in DM
     pub fn guild_id(&self) -> Option<Snowflake> {
-        self.guild_id.clone()
+        self.guild_id
     }
 
     /// Get the channel ID of this message
     ///
     /// `None` if message is in DM
     pub fn channel_id(&self) -> Option<Snowflake> {
-        self.channel_id.clone()
+        self.channel_id
     }
 }
 
@@ -555,7 +555,7 @@ impl FollowupMessage {
     }
     /// Get the type of message of this follow up
     pub fn get_type(&self) -> u8 {
-        self.r#type.clone()
+        self.r#type
     }
 
     /// Get the embeds of this follow up
@@ -569,28 +569,28 @@ impl FollowupMessage {
     }
     /// Get the creation time of this followup message
     pub fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp.clone()
+        self.timestamp
     }
     /// Get the time when this message was edited
     ///
     /// `None` if message was never edited
     pub fn edited_timestamp(&self) -> Option<DateTime<Utc>> {
-        self.edited_timestamp.clone()
+        self.edited_timestamp
     }
 
     /// Get the message flags of this message
     pub fn flags(&self) -> u32 {
-        self.flags.clone()
+        self.flags
     }
 
     /// Get the application id of the application that made this message
     pub fn app_id(&self) -> Snowflake {
-        self.application_id.clone()
+        self.application_id
     }
 
     /// Get the webhook id associated with this message
     pub fn webhook_id(&self) -> Snowflake {
-        self.webhook_id.clone()
+        self.webhook_id
     }
 
     /// Get the message reference of this message
