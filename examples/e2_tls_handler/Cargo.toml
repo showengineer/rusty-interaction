@@ -1,0 +1,15 @@
+[package]
+name = "e2_tls_handler"
+version = "0.1.0"
+authors = ["Hugo Woesthuis <hugow2011@outlook.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rusty_interaction = {path = "../../", features=["handler"]}
+actix-web = "3"
+dotenv = "0.13.0"
+env_logger = "0"
+
+rustls = "0.18"
