@@ -1,4 +1,6 @@
 [workspace]
 members = [
-    "basic-handler"
+    "basic-handler",
+    "e2_tls_handler",
+    "e3_deffering_commands"
 ]

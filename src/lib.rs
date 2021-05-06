@@ -24,6 +24,8 @@ pub mod handler;
 pub use actix;
 #[cfg(feature = "handler")]
 pub use attributes::*;
+#[cfg(feature = "handler")]
+pub use actix_web;
 
 #[cfg(all(test, not(feature = "handler")))]
 compile_error!(
