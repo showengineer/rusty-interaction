@@ -13,7 +13,7 @@ To indicate you want to reply with a deffered response first, simply put `#[defe
 async fn some_handler(ctx: Context) -> InteractionResponse{
     // ...
 
-    return ctx.respond().content("Wowh! That was quite a task!");
+    return ctx.respond().content("Wowh! That was quite a task!").finish();
 }
 ```
 
