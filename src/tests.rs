@@ -254,7 +254,7 @@ async fn interactions_bad_body_test() {
     assert_eq!(res.status(), http::StatusCode::BAD_REQUEST);
 }
 
-#[slash_command]
+#[slash_command_test]
 async fn normal_handle_test(ctx: Context) -> InteractionResponse {
     return ctx.respond().content("TEST").finish();
 }

@@ -53,12 +53,12 @@ impl InteractionHandler {
     /// Make sure to use the `#[slash_command]` procedural macro to make it usable for the handler.
     ///
     /// Like:
-    /// ```rust
+    /// ```ignore
     /// # use rusty_interaction::types::interaction::{Context, InteractionResponse};
     /// # use attributes::slash_command;
     /// #[slash_command]
     /// async fn do_work(ctx: Context) -> InteractionResponse {
-    ///     todo!("Do work and return a response")
+    ///     return todo!("Do work and return a response");
     /// }
     /// ```
     /// # Example
