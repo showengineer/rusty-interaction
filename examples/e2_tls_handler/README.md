@@ -11,3 +11,6 @@ To run this example:
 
 Note that you'll need to edit the `PUB_KEY` constant accordingly (it will panic if you don't give a vaild key).
 You'll also need to supply a TLS certificate and it's corresponding private key (`cert.pem` and `key.pem` by default).
+
+# Docs to read
+- [actix tls example](https://github.com/actix/examples/tree/master/security/rustls)

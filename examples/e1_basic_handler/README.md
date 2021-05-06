@@ -13,3 +13,7 @@ To run this example:
 This example starts a plain HTTP server. Using plain HTTP these days is a **bad idea**. 
 
 Look at example 2 for a HTTPS server implementation.
+
+# Docs to read
+- [InteractionHandler](https://docs.rs/rusty_interaction/latest/rusty_interaction/handler/struct.InteractionHandler.html)
+- [Context](https://docs.rs/rusty_interaction/0.1.0/rusty_interaction/types/interaction/struct.Context.html)
