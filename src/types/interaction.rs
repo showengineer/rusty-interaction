@@ -453,6 +453,32 @@ pub struct WebhookMessage {
     allowed_mentions: Option<AllowedMentions>,
 }
 
+impl WebhookMessage{
+    /// Add text to this WebhookMessage
+    pub fn content(mut self, content: impl ToString) -> Self{
+        self.content = Some(content.to_string());
+        self
+    }
+    
+    /// Add an embed to this WebhookMessage
+    pub fn add_embed(mut self, embed: Embed) -> Self{
+        match self.embeds.as_mut() {
+            None => {
+                self.embeds = Some(vec![embed]);
+            }
+            Some(e) => {
+                // Check if this will exceed the embed limit
+                if e.len() <= 9 {
+                    e.push(embed);
+                } else {
+                 // Log an error for now.
+                    error!("Tried to add embed while embed limit (max. 10 embeds) was already reached. Ignoring")
+                }
+            }
+        }
+        self
+    }
+}
 impl Default for WebhookMessage {
     fn default() -> Self {
         WebhookMessage {
@@ -545,9 +571,7 @@ pub struct FollowupMessage {
     client: Client,
 }
 
-// Getter functions
-// Might make this a proc macro later.
-// Also is cloning all of this necessary?
+/// Getter functions
 impl FollowupMessage {
     /// Get the ID of this follow up
     pub fn id(&self) -> Snowflake {
@@ -601,7 +625,7 @@ impl FollowupMessage {
     }
 }
 
-// 'Do' functions
+/// 'Do' functions
 impl FollowupMessage {
     /// Edit this followup message
     pub async fn edit_message(&mut self, new_content: &WebhookMessage) -> Result<(), HttpError> {
