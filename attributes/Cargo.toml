@@ -4,7 +4,7 @@ version = "0.0.1"
 authors = ["Hugo Woesthuis <hugow2011@outlook.com>"]
 edition = "2018"
 description = "Procedural macros for command creation with rusty-interaction"
-
+license = "ISC"
 [lib]
 proc-macro = true
 
