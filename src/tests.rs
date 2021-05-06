@@ -1,3 +1,4 @@
+
 use crate::handler::InteractionHandler;
 use crate::security::*;
 use crate::types;
@@ -5,6 +6,7 @@ use crate::types::interaction::{
     Context, InteractionResponse, InteractionResponseBuilder, InteractionResponseType,
 };
 use crate::*;
+use log::error;
 use actix_web::{http, test, web, App, HttpRequest};
 use ed25519_dalek::PublicKey;
 
@@ -253,10 +255,21 @@ async fn interactions_bad_body_test() {
 
     assert_eq!(res.status(), http::StatusCode::BAD_REQUEST);
 }
-
+#[allow(unused_must_use)]
 #[slash_command_test]
 async fn normal_handle_test(ctx: Context) -> InteractionResponse {
     return ctx.respond().content("TEST").finish();
+}
+#[allow(unused_must_use)]
+#[slash_command_test]
+async fn normal_handle_value_test(ctx: Context) -> InteractionResponse {
+    let response = ctx.respond().content("TEST").finish();
+    return response;
+}
+#[allow(unused_must_use)]
+#[slash_command_test]
+async fn normal_handle_direct_test(_: Context) -> InteractionResponse {
+    return InteractionResponseBuilder::default().content("TEST").finish();
 }
 
 #[actix_rt::test]
@@ -287,7 +300,64 @@ async fn interactions_normal_handle_test() {
     assert_eq!(res, expected_data);
 }
 
+#[actix_rt::test]
+async fn interactions_normal_from_value_handle_test() {
+    let mut ih = InteractionHandler::new(TEST_PUB_KEY);
+
+    ih.add_command("test", normal_handle_direct_test);
+
+    let mut app = interaction_app_init!(ih);
+
+    let req = test::TestRequest::post()
+        .uri("/api/discord/interactions")
+        .header("Content-Type", "application/json")
+        .header("X-Signature-Ed25519", "a27ed2fd0e91da58667bec63d14406e5274a0427edad9530b7d95e9d2b0fc4ee17f74e8a6bd3acd6623a05f1bde9e598fa37f3eedfe479da0a00da7827595e0b")
+        .header("X-Signature-Timestamp", "1616343571")
+        .set_payload("{\"type\":2,\"token\":\"awQabcabc\",\"member\":{\"user\":{\"id\":\"317209107000066050\",\"username\":\"C0der\",\"avatar\":\"a_d5efa99b3eeaa7dd43acca82f5692432\",\"discriminator\":\"1337\",\"public_flags\":131141},\"roles\":[],\"premium_since\":null,\"permissions\":\"2147483647\",\"pending\":false,\"nick\":null,\"mute\":false,\"joined_at\":\"2017-03-13T19:19:14.040000+00:00\",\"is_pending\":false,\"deaf\":false},\"id\":\"786008729715212338\",\"guild_id\":\"290926798626357999\",\"data\":{\"name\":\"test\",\"id\":\"771825006014889984\"},\"channel_id\":\"645027906669510667\"}")
+        .to_request();
+
+    let res: types::interaction::InteractionResponse =
+        test::read_response_json(&mut app, req).await;
+
+    let expected_data = InteractionResponseBuilder::default()
+        .content("TEST")
+        .finish();
+
+    //let expected_res = HttpResponse::build(StatusCode::OK).json(expected_data);
+
+    assert_eq!(res, expected_data);
+}
+
+#[actix_rt::test]
+async fn interactions_normal_from_direct_call_handle_test() {
+    let mut ih = InteractionHandler::new(TEST_PUB_KEY);
+
+    ih.add_command("test", normal_handle_value_test);
+
+    let mut app = interaction_app_init!(ih);
+
+    let req = test::TestRequest::post()
+        .uri("/api/discord/interactions")
+        .header("Content-Type", "application/json")
+        .header("X-Signature-Ed25519", "a27ed2fd0e91da58667bec63d14406e5274a0427edad9530b7d95e9d2b0fc4ee17f74e8a6bd3acd6623a05f1bde9e598fa37f3eedfe479da0a00da7827595e0b")
+        .header("X-Signature-Timestamp", "1616343571")
+        .set_payload("{\"type\":2,\"token\":\"awQabcabc\",\"member\":{\"user\":{\"id\":\"317209107000066050\",\"username\":\"C0der\",\"avatar\":\"a_d5efa99b3eeaa7dd43acca82f5692432\",\"discriminator\":\"1337\",\"public_flags\":131141},\"roles\":[],\"premium_since\":null,\"permissions\":\"2147483647\",\"pending\":false,\"nick\":null,\"mute\":false,\"joined_at\":\"2017-03-13T19:19:14.040000+00:00\",\"is_pending\":false,\"deaf\":false},\"id\":\"786008729715212338\",\"guild_id\":\"290926798626357999\",\"data\":{\"name\":\"test\",\"id\":\"771825006014889984\"},\"channel_id\":\"645027906669510667\"}")
+        .to_request();
+
+    let res: types::interaction::InteractionResponse =
+        test::read_response_json(&mut app, req).await;
+
+    let expected_data = InteractionResponseBuilder::default()
+        .content("TEST")
+        .finish();
+
+    //let expected_res = HttpResponse::build(StatusCode::OK).json(expected_data);
+
+    assert_eq!(res, expected_data);
+}
+
 use crate::types::interaction::WebhookMessage;
+
 
 #[slash_command_test]
 #[defer]
@@ -295,11 +365,82 @@ async fn deffered_handle_test(ctx: Context) -> InteractionResponse {
     return ctx.respond().content("TEST").finish();
 }
 
+#[slash_command_test]
+#[defer]
+async fn deffered_handle_value_test(ctx: Context) -> InteractionResponse {
+    let response = ctx.respond().content("TEST").finish();
+    return response;
+}
+
+#[slash_command_test]
+#[defer]
+async fn deffered_handle_direct_test(_ctx: Context) -> InteractionResponse {
+    return InteractionResponseBuilder::default().content("TEST").finish();
+}
+
 #[actix_rt::test]
 async fn interactions_deffered_handle_test() {
     let mut ih = InteractionHandler::new(TEST_PUB_KEY);
 
     ih.add_command("test", deffered_handle_test);
+
+    let mut app = interaction_app_init!(ih);
+
+    let req = test::TestRequest::post()
+        .uri("/api/discord/interactions")
+        .header("Content-Type", "application/json")
+        .header("X-Signature-Ed25519", "a27ed2fd0e91da58667bec63d14406e5274a0427edad9530b7d95e9d2b0fc4ee17f74e8a6bd3acd6623a05f1bde9e598fa37f3eedfe479da0a00da7827595e0b")
+        .header("X-Signature-Timestamp", "1616343571")
+        .set_payload("{\"type\":2,\"token\":\"awQabcabc\",\"member\":{\"user\":{\"id\":\"317209107000066050\",\"username\":\"C0der\",\"avatar\":\"a_d5efa99b3eeaa7dd43acca82f5692432\",\"discriminator\":\"1337\",\"public_flags\":131141},\"roles\":[],\"premium_since\":null,\"permissions\":\"2147483647\",\"pending\":false,\"nick\":null,\"mute\":false,\"joined_at\":\"2017-03-13T19:19:14.040000+00:00\",\"is_pending\":false,\"deaf\":false},\"id\":\"786008729715212338\",\"guild_id\":\"290926798626357999\",\"data\":{\"name\":\"test\",\"id\":\"771825006014889984\"},\"channel_id\":\"645027906669510667\"}")
+        .to_request();
+
+    let res: types::interaction::InteractionResponse =
+        test::read_response_json(&mut app, req).await;
+
+    let expected_data = InteractionResponse {
+        r#type: InteractionResponseType::DefferedChannelMessageWithSource,
+        data: None,
+    };
+
+    //let expected_res = HttpResponse::build(StatusCode::OK).json(expected_data);
+
+    assert_eq!(res, expected_data);
+}
+
+#[actix_rt::test]
+async fn interactions_deffered_from_value_handle_test() {
+    let mut ih = InteractionHandler::new(TEST_PUB_KEY);
+
+    ih.add_command("test", deffered_handle_value_test);
+
+    let mut app = interaction_app_init!(ih);
+
+    let req = test::TestRequest::post()
+        .uri("/api/discord/interactions")
+        .header("Content-Type", "application/json")
+        .header("X-Signature-Ed25519", "a27ed2fd0e91da58667bec63d14406e5274a0427edad9530b7d95e9d2b0fc4ee17f74e8a6bd3acd6623a05f1bde9e598fa37f3eedfe479da0a00da7827595e0b")
+        .header("X-Signature-Timestamp", "1616343571")
+        .set_payload("{\"type\":2,\"token\":\"awQabcabc\",\"member\":{\"user\":{\"id\":\"317209107000066050\",\"username\":\"C0der\",\"avatar\":\"a_d5efa99b3eeaa7dd43acca82f5692432\",\"discriminator\":\"1337\",\"public_flags\":131141},\"roles\":[],\"premium_since\":null,\"permissions\":\"2147483647\",\"pending\":false,\"nick\":null,\"mute\":false,\"joined_at\":\"2017-03-13T19:19:14.040000+00:00\",\"is_pending\":false,\"deaf\":false},\"id\":\"786008729715212338\",\"guild_id\":\"290926798626357999\",\"data\":{\"name\":\"test\",\"id\":\"771825006014889984\"},\"channel_id\":\"645027906669510667\"}")
+        .to_request();
+
+    let res: types::interaction::InteractionResponse =
+        test::read_response_json(&mut app, req).await;
+
+    let expected_data = InteractionResponse {
+        r#type: InteractionResponseType::DefferedChannelMessageWithSource,
+        data: None,
+    };
+
+    //let expected_res = HttpResponse::build(StatusCode::OK).json(expected_data);
+
+    assert_eq!(res, expected_data);
+}
+
+#[actix_rt::test]
+async fn interactions_deffered_from_direct_value_handle_test() {
+    let mut ih = InteractionHandler::new(TEST_PUB_KEY);
+
+    ih.add_command("test", deffered_handle_direct_test);
 
     let mut app = interaction_app_init!(ih);
 

@@ -127,7 +127,9 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 Box::pin(async move {
                     ::rusty_interaction::actix::Arbiter::spawn(async move {
                         #(#nvec)*
-                        #ctxname.edit_original(&WebhookMessage::from(#expra)).await;
+                        if let Err(i) = #ctxname.edit_original(&WebhookMessage::from(#expra)).await{
+                            error!("Editing original message failed: {:?}", i);
+                        }
                     });
 
                     return InteractionResponseBuilder::default().respond_type(InteractionResponseType::DefferedChannelMessageWithSource).finish();
@@ -263,7 +265,9 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
                 Box::pin(async move {
                     ::actix::Arbiter::spawn(async move {
                         #(#nvec)*
-                        #ctxname.edit_original(&WebhookMessage::from(#expra)).await;
+                        if let Err(i) = #ctxname.edit_original(&WebhookMessage::from(#expra)).await{
+                            error!("Editing original message failed: {:?}", i);
+                        }
                     });
 
                     return InteractionResponseBuilder::default().respond_type(InteractionResponseType::DefferedChannelMessageWithSource).finish();
