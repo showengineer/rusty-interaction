@@ -3,6 +3,12 @@ This the most basic handler you can make with Rusty Interaction.
 
 If `/summon` was called, it will print `I HAVE BEEN SUMMONED!!!` on the console and reply with `I was summoned?`.
 
+## Important design note
+Whatever you return is **the initial response**. It was chosen this way because Discord _always_ wants a response from you. This way, you're forced to
+give a response.
+
+However, this might be confusing at times. Especially if you're using followup messages and/or you're editing your original response. Be aware of this.
+
 # Running this example
 You can use regular `cargo build` and `cargo run` commands.
 
