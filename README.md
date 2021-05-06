@@ -4,12 +4,12 @@ This library provides types and helper functions for handling Discord's [Interac
 **This library is not done. Use for production not yet recommended**
 
 Although it's usable and supports most of the features, it still requires work and things are subject to change. 
-## Install instructions
-Add this dependency entry to your `cargo.toml` file:
+## Getting started
+To install this library, add this dependency entry to your `Cargo.toml` file:
 ```toml
 rusty-interaction = "0"
 ```
-
+Take a look at the [documentation](https://docs.rs/rusty_interaction) and the [examples](/examples) to get yourself familiar with using the library.
 ## Contributing
 More than welcome! :D
 
