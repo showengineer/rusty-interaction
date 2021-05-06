@@ -236,11 +236,7 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
             );
         }));
 
-        // Create a nice block out of it.
-        let vbody = syn::Block {
-            brace_token: body.brace_token,
-            stmts: nbody.to_vec(),
-        };
+        let nvec = nbody.to_vec();
 
         // Find the name of the Context parameter
         let mut ctxname: Option<syn::Ident> = None;
@@ -266,7 +262,7 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
             #vis fn #fname<'context> (#params) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
                 Box::pin(async move {
                     ::actix::Arbiter::spawn(async move {
-                        #vbody
+                        #(#nvec)*
                         #ctxname.edit_original(&WebhookMessage::from(#expra)).await;
                     });
 
