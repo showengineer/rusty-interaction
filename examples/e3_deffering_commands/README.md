@@ -7,7 +7,7 @@ You'll still have to reply in _no more than 15 minutes_, or the interaction will
 
 To indicate you want to reply with a deffered response first, simply put `#[defer]` under the `#[slash_command]` proc-macro! The way you respond to an interaction stays the same: the compiler transforms this into the correct form for you. Example:
 
-```rs
+```rust
 #[slash_command]
 #[defer]
 async fn some_handler(ctx: Context) -> InteractionResponse{
