@@ -9,6 +9,7 @@ readme = "README.md"
 edition = "2018"
 keywords = ["discord", "interactions", "discord-interactions", "slash-commands"]
 categories = ["api-bindings", "web-programming"]
+include = ["src/**/*", "LICENSE.md", "README.md"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 
