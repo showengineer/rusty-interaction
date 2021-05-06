@@ -5,6 +5,7 @@ authors = ["Hugo Woesthuis <hugow2011@outlook.com>"]
 edition = "2018"
 description = "Procedural macros for command creation with rusty-interaction"
 license = "ISC"
+readme = "README.md"
 [lib]
 proc-macro = true
 
