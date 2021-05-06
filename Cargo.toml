@@ -56,3 +56,5 @@ types = []
 handler = ["types", "security", "actix", "actix-web", "actix-files", "actix-rt", "rustls", "async-trait", "attributes", "log", "reqwest"]
 
 
+[package.metadata.docs.rs]
+all-features = true
