@@ -9,6 +9,6 @@ edition = "2018"
 
 [dependencies]
 rusty_interaction = {path = "../../", features=["handler"]}
+actix-web = "3"
 dotenv = "0.13.0"
 env_logger = "0"
-actix-web = "3"

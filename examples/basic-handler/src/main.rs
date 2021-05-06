@@ -23,6 +23,7 @@ async fn test(ctx: Context) -> InteractionResponse{
             .finish()
 }
 
+// The lib uses actix-web
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Enable the logger
@@ -38,6 +39,7 @@ async fn main() -> std::io::Result<()> {
     handle.add_command("summon", test);
 
     // Run the API server! NOTE: the server runs at port 10080 (Socket binds to 0.0.0.0:10080)
+    // This server starts a HTTP server. You MUST switch to HTTPS if you want to move to production. See example 2 for that
     handle.run().await
     
 }
