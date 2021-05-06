@@ -37,7 +37,7 @@ No. If you want to receive interactions through the gateway, you want to take a 
 
 [ci-link]: https://github.com/hugopilot/rusty-interaction/actions
 [ci-img]: https://img.shields.io/github/workflow/status/hugopilot/rusty-interaction/RustCI?style=flat-square
-[cio-link]: https://crates.io/rusty-interaction
+[cio-link]: https://crates.io/crates/rusty_interaction
 [cio-img]: https://img.shields.io/crates/v/rusty-interaction?style=flat-square
 [lic-link]: /LICENSE
 [lic-img]: https://img.shields.io/crates/l/rusty-interaction?style=flat-square
