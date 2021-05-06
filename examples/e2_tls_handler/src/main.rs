@@ -23,9 +23,9 @@ async fn test(ctx: Context) -> InteractionResponse{
     // Return a response by using the `Context.respond` function.
     // `Context.respond` returns an `InteractionResponseBuilder`.
     // You can now build a `InteractionResponse` by using it's functions.
-    ctx.respond()
+    return ctx.respond()
             .message("I was summoned?")
-            .finish()
+            .finish();
 }
 
 // The lib uses actix-web
