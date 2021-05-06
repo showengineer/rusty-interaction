@@ -56,109 +56,12 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     // Using quasi-quoting to generate a new function. This is what will be the end function returned to the compiler.
     if !defer {
-        // Find the return statement and split the entire tokenstream there.
-        let mut ind: Option<usize> = None;
-        let mut expr: Option<ExprReturn> = None;
-        for n in 0..body.stmts.len() {
-            let s = &body.stmts[n];
-            match s {
-                Stmt::Expr(Expr::Return(a)) => {
-                    expr = Some(a.clone());
-                    ind = Some(n);
-                    break;
-                }
-                ,
-                Stmt::Semi(Expr::Return(a), _) => {
-                    expr = Some(a.clone());
-                    ind = Some(n);
-                    break;
-                },
-                _ => (),
-            }
-        }
-        let (nbody, _reta) = body.stmts.split_at(ind.unwrap_or_else(|| {
-            panic!(
-                "Could not find return statement in slash-command. Explicit returns are required."
-            );
-        }));
-
-        // Create a nice block out of it.
-        let vbody = syn::Block {
-            brace_token: body.brace_token,
-            stmts: nbody.to_vec(),
-        };
-
-
-        // Find the name of the Context parameter
-        let mut ctxname: Option<syn::Ident> = None;
-        for p in params {
-            if let FnArg::Typed(t) = p {
-                if let syn::Pat::Ident(a) = &*t.pat {
-                        ctxname = Some(a.ident.clone());
-                        break;
-                }
-            }
-        }
-
-        // Unwrap, unwrap, unwrap, unwrap.
-        let mut expra = expr
-            .unwrap_or_else(|| panic!("Expected return"))
-            .expr
-            .unwrap_or_else(|| panic!("Expected some return value"));
-
-        if let syn::Expr::MethodCall(ref mut f) = *expra{
-            let mut current = f;
-            
-            // Don't ask, appricate it's beauty (or absence of)
-            loop{
-                // Another MethodCall? Unwrap and loop again
-                if let syn::Expr::MethodCall(ref mut f) = *current.receiver{ current = f; }
-                else{
-                    // I see we have a Path. Nice! That's what we need   
-                    if let syn::Expr::Path(ref mut p) = *current.receiver{
-                        let seg = &mut p.path.segments;
-                        let mut change = false;
-                        // Loop through the segments
-                        for s in seg{
-                            let n = s.ident.to_string();
-
-                            // We have found the correct thing!
-                            if n == ctxname.clone().unwrap().to_string(){
-
-                                // Replace it with our copy
-                                s.ident = syn::Ident::new("__proc_ctx_cpy", quote::__private::Span::from(Span::call_site()));
-
-                                // Break all loops
-                                change = true;
-                                break;
-                                
-                            }
-                        }
-                        if change{
-                            break;
-                        }
-                    }
-                }
-            }
-            
-        }   
-        else{
-            panic!("Expected a method call in return value")
-        }
 
         // Build the function
-        // "Normal" slash command handlers are also put in an Arbiter, to allow followups
         let subst_fn = quote! {
             #vis fn #fname<'context> (#params) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
                 Box::pin(async move {
-                    let __proc_ctx_cpy = #ctxname.clone();
-                    ::rusty_interaction::actix::Arbiter::spawn(async move {
-                        #vbody
-                        
-                    });
-
-                    return #expra;
-
+                    #body
                 })
             }
         };
@@ -192,11 +95,8 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
             );
         }));
 
-        // Create a nice block out of it.
-        let vbody = syn::Block {
-            brace_token: body.brace_token,
-            stmts: nbody.to_vec(),
-        };
+        
+
 
         // Find the name of the Context parameter
         let mut ctxname: Option<syn::Ident> = None;
@@ -215,6 +115,10 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
             .expr
             .unwrap_or_else(|| panic!("Expected some return value"));
 
+        
+        let nvec = nbody.to_vec();
+
+        
         // Now that we have all the information we need, we can finally start building our new function!
         // The difference here being that the non-deffered function doesn't have to spawn a new thread that
         // does the actual work. Here we need it to reply with a deffered channel message.
@@ -222,7 +126,7 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
             #vis fn #fname<'context> (#params) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
                 Box::pin(async move {
                     ::rusty_interaction::actix::Arbiter::spawn(async move {
-                        #vbody
+                        #(#nvec)*
                         #ctxname.edit_original(&WebhookMessage::from(#expra)).await;
                     });
 
@@ -293,109 +197,12 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
 
     // Using quasi-quoting to generate a new function. This is what will be the end function returned to the compiler.
     if !defer {
-        // Find the return statement and split the entire tokenstream there.
-        let mut ind: Option<usize> = None;
-        let mut expr: Option<ExprReturn> = None;
-        for n in 0..body.stmts.len() {
-            let s = &body.stmts[n];
-            match s {
-                Stmt::Expr(Expr::Return(a)) => {
-                    expr = Some(a.clone());
-                    ind = Some(n);
-                    break;
-                }
-                ,
-                Stmt::Semi(Expr::Return(a), _) => {
-                    expr = Some(a.clone());
-                    ind = Some(n);
-                    break;
-                },
-                _ => (),
-            }
-        }
-        let (nbody, _reta) = body.stmts.split_at(ind.unwrap_or_else(|| {
-            panic!(
-                "Could not find return statement in slash-command. Explicit returns are required."
-            );
-        }));
-
-        // Create a nice block out of it.
-        let vbody = syn::Block {
-            brace_token: body.brace_token,
-            stmts: nbody.to_vec(),
-        };
-
-
-        // Find the name of the Context parameter
-        let mut ctxname: Option<syn::Ident> = None;
-        for p in params {
-            if let FnArg::Typed(t) = p {
-                if let syn::Pat::Ident(a) = &*t.pat {
-                        ctxname = Some(a.ident.clone());
-                        break;
-                }
-            }
-        }
-
-        // Unwrap, unwrap, unwrap, unwrap.
-        let mut expra = expr
-            .unwrap_or_else(|| panic!("Expected return"))
-            .expr
-            .unwrap_or_else(|| panic!("Expected some return value"));
-
-        if let syn::Expr::MethodCall(ref mut f) = *expra{
-            let mut current = f;
-            
-            // Don't ask, appricate it's beauty (or absence of)
-            loop{
-                // Another MethodCall? Unwrap and loop again
-                if let syn::Expr::MethodCall(ref mut f) = *current.receiver{ current = f; }
-                else{
-                    // I see we have a Path. Nice! That's what we need   
-                    if let syn::Expr::Path(ref mut p) = *current.receiver{
-                        let seg = &mut p.path.segments;
-                        let mut change = false;
-                        // Loop through the segments
-                        for s in seg{
-                            let n = s.ident.to_string();
-
-                            // We have found the correct thing!
-                            if n == ctxname.clone().unwrap().to_string(){
-
-                                // Replace it with our copy
-                                s.ident = syn::Ident::new("__proc_ctx_cpy", quote::__private::Span::from(Span::call_site()));
-
-                                // Break all loops
-                                change = true;
-                                break;
-                                
-                            }
-                        }
-                        if change{
-                            break;
-                        }
-                    }
-                }
-            }
-            
-        }   
-        else{
-            panic!("Expected a method call in return value")
-        }
 
         // Build the function
-        // "Normal" slash command handlers are also put in an Arbiter, to allow followups
         let subst_fn = quote! {
             #vis fn #fname<'context> (#params) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
                 Box::pin(async move {
-                    let __proc_ctx_cpy = #ctxname.clone();
-                    ::actix::Arbiter::spawn(async move {
-                        #vbody
-                        
-                    });
-
-                    return #expra;
-
+                    #body
                 })
             }
         };
