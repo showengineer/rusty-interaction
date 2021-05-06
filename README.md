@@ -7,7 +7,7 @@ Although it's usable and supports most of the features, it still requires work a
 ## Getting started
 To install this library, add this dependency entry to your `Cargo.toml` file:
 ```toml
-rusty-interaction = "0"
+rusty_interaction = "0"
 ```
 Take a look at the [documentation](https://docs.rs/rusty_interaction) and the [examples](/examples) to get yourself familiar with using the library.
 ## Contributing
