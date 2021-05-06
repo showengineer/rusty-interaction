@@ -143,7 +143,7 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
             
         }   
         else{
-            panic!("Expected a field: {:#?}", *expra)
+            panic!("Expected a method call in return value")
         }
 
         // Build the function
