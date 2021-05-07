@@ -19,25 +19,12 @@ const PUB_KEY: &str = "57028473720a7c1d4666132a68007f0902034a13c43cc2c1658b10b5f
 #[slash_command]
 async fn test(ctx: Context) -> InteractionResponse{
     
-    // Wait for three secs
-    task::sleep(Duration::from_secs(3)).await;
 
-
-    // Send a new followup message
+    // Send a followup message
     let fu = ctx.clone().create_followup(&
         WebhookMessage::default().content("This is a follow up!")
     ).await;
     
-    // fu is a Result<FollowupMessage, HttpError>
-    if let Ok(follow_up) = fu{
-        // Wait another three
-        task::sleep(Duration::from_secs(3)).await;
-        
-        // Finally, delete it
-        if let Err(_) = follow_up.delete_message().await{
-            eprintln!("ERROR")
-        }
-    }
     
     // Mind you: The return value is the INITIAL RESPONSE. What is returned here is sent directly to Discord
     return ctx.respond()
