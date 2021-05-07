@@ -58,4 +58,4 @@ handler = ["types", "security", "actix", "actix-web", "actix-files", "actix-rt",
 extended-handler = ["handler"]
 
 [package.metadata.docs.rs]
-rustdoc-args = ["--features", "extended-handler"]
+all-features = true

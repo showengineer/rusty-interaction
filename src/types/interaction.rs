@@ -1,4 +1,6 @@
-use crate::{expect_specific_api_response, expect_successful_api_response, expect_successful_api_response_and_return};
+use crate::{expect_specific_api_response, expect_successful_api_response};
+#[cfg(feature="extended-handler")]
+use crate::{expect_successful_api_response_and_return};
 
 
 use serde::{Deserialize, Serialize};
@@ -9,6 +11,7 @@ use serde_repr::*;
 
 use super::application::*;
 use super::embed::*;
+#[cfg(feature="extended-handler")]
 use super::guild::*;
 use super::user::*;
 use super::HttpError;
@@ -29,7 +32,6 @@ pub struct Context {
     /// The [`Interaction`] sent by Discord.
     pub interaction: Interaction,
 }
-
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 /// The base Interaction structure. When Interactions are received, this structure is wrapped inside a [`Context`]

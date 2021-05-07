@@ -4,7 +4,9 @@ use crate::security::*;
 use crate::types::interaction::*;
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
-use reqwest::{Client, header};
+use reqwest::{Client};
+#[cfg(feature="extended-handler")]
+use reqwest::header;
 
 use log::{debug, error};
 
