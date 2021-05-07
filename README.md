@@ -11,6 +11,12 @@ To install this library, add this dependency entry to your `Cargo.toml` file:
 ```toml
 rusty_interaction = "0"
 ```
+By default, this only exposes the types and security check function. If you want to use the handler, add the following to your `Cargo.toml`:
+```toml
+[dependencies.rusty_interaction]
+version = "0"
+features = ["handler"]
+```
 Take a look at the [documentation](https://docs.rs/rusty_interaction) and the [examples](/examples) to get yourself familiar with using the library.
 ## Contributing
 More than welcome! :D
