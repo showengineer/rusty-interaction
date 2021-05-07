@@ -1,6 +1,6 @@
 [package]
 name = "rusty_interaction"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Hugo Woesthuis <hugow2011@outlook.com>"]
 license = "ISC"
 description = "Handle Discord Interactions (aka Slash Commands) as outgoing webhook"
