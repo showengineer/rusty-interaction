@@ -51,11 +51,11 @@ version = "^0.0.4"
 optional = true
 
 [features]
-default = ["handler"]
+default = ["types", "security"]
 security = ["ed25519-dalek", "hex", "types"]
 types = []
 handler = ["types", "security", "actix", "actix-web", "actix-files", "actix-rt", "rustls", "async-trait", "attributes", "log", "reqwest"]
-
+extended-handler = ["handler"]
 
 [package.metadata.docs.rs]
-all-features = true
+rustdoc-args = ["--features", "extended-handler"]

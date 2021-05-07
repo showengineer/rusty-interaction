@@ -16,12 +16,12 @@ use super::Snowflake;
 use ::chrono::{DateTime, Utc};
 #[cfg(feature = "handler")]
 use log::{debug, error};
-#[cfg(feature = "handler")]
+#[cfg(any(feature = "handler", feature = "extended-handler"))]
 use reqwest::{Client, StatusCode, };
 
 // ======================
 
-#[cfg(feature = "handler")]
+#[cfg(any(feature = "handler", feature = "extended-handler"))]
 #[derive(Clone)]
 ///
 pub struct Context {
@@ -70,6 +70,7 @@ pub struct Interaction {
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
 #[repr(u8)]
+#[non_exhaustive]
 /// Represents the type of interaction that comes in.
 pub enum InteractionType {
     /// Discord requested a ping
@@ -293,7 +294,7 @@ pub struct WebhookMessage {
     pub payload_json: Option<String>,
     allowed_mentions: Option<AllowedMentions>,
 }
-
+#[cfg(feature = "handler")]
 impl WebhookMessage{
     /// Add text to this WebhookMessage
     pub fn content(mut self, content: impl ToString) -> Self{
@@ -378,7 +379,7 @@ impl MessageReference {
         self.channel_id
     }
 }
-
+#[cfg(feature = "handler")]
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -411,7 +412,7 @@ pub struct FollowupMessage {
     #[serde(skip)]
     client: Client,
 }
-
+#[cfg(feature = "handler")]
 /// Getter functions
 impl FollowupMessage {
     /// Get the ID of this follow up
@@ -466,6 +467,7 @@ impl FollowupMessage {
     }
 }
 
+#[cfg(feature = "handler")]
 /// 'Do' functions
 impl FollowupMessage {
     /// Edit this followup message
@@ -630,7 +632,7 @@ impl Context {
     }
 }
 
-
+#[cfg(feature="extended-handler")]
 /// Getter functions
 impl Context{
     /// Get a [`Guild`] from an ID

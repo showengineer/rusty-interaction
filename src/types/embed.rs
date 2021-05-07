@@ -4,7 +4,7 @@ use serde_with::*;
 
 use ::chrono::{DateTime, Utc};
 
-
+#[cfg(feature = "handler")]
 use log::{error};
 
 // ======== Structures =========
@@ -114,6 +114,7 @@ pub struct EmbedField {
     /// Whether or not this field should display inline
     inline: Option<bool>,
 }
+#[cfg(feature = "handler")]
 #[derive(Clone, Debug, PartialEq)]
 /// Builder to construct an [`Embed`]
 pub struct EmbedBuilder{
@@ -181,7 +182,7 @@ impl Default for Embed{
         }
     }
 }
-
+#[cfg(feature = "handler")]
 impl Default for EmbedBuilder{
     fn default() -> Self{
         Self{
@@ -189,7 +190,7 @@ impl Default for EmbedBuilder{
         }
     }
 }
-
+#[cfg(feature = "handler")]
 impl EmbedBuilder{
     /// Set the title of this embed
     pub fn title(mut self, title: impl ToString) -> Self{

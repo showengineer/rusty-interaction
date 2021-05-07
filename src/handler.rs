@@ -2,9 +2,6 @@
 
 use crate::security::*;
 use crate::types::interaction::*;
-use crate::types::guild::{Guild};
-use crate::types::HttpError;
-use crate::types::Snowflake;
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use reqwest::{Client, header};
@@ -23,7 +20,8 @@ pub type HandlerResponse = InteractionResponse;
 type HandlerFunction = fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>;
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
+#[cfg(all(feature="handler", not(feature="extended-handler")))]
 /// The InteractionHandler is the 'thing' that will handle your incoming interactions.
 /// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
 /// with [`InteractionHandler::run`] and [`InteractionHandler::run_ssl`]
@@ -35,7 +33,37 @@ pub struct InteractionHandler {
     handles: HashMap<&'static str, HandlerFunction>,
 }
 
+
+#[derive(Clone, Debug)]
+/// The InteractionHandler is the 'thing' that will handle your incoming interactions.
+/// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
+/// with [`InteractionHandler::run`] and [`InteractionHandler::run_ssl`]
+#[cfg(feature="extended-handler")]
+pub struct InteractionHandler {
+    /// The public key of your application.
+    pub app_public_key: PublicKey,
+    client: Client,
+    // Might want to change this to use the command id rather than the name of the command: prone to duplicates.
+    handles: HashMap<&'static str, HandlerFunction>,
+}
+
 impl InteractionHandler {
+    #[cfg(all(feature="handler", not(feature="extended-handler")))]
+    /// Initalizes a new `InteractionHandler`
+    pub fn new(pbk_str: &str) -> InteractionHandler {
+        let pbk_bytes =
+            hex::decode(pbk_str).expect("Failed to parse the public key from hexadecimal");
+
+        let app_public_key =
+            PublicKey::from_bytes(&pbk_bytes).expect("Failed to parse public key.");
+
+        InteractionHandler {
+            app_public_key,
+            client: Client::new(),
+            handles: HashMap::new(),
+        }
+    }
+    #[cfg(feature="extended-handler")]
     /// Initalizes a new `InteractionHandler`
     pub fn new(pbk_str: &str, token: &'static str) -> InteractionHandler {
         let pbk_bytes =

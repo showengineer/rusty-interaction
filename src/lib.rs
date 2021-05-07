@@ -23,19 +23,18 @@ pub mod types;
 pub mod security;
 
 /// Provides an entire handler to handle Discord interactions.
-#[cfg(feature = "handler")]
+#[cfg(any(feature = "handler", feature = "extended-handler"))]
 pub mod handler;
-#[cfg(feature = "handler")]
+#[cfg(any(feature = "handler", feature = "extended-handler"))]
 pub use actix;
-#[cfg(feature = "handler")]
+#[cfg(any(feature = "handler", feature = "extended-handler"))]
 pub use attributes::*;
-#[cfg(feature = "handler")]
-pub use actix_web;
 
-#[cfg(all(test, not(feature = "handler")))]
+#[cfg(all(test, not(feature = "handler"), not(feature="extended-handler")))]
 compile_error!(
-    "cannot run tests without the 'handler' feature enabled (run with --features handler)"
+    "cannot run tests without the \"handler\" or \"extended-handler\" feature enabled (run with --features handler or --features extended-handler)"
 );
+
 
 #[cfg(all(test, feature = "handler"))]
 mod tests;

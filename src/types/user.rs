@@ -72,3 +72,9 @@ pub struct Member {
     /// Permission overrides?
     pub permissions: Option<String>,
 }
+
+impl From<Member> for User{
+    fn from(member: Member) -> User{
+        member.user
+    }
+}
