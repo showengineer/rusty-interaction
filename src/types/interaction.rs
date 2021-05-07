@@ -643,7 +643,20 @@ impl Context{
         let r = self.client.get(&url)
                     .send()
                     .await;
-        expect_successful_api_response_and_return!(r, g, Ok(g))
+        expect_successful_api_response_and_return!(r, Guild, g, Ok(g))
     }
 
+    /// Get a [`Member`] from a [`Guild`]
+    pub async fn get_guild_member(&self, guild_id: impl Into<Snowflake>, user_id: impl Into<Snowflake>) -> Result<Member, HttpError>{
+        let url = format!(
+            "{}/guilds/{:?}/members/{:?}",
+            crate::BASE_URL,
+            guild_id.into(),
+            user_id.into());
+
+        let r = self.client.get(&url)
+                    .send()
+                    .await;
+        expect_successful_api_response_and_return!(r, Member, m, Ok(m))
+    }
 }

@@ -102,7 +102,7 @@ macro_rules! expect_specific_api_response {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! expect_successful_api_response_and_return {
-    ($response:ident, $retval:ident, $succret:expr) => {
+    ($response:ident, $struc:ident, $retval:ident, $succret:expr) => {
         match $response {
             Err(e) => {
                 debug!("Discord API request failed: {:#?}", e);
@@ -121,7 +121,7 @@ macro_rules! expect_successful_api_response_and_return {
                         message: e,
                     })
                  } else {
-                    let a: Result<Guild, serde_json::Error> =
+                    let a: Result<$struc, serde_json::Error> =
                         serde_json::from_str(&r.text().await.unwrap());
 
                     match a {

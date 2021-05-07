@@ -48,18 +48,27 @@ pub struct User {
 #[derive(Clone, Serialize, Deserialize, Debug)]
 /// Representing a Member in a guild.
 pub struct Member {
-    user: User,
-    nick: Option<String>,
+    /// The user associated with this member
+    pub user: User,
+    /// The member's nickname, if any
+    pub nick: Option<String>,
     #[serde_as(as = "Vec<DisplayFromStr>")]
-    roles: Vec<Snowflake>,
+    /// The member's assigned roles
+    pub roles: Vec<Snowflake>,
     #[serde_as(as = "DisplayFromStr")]
-    joined_at: DateTime<Utc>,
+    /// When this user joined
+    pub joined_at: DateTime<Utc>,
 
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
-    premium_since: Option<DateTime<Utc>>,
-    deaf: bool,
-    mute: bool,
-    pending: bool,
-    permissions: String,
+    /// When the member started boosting the server, if boosting
+    pub premium_since: Option<DateTime<Utc>>,
+    /// Is this member server deafened?
+    pub deaf: bool,
+    /// Is this member server muted (voice)?
+    pub mute: bool,
+    /// Pending status
+    pub pending: bool,
+    /// Permission overrides?
+    pub permissions: Option<String>,
 }
