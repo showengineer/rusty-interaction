@@ -1,3 +1,6 @@
+use crate::{expect_specific_api_response, expect_successful_api_response, expect_successful_api_response_and_return};
+
+
 use serde::{Deserialize, Serialize};
 
 use serde_with::*;
@@ -6,6 +9,7 @@ use serde_repr::*;
 
 use super::application::*;
 use super::embed::*;
+use super::guild::*;
 use super::user::*;
 use super::HttpError;
 use super::Snowflake;
@@ -13,63 +17,7 @@ use ::chrono::{DateTime, Utc};
 #[cfg(feature = "handler")]
 use log::{debug, error};
 #[cfg(feature = "handler")]
-use reqwest::{Client, StatusCode};
-
-// ===== USEFUL MACROS =====
-macro_rules! expect_successful_api_response {
-    ($response:ident, $succret:expr) => {
-        match $response {
-            Err(e) => {
-                debug!("Discord API request failed: {:#?}", e);
-                Err(HttpError {
-                    code: 0,
-                    message: format!("{:#?}", e),
-                })
-            }
-            Ok(r) => {
-                let st = r.status();
-                if !st.is_success() {
-                    let e = format!("{:#?}", r.text().await);
-                    debug!("Discord API returned an error: {:#?}", e);
-                    Err(HttpError {
-                        code: st.as_u16(),
-                        message: e,
-                    })
-                } else {
-                    $succret
-                }
-            }
-        }
-    };
-}
-
-macro_rules! expect_specific_api_response {
-    ($response:ident, $expres:expr, $succret:expr) => {
-        match $response {
-            Err(e) => {
-                debug!("Discord API request failed: {:#?}", e);
-
-                Err(HttpError {
-                    code: 0,
-                    message: format!("{:#?}", e),
-                })
-            }
-            Ok(r) => {
-                let st = r.status();
-                if st != $expres {
-                    let e = format!("{:#?}", r.text().await);
-                    debug!("Discord API returned an error: {:#?}", e);
-                    Err(HttpError {
-                        code: st.as_u16(),
-                        message: e,
-                    })
-                } else {
-                    $succret
-                }
-            }
-        }
-    };
-}
+use reqwest::{Client, StatusCode, };
 
 // ======================
 
@@ -78,7 +26,6 @@ macro_rules! expect_specific_api_response {
 ///
 pub struct Context {
     client: Client,
-
     /// The [`Interaction`] sent by Discord.
     pub interaction: Interaction,
 }
@@ -119,113 +66,7 @@ pub struct Interaction {
     pub version: Option<i8>,
 }
 
-#[cfg(feature = "handler")]
-impl Context {
-    /// Creates a new [`Context`]
-    pub fn new(c: Client, i: Interaction) -> Self {
-        Self {
-            client: c,
-            interaction: i,
-        }
-    }
 
-    /// Respond to an Interaction
-    ///
-    /// This returns an [`InteractionResponseBuilder`] which you can use to build an [`InteractionResponse`]
-    ///
-    /// # Example
-    /// ```ignore
-    /// let response = ctx.respond()
-    ///                   .content("Example message")
-    ///                   .tts(true)
-    ///                   .finish();
-    /// ```
-    pub fn respond(&self) -> InteractionResponseBuilder {
-        InteractionResponseBuilder::default()
-    }
-
-    /// Edit the original interaction response
-    ///
-    /// This takes an [`WebhookMessage`]. You can convert an [`InteractionResponse`] using [`WebhookMessage::from`].
-    pub async fn edit_original(&self, new_content: &WebhookMessage) -> Result<(), HttpError> {
-        let url = format!(
-            "{}/webhooks/{:?}/{}/messages/@original",
-            crate::BASE_URL,
-            self.interaction.application_id.unwrap(),
-            self.interaction.token.as_ref().unwrap().to_string()
-        );
-        let c = self.client.patch(&url).json(new_content).send().await;
-
-        expect_successful_api_response!(c, Ok(()))
-    }
-
-    /// Delete the original interaction response
-    pub async fn delete_original(&self) -> Result<(), HttpError> {
-        let url = format!(
-            "{}/webhooks/{:?}/{}/messages/@original",
-            crate::BASE_URL,
-            self.interaction.application_id.unwrap(),
-            self.interaction.token.as_ref().unwrap().to_string()
-        );
-        let c = self.client.delete(&url).send().await;
-
-        expect_specific_api_response!(c, StatusCode::NO_CONTENT, Ok(()))
-    }
-
-    /// Create a follow-up message
-    pub async fn create_followup(
-        &self,
-        content: &WebhookMessage,
-    ) -> Result<FollowupMessage, HttpError> {
-        let url = format!(
-            "{}/webhooks/{:?}/{}?wait=true",
-            crate::BASE_URL,
-            self.interaction.application_id.unwrap(),
-            self.interaction.token.as_ref().unwrap().to_string()
-        );
-
-        let c = self.client.post(&url).json(content).send().await;
-
-        match c {
-            Err(e) => {
-                debug!("Discord API request failed: {:#?}", e);
-                Err(HttpError {
-                    code: 0,
-                    message: format!("{:#?}", e),
-                })
-            }
-            Ok(r) => {
-                let st = r.status();
-                if !st.is_success() {
-                    let e = format!("{:#?}", r.text().await);
-                    debug!("Discord API returned an error: {:#?}", e);
-                    Err(HttpError {
-                        code: st.as_u16(),
-                        message: e,
-                    })
-                } else {
-                    let a: Result<FollowupMessage, serde_json::Error> =
-                        serde_json::from_str(&r.text().await.unwrap());
-
-                    match a {
-                        Err(e) => {
-                            debug!("Failed to decode response: {:#?}", e);
-                            Err(HttpError {
-                                code: 500,
-                                message: format!("{:?}", e),
-                            })
-                        }
-                        Ok(mut f) => {
-                            f.interaction_token =
-                                self.interaction.token.as_ref().unwrap().to_string();
-                            Ok(f)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
 #[repr(u8)]
@@ -679,4 +520,130 @@ impl FollowupMessage {
             }
         }
     }
+}
+
+#[cfg(feature = "handler")]
+impl Context {
+    /// Creates a new [`Context`]
+    pub fn new(c: Client, i: Interaction) -> Self {
+        Self {
+            client: c,
+            interaction: i,
+        }
+    }
+
+    /// Respond to an Interaction
+    ///
+    /// This returns an [`InteractionResponseBuilder`] which you can use to build an [`InteractionResponse`]
+    ///
+    /// # Example
+    /// ```ignore
+    /// let response = ctx.respond()
+    ///                   .content("Example message")
+    ///                   .tts(true)
+    ///                   .finish();
+    /// ```
+    pub fn respond(&self) -> InteractionResponseBuilder {
+        InteractionResponseBuilder::default()
+    }
+
+    /// Edit the original interaction response
+    ///
+    /// This takes an [`WebhookMessage`]. You can convert an [`InteractionResponse`] using [`WebhookMessage::from`].
+    pub async fn edit_original(&self, new_content: &WebhookMessage) -> Result<(), HttpError> {
+        let url = format!(
+            "{}/webhooks/{:?}/{}/messages/@original",
+            crate::BASE_URL,
+            self.interaction.application_id.unwrap(),
+            self.interaction.token.as_ref().unwrap().to_string()
+        );
+        let c = self.client.patch(&url).json(new_content).send().await;
+
+        expect_successful_api_response!(c, Ok(()))
+    }
+
+    /// Delete the original interaction response
+    pub async fn delete_original(&self) -> Result<(), HttpError> {
+        let url = format!(
+            "{}/webhooks/{:?}/{}/messages/@original",
+            crate::BASE_URL,
+            self.interaction.application_id.unwrap(),
+            self.interaction.token.as_ref().unwrap().to_string()
+        );
+        let c = self.client.delete(&url).send().await;
+
+        expect_specific_api_response!(c, StatusCode::NO_CONTENT, Ok(()))
+    }
+
+    /// Create a follow-up message
+    pub async fn create_followup(
+        &self,
+        content: &WebhookMessage,
+    ) -> Result<FollowupMessage, HttpError> {
+        let url = format!(
+            "{}/webhooks/{:?}/{}?wait=true",
+            crate::BASE_URL,
+            self.interaction.application_id.unwrap(),
+            self.interaction.token.as_ref().unwrap().to_string()
+        );
+
+        let c = self.client.post(&url).json(content).send().await;
+
+        match c {
+            Err(e) => {
+                debug!("Discord API request failed: {:#?}", e);
+                Err(HttpError {
+                    code: 0,
+                    message: format!("{:#?}", e),
+                })
+            }
+            Ok(r) => {
+                let st = r.status();
+                if !st.is_success() {
+                    let e = format!("{:#?}", r.text().await);
+                    debug!("Discord API returned an error: {:#?}", e);
+                    Err(HttpError {
+                        code: st.as_u16(),
+                        message: e,
+                    })
+                } else {
+                    let a: Result<FollowupMessage, serde_json::Error> =
+                        serde_json::from_str(&r.text().await.unwrap());
+
+                    match a {
+                        Err(e) => {
+                            debug!("Failed to decode response: {:#?}", e);
+                            Err(HttpError {
+                                code: 500,
+                                message: format!("{:?}", e),
+                            })
+                        }
+                        Ok(mut f) => {
+                            f.interaction_token =
+                                self.interaction.token.as_ref().unwrap().to_string();
+                            Ok(f)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/// Getter functions
+impl Context{
+    /// Get a [`Guild`] from an ID
+    pub async fn get_guild<I: Into<Snowflake>>(&self, id: I) -> Result<Guild, HttpError>{
+        let url = format!(
+            "{}/guilds/{:?}?with_counts=true",
+            crate::BASE_URL,
+            id.into());
+
+        let r = self.client.get(&url)
+                    .send()
+                    .await;
+        expect_successful_api_response_and_return!(r, g, Ok(g))
+    }
+
 }

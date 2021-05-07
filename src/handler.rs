@@ -1,8 +1,13 @@
+
+
 use crate::security::*;
 use crate::types::interaction::*;
+use crate::types::guild::{Guild};
+use crate::types::HttpError;
+use crate::types::Snowflake;
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
-use reqwest::Client;
+use reqwest::{Client, header};
 
 use log::{debug, error};
 
@@ -26,24 +31,28 @@ pub struct InteractionHandler {
     /// The public key of your application.
     pub app_public_key: PublicKey,
     client: Client,
-    /// Your bot token or bearer
-    //auth_key: &'static str,
     // Might want to change this to use the command id rather than the name of the command: prone to duplicates.
     handles: HashMap<&'static str, HandlerFunction>,
 }
 
 impl InteractionHandler {
     /// Initalizes a new `InteractionHandler`
-    pub fn new(pbk_str: &str) -> InteractionHandler {
+    pub fn new(pbk_str: &str, token: &'static str) -> InteractionHandler {
         let pbk_bytes =
             hex::decode(pbk_str).expect("Failed to parse the public key from hexadecimal");
 
         let app_public_key =
             PublicKey::from_bytes(&pbk_bytes).expect("Failed to parse public key.");
 
+        let mut headers = header::HeaderMap::new();
+        let mut auth_value = header::HeaderValue::from_static(token);
+        auth_value.set_sensitive(true);
+        headers.insert(header::AUTHORIZATION, auth_value);
+        let new_c = Client::builder().default_headers(headers).build().unwrap();
+
         InteractionHandler {
             app_public_key,
-            client: Client::new(),
+            client: new_c,
             handles: HashMap::new(),
         }
     }
@@ -225,7 +234,11 @@ impl InteractionHandler {
         .run()
         .await
     }
+
+    
 }
+
+
 
 /// Simpler header getter from a HTTP request
 fn get_header<'a>(req: &'a HttpRequest, header: &str) -> Option<&'a str> {

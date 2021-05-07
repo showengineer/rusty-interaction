@@ -39,3 +39,105 @@ compile_error!(
 
 #[cfg(all(test, feature = "handler"))]
 mod tests;
+
+// ===== USEFUL MACROS =====
+#[macro_export]
+#[doc(hidden)]
+macro_rules! expect_successful_api_response {
+    ($response:ident, $succret:expr) => {
+        match $response {
+            Err(e) => {
+                debug!("Discord API request failed: {:#?}", e);
+                Err(HttpError {
+                    code: 0,
+                    message: format!("{:#?}", e),
+                })
+            }
+            Ok(r) => {
+                let st = r.status();
+                if !st.is_success() {
+                    let e = format!("{:#?}", r.text().await);
+                    debug!("Discord API returned an error: {:#?}", e);
+                    Err(HttpError {
+                        code: st.as_u16(),
+                        message: e,
+                    })
+                } else {
+                    $succret
+                }
+            }
+        }
+    };
+}
+#[macro_export]
+#[doc(hidden)]
+macro_rules! expect_specific_api_response {
+    ($response:ident, $expres:expr, $succret:expr) => {
+        match $response {
+            Err(e) => {
+                debug!("Discord API request failed: {:#?}", e);
+
+                Err(HttpError {
+                    code: 0,
+                    message: format!("{:#?}", e),
+                })
+            }
+            Ok(r) => {
+                let st = r.status();
+                if st != $expres {
+                    let e = format!("{:#?}", r.text().await);
+                    debug!("Discord API returned an error: {:#?}", e);
+                    Err(HttpError {
+                        code: st.as_u16(),
+                        message: e,
+                    })
+                } else {
+                    $succret
+                }
+            }
+        }
+    };
+}
+
+#[macro_export]
+#[doc(hidden)]
+macro_rules! expect_successful_api_response_and_return {
+    ($response:ident, $retval:ident, $succret:expr) => {
+        match $response {
+            Err(e) => {
+                debug!("Discord API request failed: {:#?}", e);
+                Err(HttpError {
+                    code: 0,
+                    message: format!("{:#?}", e),
+                })
+            }
+            Ok(r) => {
+                let st = r.status();
+                if !st.is_success() {
+                    let e = format!("{:#?}", r.text().await);
+                    debug!("Discord API returned an error: {:#?}", e);
+                    Err(HttpError {
+                        code: st.as_u16(),
+                        message: e,
+                    })
+                 } else {
+                    let a: Result<Guild, serde_json::Error> =
+                        serde_json::from_str(&r.text().await.unwrap());
+
+                    match a {
+                        Err(e) => {
+                            debug!("Failed to decode response: {:#?}", e);
+                            Err(HttpError {
+                                code: 500,
+                                message: format!("{:?}", e),
+                             })
+                        }
+                        Ok($retval) => {
+                            $succret
+                        }
+                    }
+                }
+            }
+        }
+    };
+}

@@ -10,13 +10,15 @@ pub mod application;
 /// Module containing structures for interactions
 pub mod interaction;
 
-/// Module containing structures for members, guilds and users.
+/// Module containing structures for members/users.
 pub mod user;
 
+/// Module containing structures for guilds
+pub mod guild;
 //use interaction::{InteractionResponse, Interaction};
 
 /// Discord's 'snowflake'. It's a 64bit unsigned integer that is mainly used for identifying anything Discord.  
-type Snowflake = u64;
+pub type Snowflake = u64;
 
 #[doc(hidden)]
 #[derive(Clone, Serialize, Deserialize, Debug)]
