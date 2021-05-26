@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::*;
 
+use super::components::ComponentType;
 use super::Snowflake;
 use serde_repr::*;
 
@@ -60,13 +61,18 @@ struct ApplicationCommandOptionChoice {
 #[derive(Clone, Serialize, Deserialize, Debug)]
 /// Representing a slash command
 pub struct ApplicationCommandInteractionData {
-    #[serde_as(as = "DisplayFromStr")]
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
     /// The unique id of the command
-    pub id: Snowflake,
+    pub id: Option<Snowflake>,
     /// The name of the command
-    pub name: String,
+    pub name: Option<String>,
     /// An array of [`ApplicationCommandInteractionDataOption`]
     pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
+
+    pub component_type: Option<ComponentType>,
+
+    pub custom_id: Option<String>,
 }
 #[derive(Clone, Serialize, Deserialize, Debug)]
 /// Representing a bunch of options for slash commands
