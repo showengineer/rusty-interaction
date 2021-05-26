@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
-
+#[cfg(feature = "handler")]
 use log::error;
+
 use serde_repr::*;
 use serde_with::*;
 
