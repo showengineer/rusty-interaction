@@ -183,44 +183,57 @@ impl InteractionHandler {
                 return ERROR_RESPONSE!(400, format!("Bad body: {}", e));
             }
             Ok(interaction) => {
-                if interaction.r#type == InteractionType::Ping {
-                    let response = InteractionResponse::new(InteractionResponseType::Pong, None);
-                    debug!("Got a ping, responding with pong.");
-                    return Ok(HttpResponse::build(StatusCode::OK)
-                        .content_type("application/json")
-                        .json(response));
-                }
+                match interaction.r#type{
+                    InteractionType::Ping => {
+                        let response = InteractionResponse::new(InteractionResponseType::Pong, None);
+                        debug!("Got a ping, responding with pong.");
+                        return Ok(HttpResponse::build(StatusCode::OK)
+                            .content_type("application/json")
+                            .json(response));
+                    },
 
-                let data = if let Some(ref data) = interaction.data {
-                    data
-                } else {
-                    error!("Failed to unwrap Interaction!");
-                    return ERROR_RESPONSE!(500, "Failed to unwrap");
-                };
-
-                if let Some(handler) = self.handles.get(data.name.as_str()) {
-                    // do stuff with v if needed
-
-                    // construct a Context
-                    let ctx = Context::new(self.client.clone(), interaction);
-
-                    // Call the handler
-                    let response = handler(ctx).await;
-
-                    if response.r#type == InteractionResponseType::DefferedChannelMessageWithSource
-                    {
-                        /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
-                        If an application is first sending a deffered channel message response, this usually means the system
-                        is still processing whatever it is doing.
-                        See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
-                        Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
-                    } else {
-                        // Send out a response to Discord
-                        Ok(HttpResponse::build(StatusCode::OK).json(response))
+                    InteractionType::ApplicationCommand => {
+                        let data = if let Some(ref data) = interaction.data {
+                            data
+                        } else {
+                            error!("Failed to unwrap Interaction!");
+                            return ERROR_RESPONSE!(500, "Failed to unwrap");
+                        };
+        
+                        if let Some(handler) = self.handles.get(data.name.as_ref().unwrap().as_str()) {
+                            // do stuff with v if needed
+        
+                            // construct a Context
+                            let ctx = Context::new(self.client.clone(), interaction);
+        
+                            // Call the handler
+                            let response = handler(ctx).await;
+        
+                            if response.r#type == InteractionResponseType::DefferedChannelMessageWithSource
+                            {
+                                /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
+                                If an application is first sending a deffered channel message response, this usually means the system
+                                is still processing whatever it is doing.
+                                See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
+                                Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
+                            } else {
+                                // Send out a response to Discord
+                                let r = HttpResponse::build(StatusCode::OK).json(response);
+        
+                                Ok(r)
+                            }
+                        } else {
+                            error!("No associated handler found for {}", data.name.as_ref().unwrap().as_str());
+                            ERROR_RESPONSE!(500, "No associated handler found")
+                        }
                     }
-                } else {
-                    error!("No associated handler found for {}", data.name.as_str());
-                    ERROR_RESPONSE!(500, "No associated handler found")
+                    InteractionType::MessageComponent =>{
+                        unimplemented!();
+                    },
+                    _ => {
+                        
+                        ERROR_RESPONSE!(500, "Not implemented")
+                    }
                 }
             }
         }
