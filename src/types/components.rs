@@ -64,10 +64,11 @@ pub enum ComponentButtonStyle {
 }
 
 /// Builder for creating a Component Action Row
+#[cfg(feature = "handler")]
 pub struct ComponentRowBuilder {
     obj: MessageComponent,
 }
-
+#[cfg(feature = "handler")]
 impl Default for ComponentRowBuilder {
     fn default() -> Self {
         Self {
@@ -75,7 +76,7 @@ impl Default for ComponentRowBuilder {
         }
     }
 }
-
+#[cfg(feature = "handler")]
 impl ComponentRowBuilder {
     /// Add a button
     pub fn add_button(mut self, button: MessageComponent) -> Self {
@@ -95,12 +96,12 @@ impl ComponentRowBuilder {
         self.obj
     }
 }
-
+#[cfg(feature = "handler")]
 /// Builder for making an button component
 pub struct ComponentButtonBuilder {
     obj: MessageComponent,
 }
-
+#[cfg(feature = "handler")]
 impl Default for ComponentButtonBuilder {
     fn default() -> Self {
         let mut ob = MessageComponent::default();
@@ -109,7 +110,7 @@ impl Default for ComponentButtonBuilder {
         Self { obj: ob }
     }
 }
-
+#[cfg(feature = "handler")]
 impl ComponentButtonBuilder {
     /// Finish building this button
     pub fn finish(self) -> MessageComponent {
