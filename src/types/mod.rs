@@ -13,12 +13,22 @@ pub mod interaction;
 /// Module containing structures for members/users.
 pub mod user;
 
+/// Module containing structures for using [Message Components](https://discord.com/developers/docs/interactions/message-components#what-are-components)
+pub mod components;
+
 /// Module containing structures for guilds
 pub mod guild;
 //use interaction::{InteractionResponse, Interaction};
 
 /// Discord's 'snowflake'. It's a 64bit unsigned integer that is mainly used for identifying anything Discord.  
 pub type Snowflake = u64;
+
+
+/// Very basic builder trait
+pub trait Builder<E>{
+    /// Builds the desired object from this builder
+    fn build(self) -> E;
+}
 
 #[doc(hidden)]
 #[derive(Clone, Serialize, Deserialize, Debug)]
