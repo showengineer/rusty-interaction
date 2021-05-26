@@ -23,11 +23,6 @@ pub mod guild;
 /// Discord's 'snowflake'. It's a 64bit unsigned integer that is mainly used for identifying anything Discord.  
 pub type Snowflake = u64;
 
-/// Very basic builder trait
-pub trait Builder<E> {
-    /// Builds the desired object from this builder
-    fn build(self) -> E;
-}
 
 #[doc(hidden)]
 #[derive(Clone, Serialize, Deserialize, Debug)]
