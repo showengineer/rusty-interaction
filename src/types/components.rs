@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use super::Builder;
-use super::Snowflake;
 use log::error;
 use serde_repr::*;
 use serde_with::*;
@@ -64,6 +62,7 @@ pub enum ComponentButtonStyle {
     Link = 5,
 }
 
+/// Builder for creating a Component Action Row
 pub struct ComponentRowBuilder {
     obj: MessageComponent,
 }
@@ -83,14 +82,15 @@ impl ComponentRowBuilder {
             None => {
                 self.obj.components = Some(vec![button]);
             }
-            Some(mut c) => {
+            Some(c) => {
                 c.push(button);
             }
         }
         self
     }
 
-    pub fn build(self) -> MessageComponent {
+    /// Finish building this row (returns a [`MessageComponent`])
+    pub fn finish(self) -> MessageComponent {
         self.obj
     }
 }
@@ -110,8 +110,8 @@ impl Default for ComponentButtonBuilder {
 }
 
 impl ComponentButtonBuilder {
-    /// Build the object
-    pub fn build(self) -> MessageComponent {
+    /// Finish building this button
+    pub fn finish(self) -> MessageComponent {
         match self.obj.clone().style.unwrap() {
             ComponentButtonStyle::Link => {
                 if self.obj.url.is_none() {
