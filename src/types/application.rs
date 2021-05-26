@@ -69,9 +69,11 @@ pub struct ApplicationCommandInteractionData {
     pub name: Option<String>,
     /// An array of [`ApplicationCommandInteractionDataOption`]
     pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
-
+    
+    /// For components, the component type
     pub component_type: Option<ComponentType>,
 
+    /// For components, the custom identifier for the developer
     pub custom_id: Option<String>,
 }
 #[derive(Clone, Serialize, Deserialize, Debug)]
