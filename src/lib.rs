@@ -2,9 +2,9 @@
 //! Rusty-interaction is a library that allows you to work with Discord's new [Interactions](https://blog.discord.com/slash-commands-are-here-8db0a385d9e6).
 //! It can expose types and provides helper functions to validate your Interactions.
 //! It can optionally provide a handler that allows you to receive interactions via outgoing webhook.
-//! 
+//!
 //! Note that Discord also has [official documentation](https://discord.com/developers/docs/intro).
-//! 
+//!
 //! ## Examples
 //! See the [`examples`](https://github.com/hugopilot/rusty-interaction/tree/main/examples`) directory.
 
@@ -30,11 +30,10 @@ pub use actix;
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
 pub use attributes::*;
 
-#[cfg(all(test, not(feature = "handler"), not(feature="extended-handler")))]
+#[cfg(all(test, not(feature = "handler"), not(feature = "extended-handler")))]
 compile_error!(
     "cannot run tests without the \"handler\" or \"extended-handler\" feature enabled (run with --features handler or --features extended-handler)"
 );
-
 
 #[cfg(all(test, feature = "handler"))]
 mod tests;
@@ -119,7 +118,7 @@ macro_rules! expect_successful_api_response_and_return {
                         code: st.as_u16(),
                         message: e,
                     })
-                 } else {
+                } else {
                     let a: Result<$struc, serde_json::Error> =
                         serde_json::from_str(&r.text().await.unwrap());
 
@@ -129,11 +128,9 @@ macro_rules! expect_successful_api_response_and_return {
                             Err(HttpError {
                                 code: 500,
                                 message: format!("{:?}", e),
-                             })
+                            })
                         }
-                        Ok($retval) => {
-                            $succret
-                        }
+                        Ok($retval) => $succret,
                     }
                 }
             }

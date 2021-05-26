@@ -1,4 +1,3 @@
-
 use crate::handler::InteractionHandler;
 use crate::security::*;
 use crate::types;
@@ -6,9 +5,9 @@ use crate::types::interaction::{
     Context, InteractionResponse, InteractionResponseBuilder, InteractionResponseType,
 };
 use crate::*;
-use log::error;
 use actix_web::{http, test, web, App, HttpRequest};
 use ed25519_dalek::PublicKey;
+use log::error;
 
 /*const TEST_PUB_KEY: [u8; PUBLIC_KEY_LENGTH] = [
     0x82, 0xd8, 0xd9, 0x7f, 0xe0, 0x64, 0x1e, 0x68, 0xa1, 0xb0, 0xb1, 0x12, 0x20, 0xf0, 0x5e, 0x9e,
@@ -16,7 +15,7 @@ use ed25519_dalek::PublicKey;
 ];*/
 
 const TEST_PUB_KEY: &str = "82d8d97fe0641e68a1b0b11220f05e9ea0539a0cdc002119d4a9e9e025aba1e9";
-#[cfg(feature="extended-handler")]
+#[cfg(feature = "extended-handler")]
 const EMPTY_TOKEN: &str = "";
 /*------------------------------
 SECURITY TESTS
@@ -90,18 +89,16 @@ macro_rules! interaction_app_init {
         .await;
     };
 }
-#[cfg(all(feature="handler", not(feature="extended-handler")))]
-macro_rules! init_handler{
+#[cfg(all(feature = "handler", not(feature = "extended-handler")))]
+macro_rules! init_handler {
     () => {
-        
         InteractionHandler::new(TEST_PUB_KEY)
     };
 }
 
-#[cfg(feature="extended-handler")]
-macro_rules! init_handler{
+#[cfg(feature = "extended-handler")]
+macro_rules! init_handler {
     () => {
-        
         InteractionHandler::new(TEST_PUB_KEY, EMPTY_TOKEN)
     };
 }
@@ -285,7 +282,9 @@ async fn normal_handle_value_test(ctx: Context) -> InteractionResponse {
 #[allow(unused_must_use)]
 #[slash_command_test]
 async fn normal_handle_direct_test(_: Context) -> InteractionResponse {
-    return InteractionResponseBuilder::default().content("TEST").finish();
+    return InteractionResponseBuilder::default()
+        .content("TEST")
+        .finish();
 }
 
 #[actix_rt::test]
@@ -374,7 +373,6 @@ async fn interactions_normal_from_direct_call_handle_test() {
 
 use crate::types::interaction::WebhookMessage;
 
-
 #[slash_command_test]
 #[defer]
 async fn deffered_handle_test(ctx: Context) -> InteractionResponse {
@@ -391,7 +389,9 @@ async fn deffered_handle_value_test(ctx: Context) -> InteractionResponse {
 #[slash_command_test]
 #[defer]
 async fn deffered_handle_direct_test(_ctx: Context) -> InteractionResponse {
-    return InteractionResponseBuilder::default().content("TEST").finish();
+    return InteractionResponseBuilder::default()
+        .content("TEST")
+        .finish();
 }
 
 #[actix_rt::test]

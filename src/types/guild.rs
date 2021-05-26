@@ -3,12 +3,11 @@ use serde_with::*;
 
 use super::Snowflake;
 
-
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// A guild (also known as a 'server') in Discord
-pub struct Guild{
+pub struct Guild {
     /// The ID of the guild
     #[serde_as(as = "DisplayFromStr")]
     pub id: Snowflake,
@@ -89,8 +88,8 @@ pub struct Guild{
     pub nsfw: bool,
 }
 
-impl Into<Snowflake> for Guild{
-    fn into(self) -> Snowflake{
+impl Into<Snowflake> for Guild {
+    fn into(self) -> Snowflake {
         self.id
     }
 }
@@ -99,7 +98,7 @@ impl Into<Snowflake> for Guild{
 #[skip_serializing_none]
 /// A role is a way to group people in a Guild and assign certain permissions to them.
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
-pub struct Role{
+pub struct Role {
     #[serde_as(as = "DisplayFromStr")]
     /// The id of the role
     pub id: Snowflake,
@@ -125,13 +124,13 @@ pub struct Role{
     pub mentionable: bool,
 
     /// The tags this role has
-    pub tags: Option<RoleTag>
+    pub tags: Option<RoleTag>,
 }
 #[serde_as]
 #[skip_serializing_none]
 /// Role tags
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
-pub struct RoleTag{
+pub struct RoleTag {
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
     /// the id of the bot this role belongs to
@@ -140,8 +139,6 @@ pub struct RoleTag{
     #[serde(default)]
     /// the id of the integration this role belongs to
     pub integration_id: Option<Snowflake>,
-    /// whether this is the guild's premium subscriber role. 
-    pub premium_subscriber: Option<String>
+    /// whether this is the guild's premium subscriber role.
+    pub premium_subscriber: Option<String>,
 }
-
-

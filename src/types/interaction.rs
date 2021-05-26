@@ -1,7 +1,6 @@
+#[cfg(feature = "extended-handler")]
+use crate::expect_successful_api_response_and_return;
 use crate::{expect_specific_api_response, expect_successful_api_response};
-#[cfg(feature="extended-handler")]
-use crate::{expect_successful_api_response_and_return};
-
 
 use serde::{Deserialize, Serialize};
 
@@ -10,8 +9,9 @@ use serde_with::*;
 use serde_repr::*;
 
 use super::application::*;
+use super::components::*;
 use super::embed::*;
-#[cfg(feature="extended-handler")]
+#[cfg(feature = "extended-handler")]
 use super::guild::*;
 use super::user::*;
 use super::HttpError;
@@ -20,7 +20,7 @@ use ::chrono::{DateTime, Utc};
 #[cfg(feature = "handler")]
 use log::{debug, error};
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
-use reqwest::{Client, StatusCode, };
+use reqwest::{Client, StatusCode};
 
 // ======================
 
@@ -68,8 +68,6 @@ pub struct Interaction {
     pub version: Option<i8>,
 }
 
-
-
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
 #[repr(u8)]
 #[non_exhaustive]
@@ -79,6 +77,9 @@ pub enum InteractionType {
     Ping = 1,
     /// A slash command
     ApplicationCommand = 2,
+
+    /// A message component
+    MessageComponent = 3,
 }
 
 #[serde_as]
@@ -213,6 +214,27 @@ impl InteractionResponseBuilder {
         self
     }
 
+    /// Add components to response
+    pub fn add_component(mut self, component: MessageComponent) -> Self {
+        match self.data.as_mut() {
+            None => {
+                let mut d = InteractionApplicationCommandCallbackData::new();
+                d.components = Some(vec![component]);
+                self.data = Some(d);
+            }
+            Some(mut d) => {
+                if d.components.is_none() {
+                    d.components = Some(vec![component]);
+                } else {
+                    let comp = d.components.as_mut().unwrap();
+
+                    comp.push(component);
+                }
+            }
+        }
+        self
+    }
+
     /// Returns an `InteractionResponse`, consuming itself.
     /// You can't use the builder anymore after you called this function.
     pub fn finish(self) -> InteractionResponse {
@@ -243,6 +265,7 @@ pub struct InteractionApplicationCommandCallbackData {
     embeds: Option<Vec<Embed>>,
     allowed_mentions: Option<AllowedMentions>,
     flags: Option<i32>,
+    components: Option<Vec<MessageComponent>>,
 }
 
 impl InteractionApplicationCommandCallbackData {
@@ -260,6 +283,7 @@ impl Default for InteractionApplicationCommandCallbackData {
             embeds: None,
             allowed_mentions: None,
             flags: None,
+            components: None,
         }
     }
 }
@@ -297,15 +321,15 @@ pub struct WebhookMessage {
     allowed_mentions: Option<AllowedMentions>,
 }
 #[cfg(feature = "handler")]
-impl WebhookMessage{
+impl WebhookMessage {
     /// Add text to this WebhookMessage
-    pub fn content(mut self, content: impl ToString) -> Self{
+    pub fn content(mut self, content: impl ToString) -> Self {
         self.content = Some(content.to_string());
         self
     }
-    
+
     /// Add an embed to this WebhookMessage
-    pub fn add_embed(mut self, embed: Embed) -> Self{
+    pub fn add_embed(mut self, embed: Embed) -> Self {
         match self.embeds.as_mut() {
             None => {
                 self.embeds = Some(vec![embed]);
@@ -315,7 +339,7 @@ impl WebhookMessage{
                 if e.len() <= 9 {
                     e.push(embed);
                 } else {
-                 // Log an error for now.
+                    // Log an error for now.
                     error!("Tried to add embed while embed limit (max. 10 embeds) was already reached. Ignoring")
                 }
             }
@@ -634,33 +658,35 @@ impl Context {
     }
 }
 
-#[cfg(feature="extended-handler")]
+#[cfg(feature = "extended-handler")]
 /// Getter functions
-impl Context{
+impl Context {
     /// Get a [`Guild`] from an ID
-    pub async fn get_guild<I: Into<Snowflake>>(&self, id: I) -> Result<Guild, HttpError>{
+    pub async fn get_guild<I: Into<Snowflake>>(&self, id: I) -> Result<Guild, HttpError> {
         let url = format!(
             "{}/guilds/{:?}?with_counts=true",
             crate::BASE_URL,
-            id.into());
+            id.into()
+        );
 
-        let r = self.client.get(&url)
-                    .send()
-                    .await;
+        let r = self.client.get(&url).send().await;
         expect_successful_api_response_and_return!(r, Guild, g, Ok(g))
     }
 
     /// Get a [`Member`] from a [`Guild`]
-    pub async fn get_guild_member(&self, guild_id: impl Into<Snowflake>, user_id: impl Into<Snowflake>) -> Result<Member, HttpError>{
+    pub async fn get_guild_member(
+        &self,
+        guild_id: impl Into<Snowflake>,
+        user_id: impl Into<Snowflake>,
+    ) -> Result<Member, HttpError> {
         let url = format!(
             "{}/guilds/{:?}/members/{:?}",
             crate::BASE_URL,
             guild_id.into(),
-            user_id.into());
+            user_id.into()
+        );
 
-        let r = self.client.get(&url)
-                    .send()
-                    .await;
+        let r = self.client.get(&url).send().await;
         expect_successful_api_response_and_return!(r, Member, m, Ok(m))
     }
 }

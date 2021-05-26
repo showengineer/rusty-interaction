@@ -56,7 +56,6 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     // Using quasi-quoting to generate a new function. This is what will be the end function returned to the compiler.
     if !defer {
-
         // Build the function
         let subst_fn = quote! {
             #vis fn #fname<'context> (#params) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
@@ -80,12 +79,11 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     ind = Some(n);
                     break;
                 }
-                ,
                 Stmt::Semi(Expr::Return(a), _) => {
                     expr = Some(a.clone());
                     ind = Some(n);
                     break;
-                },
+                }
                 _ => (),
             }
         }
@@ -95,16 +93,13 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
             );
         }));
 
-        
-
-
         // Find the name of the Context parameter
         let mut ctxname: Option<syn::Ident> = None;
         for p in params {
             if let FnArg::Typed(t) = p {
                 if let syn::Pat::Ident(a) = &*t.pat {
-                        ctxname = Some(a.ident.clone());
-                        break;
+                    ctxname = Some(a.ident.clone());
+                    break;
                 }
             }
         }
@@ -115,10 +110,8 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
             .expr
             .unwrap_or_else(|| panic!("Expected some return value"));
 
-        
         let nvec = nbody.to_vec();
 
-        
         // Now that we have all the information we need, we can finally start building our new function!
         // The difference here being that the non-deffered function doesn't have to spawn a new thread that
         // does the actual work. Here we need it to reply with a deffered channel message.
@@ -199,7 +192,6 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
 
     // Using quasi-quoting to generate a new function. This is what will be the end function returned to the compiler.
     if !defer {
-
         // Build the function
         let subst_fn = quote! {
             #vis fn #fname<'context> (#params) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
@@ -223,12 +215,11 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
                     ind = Some(n);
                     break;
                 }
-                ,
                 Stmt::Semi(Expr::Return(a), _) => {
                     expr = Some(a.clone());
                     ind = Some(n);
                     break;
-                },
+                }
                 _ => (),
             }
         }
@@ -245,8 +236,8 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
         for p in params {
             if let FnArg::Typed(t) = p {
                 if let syn::Pat::Ident(a) = &*t.pat {
-                        ctxname = Some(a.ident.clone());
-                        break;
+                    ctxname = Some(a.ident.clone());
+                    break;
                 }
             }
         }

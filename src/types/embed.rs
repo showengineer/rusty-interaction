@@ -5,7 +5,7 @@ use serde_with::*;
 use ::chrono::{DateTime, Utc};
 
 #[cfg(feature = "handler")]
-use log::{error};
+use log::error;
 
 // ======== Structures =========
 #[serde_as]
@@ -117,15 +117,15 @@ pub struct EmbedField {
 #[cfg(feature = "handler")]
 #[derive(Clone, Debug, PartialEq)]
 /// Builder to construct an [`Embed`]
-pub struct EmbedBuilder{
-    obj: Embed
+pub struct EmbedBuilder {
+    obj: Embed,
 }
 #[derive(Clone, Copy, Debug, PartialEq)]
 /// Representing RGB colors.
-/// 
+///
 /// Each color is an 8bit unsigned integer.  
-pub struct Color{
-    /// Red value 
+pub struct Color {
+    /// Red value
     pub red: u8,
     /// Green value
     pub green: u8,
@@ -133,24 +133,21 @@ pub struct Color{
     pub blue: u8,
 }
 
-
-
 // ========== IMPLS ===========
-impl Default for Color{
-    fn default() -> Self{
-        Color{
+impl Default for Color {
+    fn default() -> Self {
+        Color {
             // ;)
             red: 222,
             green: 165,
             blue: 132,
         }
-
     }
 }
 
-impl From<u32> for Color{
-    fn from(a: u32) -> Color{
-        Color{
+impl From<u32> for Color {
+    fn from(a: u32) -> Color {
+        Color {
             red: ((a >> 16) & 0xff) as u8,
             green: ((a >> 8) & 0xff) as u8,
             blue: (a & 0xff) as u8,
@@ -158,15 +155,15 @@ impl From<u32> for Color{
     }
 }
 
-impl Into<u32> for Color{
-    fn into(self) -> u32{
+impl Into<u32> for Color {
+    fn into(self) -> u32 {
         ((self.red as u32) << 16) | ((self.green as u32) << 8) | self.blue as u32
     }
 }
 
-impl Default for Embed{
-    fn default() -> Self{
-        Self{
+impl Default for Embed {
+    fn default() -> Self {
+        Self {
             title: None,
             description: None,
             url: None,
@@ -183,20 +180,20 @@ impl Default for Embed{
     }
 }
 #[cfg(feature = "handler")]
-impl Default for EmbedBuilder{
-    fn default() -> Self{
-        Self{
+impl Default for EmbedBuilder {
+    fn default() -> Self {
+        Self {
             obj: Embed::default(),
         }
     }
 }
 #[cfg(feature = "handler")]
-impl EmbedBuilder{
+impl EmbedBuilder {
     /// Set the title of this embed
-    pub fn title(mut self, title: impl ToString) -> Self{
+    pub fn title(mut self, title: impl ToString) -> Self {
         let t = title.to_string();
         // wish this could be checked at compile time :(
-        if t.len() > 256{
+        if t.len() > 256 {
             panic!("Embed title length is more than 256 characters.")
         }
         self.obj.title = Some(t);
@@ -204,46 +201,45 @@ impl EmbedBuilder{
     }
 
     /// Set the url of the title of this embed
-    pub fn url(mut self, url: &str) -> Self{
+    pub fn url(mut self, url: &str) -> Self {
         self.obj.url = Some(String::from(url));
         self
     }
     /// Set the color of this embed
-    pub fn color(mut self, color: impl Into<u32>) -> Self{
+    pub fn color(mut self, color: impl Into<u32>) -> Self {
         self.obj.color = Some(color.into());
         self
     }
 
     /// Set the timestamp of this embed
-    pub fn timestamp(mut self, timestamp: DateTime<Utc>) -> Self{
+    pub fn timestamp(mut self, timestamp: DateTime<Utc>) -> Self {
         self.obj.timestamp = Some(timestamp);
         self
     }
 
     /// Set the embed's footer
-    pub fn footer(mut self, a: EmbedFooter) -> Self{
+    pub fn footer(mut self, a: EmbedFooter) -> Self {
         self.obj.footer = Some(a);
         self
     }
 
     /// Set the embed author
-    pub fn author(mut self, author: EmbedAuthor) -> Self{
+    pub fn author(mut self, author: EmbedAuthor) -> Self {
         self.obj.author = Some(author);
         self
     }
 
-    /// Add an [`EmbedField`] to this embed. 
-    pub fn add_field(mut self, field: EmbedField) -> Self{
-        match self.obj.fields{
+    /// Add an [`EmbedField`] to this embed.
+    pub fn add_field(mut self, field: EmbedField) -> Self {
+        match self.obj.fields {
             None => {
                 let nf = Some(vec![field]);
                 self.obj.fields = nf;
-            },
-            Some(ref mut f) =>{
-                if f.len() >= 25{
+            }
+            Some(ref mut f) => {
+                if f.len() >= 25 {
                     error!("Field limit reached. Ignoring");
-                }
-                else{
+                } else {
                     f.push(field);
                 }
             }
@@ -252,16 +248,14 @@ impl EmbedBuilder{
     }
 
     /// Build the embed. You can't use the function after this anymore
-    pub fn finish(self) -> Embed{
+    pub fn finish(self) -> Embed {
         self.obj
-    } 
-
-
+    }
 }
 
-impl Default for EmbedFooter{
-    fn default() -> Self{
-        Self{
+impl Default for EmbedFooter {
+    fn default() -> Self {
+        Self {
             text: String::from(""),
             icon_url: None,
             proxy_icon_url: None,
@@ -269,11 +263,11 @@ impl Default for EmbedFooter{
     }
 }
 
-impl EmbedFooter{
+impl EmbedFooter {
     /// Set the footers text
-    pub fn text(mut self, text: impl ToString) -> Self{
+    pub fn text(mut self, text: impl ToString) -> Self {
         let t = text.to_string();
-        if t.len() > 2048{
+        if t.len() > 2048 {
             panic!("Footer text exceeded 2048 characters")
         }
         self.text = t;
@@ -281,7 +275,7 @@ impl EmbedFooter{
     }
 
     /// Sets the url to the footer icon
-    pub fn icon_url(mut self, url: impl ToString) -> Self{
+    pub fn icon_url(mut self, url: impl ToString) -> Self {
         let n = url.to_string();
 
         self.icon_url = Some(n);
@@ -289,7 +283,7 @@ impl EmbedFooter{
     }
 
     /// Sets a proxied url to the footer icon
-    pub fn proxy_url(mut self, url: impl ToString) -> Self{
+    pub fn proxy_url(mut self, url: impl ToString) -> Self {
         let u = url.to_string();
 
         self.proxy_icon_url = Some(u);
@@ -297,9 +291,9 @@ impl EmbedFooter{
     }
 }
 
-impl Default for EmbedField{
-    fn default() -> Self{
-        Self{
+impl Default for EmbedField {
+    fn default() -> Self {
+        Self {
             value: String::from(""),
             name: String::from(""),
             inline: None,
@@ -307,11 +301,11 @@ impl Default for EmbedField{
     }
 }
 
-impl EmbedField{
+impl EmbedField {
     /// Set the field name
-    pub fn name(mut self, name: impl ToString) -> Self{
+    pub fn name(mut self, name: impl ToString) -> Self {
         let n = name.to_string();
-        if n.len() > 256{
+        if n.len() > 256 {
             panic!("Field name is above 256 characters.")
         }
         self.name = n;
@@ -319,10 +313,10 @@ impl EmbedField{
     }
 
     /// Set the text of this field
-    pub fn value(mut self, text: impl ToString) -> Self{
+    pub fn value(mut self, text: impl ToString) -> Self {
         let t = text.to_string();
 
-        if t.len() > 1024{
+        if t.len() > 1024 {
             panic!("Field value is above 1024 characters")
         }
         self.value = t;
@@ -335,9 +329,9 @@ impl EmbedField{
     }
 }
 
-impl Default for EmbedAuthor{
-    fn default() -> Self{
-        Self{
+impl Default for EmbedAuthor {
+    fn default() -> Self {
+        Self {
             name: None,
             icon_url: None,
             proxy_icon_url: None,
@@ -346,23 +340,23 @@ impl Default for EmbedAuthor{
     }
 }
 
-impl EmbedAuthor{
+impl EmbedAuthor {
     /// Set the author name
-    pub fn name(mut self, name: impl ToString) -> Self{
+    pub fn name(mut self, name: impl ToString) -> Self {
         let n = name.to_string();
         self.name = Some(n);
         self
     }
 
     /// Sets the URL users can click on.
-    pub fn url(mut self, url: impl ToString) -> Self{
+    pub fn url(mut self, url: impl ToString) -> Self {
         let n = url.to_string();
         self.url = Some(n);
         self
     }
 
     /// Add an icon to the embed
-    pub fn icon_url(mut self, url: impl ToString) -> Self{
+    pub fn icon_url(mut self, url: impl ToString) -> Self {
         let u = url.to_string();
 
         self.icon_url = Some(u);
@@ -370,7 +364,7 @@ impl EmbedAuthor{
     }
 
     /// Set the proxy url for the icon
-    pub fn proxy_url(mut self, url: impl ToString) -> Self{
+    pub fn proxy_url(mut self, url: impl ToString) -> Self {
         let u = url.to_string();
 
         self.proxy_icon_url = Some(u);
@@ -378,35 +372,34 @@ impl EmbedAuthor{
     }
 }
 
-impl Default for EmbedThumbnail{
-    fn default() -> Self{
-        Self{
+impl Default for EmbedThumbnail {
+    fn default() -> Self {
+        Self {
             url: None,
-            proxy_url:None,
-            height:None,
-            width:None,
+            proxy_url: None,
+            height: None,
+            width: None,
         }
     }
 }
 
-impl EmbedThumbnail{
+impl EmbedThumbnail {
     /// Sets the URL of the thumbnail
-    pub fn url(mut self, url: impl ToString) -> Self{
+    pub fn url(mut self, url: impl ToString) -> Self {
         let u = url.to_string();
         self.url = Some(u);
         self
-
     }
 
     /// Sets a proxied url for the thumbnail
-    pub fn proxy_url(mut self, url: impl ToString) -> Self{
+    pub fn proxy_url(mut self, url: impl ToString) -> Self {
         let u = url.to_string();
         self.url = Some(u);
         self
     }
 
     /// Sets the dimensions of the thumbnail
-    pub fn dimensions(mut self, height: impl Into<u32>, width: impl Into<u32>) -> Self{
+    pub fn dimensions(mut self, height: impl Into<u32>, width: impl Into<u32>) -> Self {
         let x = width.into();
         let y = height.into();
 

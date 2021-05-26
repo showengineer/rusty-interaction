@@ -1,12 +1,10 @@
-
-
 use crate::security::*;
 use crate::types::interaction::*;
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
-use reqwest::{Client};
-#[cfg(feature="extended-handler")]
+#[cfg(feature = "extended-handler")]
 use reqwest::header;
+use reqwest::Client;
 
 use log::{debug, error};
 
@@ -21,9 +19,8 @@ pub type HandlerResponse = InteractionResponse;
 
 type HandlerFunction = fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>;
 
-
 #[derive(Clone, Debug)]
-#[cfg(all(feature="handler", not(feature="extended-handler")))]
+#[cfg(all(feature = "handler", not(feature = "extended-handler")))]
 /// The InteractionHandler is the 'thing' that will handle your incoming interactions.
 /// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
 /// with [`InteractionHandler::run`] and [`InteractionHandler::run_ssl`]
@@ -35,12 +32,11 @@ pub struct InteractionHandler {
     handles: HashMap<&'static str, HandlerFunction>,
 }
 
-
 #[derive(Clone, Debug)]
 /// The InteractionHandler is the 'thing' that will handle your incoming interactions.
 /// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
 /// with [`InteractionHandler::run`] and [`InteractionHandler::run_ssl`]
-#[cfg(feature="extended-handler")]
+#[cfg(feature = "extended-handler")]
 pub struct InteractionHandler {
     /// The public key of your application.
     pub app_public_key: PublicKey,
@@ -50,7 +46,7 @@ pub struct InteractionHandler {
 }
 
 impl InteractionHandler {
-    #[cfg(all(feature="handler", not(feature="extended-handler")))]
+    #[cfg(all(feature = "handler", not(feature = "extended-handler")))]
     /// Initalizes a new `InteractionHandler`
     pub fn new(pbk_str: &str) -> InteractionHandler {
         let pbk_bytes =
@@ -65,7 +61,7 @@ impl InteractionHandler {
             handles: HashMap::new(),
         }
     }
-    #[cfg(feature="extended-handler")]
+    #[cfg(feature = "extended-handler")]
     /// Initalizes a new `InteractionHandler`
     pub fn new(pbk_str: &str, token: &'static str) -> InteractionHandler {
         let pbk_bytes =
@@ -183,14 +179,15 @@ impl InteractionHandler {
                 return ERROR_RESPONSE!(400, format!("Bad body: {}", e));
             }
             Ok(interaction) => {
-                match interaction.r#type{
+                match interaction.r#type {
                     InteractionType::Ping => {
-                        let response = InteractionResponse::new(InteractionResponseType::Pong, None);
+                        let response =
+                            InteractionResponse::new(InteractionResponseType::Pong, None);
                         debug!("Got a ping, responding with pong.");
                         return Ok(HttpResponse::build(StatusCode::OK)
                             .content_type("application/json")
                             .json(response));
-                    },
+                    }
 
                     InteractionType::ApplicationCommand => {
                         let data = if let Some(ref data) = interaction.data {
@@ -199,17 +196,20 @@ impl InteractionHandler {
                             error!("Failed to unwrap Interaction!");
                             return ERROR_RESPONSE!(500, "Failed to unwrap");
                         };
-        
-                        if let Some(handler) = self.handles.get(data.name.as_ref().unwrap().as_str()) {
+
+                        if let Some(handler) =
+                            self.handles.get(data.name.as_ref().unwrap().as_str())
+                        {
                             // do stuff with v if needed
-        
+
                             // construct a Context
                             let ctx = Context::new(self.client.clone(), interaction);
-        
+
                             // Call the handler
                             let response = handler(ctx).await;
-        
-                            if response.r#type == InteractionResponseType::DefferedChannelMessageWithSource
+
+                            if response.r#type
+                                == InteractionResponseType::DefferedChannelMessageWithSource
                             {
                                 /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
                                 If an application is first sending a deffered channel message response, this usually means the system
@@ -219,19 +219,21 @@ impl InteractionHandler {
                             } else {
                                 // Send out a response to Discord
                                 let r = HttpResponse::build(StatusCode::OK).json(response);
-        
+
                                 Ok(r)
                             }
                         } else {
-                            error!("No associated handler found for {}", data.name.as_ref().unwrap().as_str());
+                            error!(
+                                "No associated handler found for {}",
+                                data.name.as_ref().unwrap().as_str()
+                            );
                             ERROR_RESPONSE!(500, "No associated handler found")
                         }
                     }
-                    InteractionType::MessageComponent =>{
+                    InteractionType::MessageComponent => {
                         unimplemented!();
-                    },
+                    }
                     _ => {
-                        
                         ERROR_RESPONSE!(500, "Not implemented")
                     }
                 }
@@ -277,11 +279,7 @@ impl InteractionHandler {
         .run()
         .await
     }
-
-    
 }
-
-
 
 /// Simpler header getter from a HTTP request
 fn get_header<'a>(req: &'a HttpRequest, header: &str) -> Option<&'a str> {

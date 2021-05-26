@@ -73,8 +73,8 @@ pub struct Member {
     pub permissions: Option<String>,
 }
 
-impl From<Member> for User{
-    fn from(member: Member) -> User{
+impl From<Member> for User {
+    fn from(member: Member) -> User {
         member.user
     }
 }
