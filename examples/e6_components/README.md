@@ -2,9 +2,13 @@
 
 Components are an exciting way of user interaction with your bot. 
 
-With components, you can add rich elements like buttons to your messages!
+With components, you can add rich elements (like buttons) to your messages!
 
-Example: (add pic)
+This is what this demo will produce:
+
+![demo](https://raw.githubusercontent.com/0x2b00b1e5/rusty-interaction/main/examples/e6_components/img/demo.gif)
+
+
 
 # Running this example
 You can use regular `cargo build` and `cargo run` commands.
