@@ -5,6 +5,7 @@ use crate::types::interaction::{
     Context, InteractionResponse, InteractionResponseBuilder, InteractionResponseType,
 };
 use crate::*;
+
 use actix_web::{http, test, web, App, HttpRequest};
 use ed25519_dalek::PublicKey;
 use log::error;
@@ -291,7 +292,7 @@ async fn normal_handle_direct_test(_: Context) -> InteractionResponse {
 async fn interactions_normal_handle_test() {
     let mut ih = init_handler!();
 
-    ih.add_command("test", normal_handle_test);
+    ih.add_global_command("test", normal_handle_test);
 
     let mut app = interaction_app_init!(ih);
 
@@ -319,7 +320,7 @@ async fn interactions_normal_handle_test() {
 async fn interactions_normal_from_value_handle_test() {
     let mut ih = init_handler!();
 
-    ih.add_command("test", normal_handle_direct_test);
+    ih.add_global_command("test", normal_handle_direct_test);
 
     let mut app = interaction_app_init!(ih);
 
@@ -347,7 +348,7 @@ async fn interactions_normal_from_value_handle_test() {
 async fn interactions_normal_from_direct_call_handle_test() {
     let mut ih = init_handler!();
 
-    ih.add_command("test", normal_handle_value_test);
+    ih.add_global_command("test", normal_handle_value_test);
 
     let mut app = interaction_app_init!(ih);
 
@@ -398,7 +399,7 @@ async fn deffered_handle_direct_test(_ctx: Context) -> InteractionResponse {
 async fn interactions_deffered_handle_test() {
     let mut ih = init_handler!();
 
-    ih.add_command("test", deffered_handle_test);
+    ih.add_global_command("test", deffered_handle_test);
 
     let mut app = interaction_app_init!(ih);
 
@@ -427,7 +428,7 @@ async fn interactions_deffered_handle_test() {
 async fn interactions_deffered_from_value_handle_test() {
     let mut ih = init_handler!();
 
-    ih.add_command("test", deffered_handle_value_test);
+    ih.add_global_command("test", deffered_handle_value_test);
 
     let mut app = interaction_app_init!(ih);
 
@@ -456,7 +457,7 @@ async fn interactions_deffered_from_value_handle_test() {
 async fn interactions_deffered_from_direct_value_handle_test() {
     let mut ih = init_handler!();
 
-    ih.add_command("test", deffered_handle_direct_test);
+    ih.add_global_command("test", deffered_handle_direct_test);
 
     let mut app = interaction_app_init!(ih);
 
