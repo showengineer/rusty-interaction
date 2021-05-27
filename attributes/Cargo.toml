@@ -1,6 +1,6 @@
 [package]
 name = "attributes"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Hugo Woesthuis <hugow2011@outlook.com>"]
 edition = "2018"
 description = "Procedural macros for command creation with rusty-interaction"
