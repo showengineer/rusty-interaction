@@ -3,6 +3,9 @@
 use rusty_interaction::handler::InteractionHandler;
 use rusty_interaction::types::interaction::*;
 
+// Import for using components
+use rusty_interaction::types::components::*;
+
 // Used for getting TLS to work
 use rustls::internal::pemfile::{certs, pkcs8_private_keys};
 use rustls::{NoClientAuth, ServerConfig};
@@ -15,6 +18,7 @@ use async_std::task;
 use rusty_interaction::actix::Arbiter;
 
 const PUB_KEY: &str = "YOUR_PUBLIC_KEY"; 
+
 
 
 #[slash_command]
