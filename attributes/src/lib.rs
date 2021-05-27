@@ -124,7 +124,7 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
                         #(#nvec)*
                         if #expra.r#type != InteractionResponseType::Pong && #expra.r#type != InteractionResponseType::None{
                             if let Err(i) = #ctxname.edit_original(&WebhookMessage::from(#expra)).await{
-                                log::error!("Editing original message failed: {:?}", i);
+                                ::rusty_interaction::log::error!("Editing original message failed: {:?}", i);
                             }
                         }
                         

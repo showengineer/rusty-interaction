@@ -27,6 +27,10 @@ pub mod security;
 pub mod handler;
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
 pub use actix;
+
+#[cfg(any(feature = "handler", feature = "extended-handler"))]
+pub use log;
+
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
 pub use attributes::*;
 
