@@ -3,5 +3,6 @@ members = [
     "e1_basic_handler",
     "e2_tls_handler",
     "e3_deffering_commands",
-    "e4_followups"
+    "e4_followups",
+    "e5_manipulating_original_message"
 ]
