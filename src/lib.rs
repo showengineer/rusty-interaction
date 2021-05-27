@@ -34,10 +34,6 @@ pub use log;
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
 pub use attributes::*;
 
-#[cfg(all(test, not(feature = "handler"), not(feature = "extended-handler")))]
-compile_error!(
-    "cannot run tests without the \"handler\" or \"extended-handler\" feature enabled (run with --features handler or --features extended-handler)"
-);
 
 #[cfg(all(test, feature = "handler"))]
 mod tests;

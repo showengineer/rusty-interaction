@@ -18,6 +18,12 @@ version = "0"
 features = ["handler"]
 ```
 Take a look at the [documentation](https://docs.rs/rusty_interaction) and the [examples](/examples) to get yourself familiar with using the library.
+
+# Basic bot/handler
+Please take a look at the following examples:
+- [Basic HTTP handler](https://github.com/0x2b00b1e5/rusty-interaction/tree/main/examples/e1_basic_handler)
+- [Basic HTTPS handler](https://github.com/0x2b00b1e5/rusty-interaction/tree/main/examples/e2_tls_handler)
+
 ## Contributing
 More than welcome! :D
 
@@ -29,8 +35,9 @@ More than welcome! :D
 - [x] - Properly respond to interactions from Discord
 - [x] - Nice system to make follow-up messages.
 - [ ] - Nice system to manage guild-specific commands.
-- [x] - Support for components
-- [ ] - Not a pile of code spaghetti that just works (oops...👀)
+- [x] - Support for components (buttons, dropdowns, etc)
+- [ ] - Not a pile of spaghetti code that just works (oops...👀)
+
 
 
 ## Difference between receiving interactions through the gateway and your own endpoint
@@ -39,11 +46,13 @@ Setting up your own endpoint makes Discord send the interactions to your own API
 
 If you already have an API that runs your service and you're looking to integrate with Discord, this way of receiving interactions can be really interesting.
 
+One destinct difference is that you do not need a bot or oauth token for most features. Some features (like command management) do require a bot token. 
+
 ### Ok, I want to receive interactions through the gateway. Does your library support that?
 No. If you want to receive interactions through the gateway, you want to take a look at [Serenity](https://github.com/serenity-rs/serenity) or one of the [other libraries](https://discord.com/developers/docs/topics/community-resources#libraries-discord-libraries).
 
-[ci-link]: https://github.com/hugopilot/rusty-interaction/actions
-[ci-img]: https://img.shields.io/github/workflow/status/hugopilot/rusty-interaction/RustCI?style=flat-square
+[ci-link]: https://github.com/0x2b00b1e5/rusty-interaction/actions
+[ci-img]: https://img.shields.io/github/workflow/status/0x2b00b1e5/rusty-interaction/RustCI?style=flat-square
 [cio-link]: https://crates.io/crates/rusty_interaction
 [cio-img]: https://img.shields.io/crates/v/rusty-interaction?style=flat-square
 [lic-link]: /LICENSE

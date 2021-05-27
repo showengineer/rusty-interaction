@@ -3,11 +3,11 @@ name = "rusty_interaction"
 version = "0.1.4"
 authors = ["Hugo Woesthuis <hugow2011@outlook.com>"]
 license = "ISC"
-description = "Handle Discord Interactions (aka Slash Commands) as outgoing webhook"
+description = "Handle Discord Interactions as outgoing webhook"
 repository = "https://github.com/hugopilot/rusty-interaction"
 readme = "README.md"
 edition = "2018"
-keywords = ["discord", "interactions", "discord-interactions", "slash-commands"]
+keywords = ["discord", "interactions", "discord-interactions", "slash-commands", "api"]
 categories = ["api-bindings", "web-programming"]
 include = ["src/**/*", "LICENSE.md", "README.md"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -59,3 +59,4 @@ extended-handler = ["handler"]
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--features", "extended-handler"]
