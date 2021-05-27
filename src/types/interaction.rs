@@ -253,6 +253,12 @@ pub enum InteractionResponseType {
     ChannelMessageWithSource = 4,
     /// ACK an interaction and edit a response later, the user sees a loading state
     DefferedChannelMessageWithSource = 5,
+
+    /// For components, ACK an interaction and edit the original message later. The user does not see a loading state
+    DefferedUpdateMessage = 6,
+    
+    /// For components, edit the message the component was attached to
+    UpdateMessage = 7,
 }
 
 #[serde_as]
@@ -572,7 +578,14 @@ impl Context {
     ///                   .finish();
     /// ```
     pub fn respond(&self) -> InteractionResponseBuilder {
-        InteractionResponseBuilder::default()
+        let mut b = InteractionResponseBuilder::default();
+
+        // Default to UpdateMessage response type if InteractionType is MessageComponent
+        if self.interaction.r#type == InteractionType::MessageComponent{
+            b.r#type = InteractionResponseType::UpdateMessage;
+        }
+
+        return b;
     }
 
     /// Edit the original interaction response
