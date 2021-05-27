@@ -23,7 +23,7 @@ async fn test(ctx: Context) -> InteractionResponse{
     println!("I HAVE BEEN SUMMONED!!!");
     
     // This is representing some work that needs to be done before a response can be made
-    task::sleep(Duration::from_secs(5));
+    task::sleep(Duration::from_secs(5)).await;
     
     return ctx.respond()
         .message("I was summoned?")
