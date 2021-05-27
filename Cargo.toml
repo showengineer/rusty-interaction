@@ -1,6 +1,6 @@
 [package]
 name = "rusty_interaction"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["Hugo Woesthuis <hugow2011@outlook.com>"]
 license = "ISC"
 description = "Handle Discord Interactions as outgoing webhook"
@@ -59,4 +59,3 @@ extended-handler = ["handler"]
 
 [package.metadata.docs.rs]
 all-features = true
-rustdoc-args = ["--features", "extended-handler"]
