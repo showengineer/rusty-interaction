@@ -29,7 +29,9 @@ pub struct InteractionHandler {
     pub app_public_key: PublicKey,
     client: Client,
     // Might want to change this to use the command id rather than the name of the command: prone to duplicates.
-    handles: HashMap<&'static str, HandlerFunction>,
+    global_handles: HashMap<&'static str, HandlerFunction>,
+
+    component_handles: HashMap<&'static str, HandlerFunction>,
 }
 
 #[derive(Clone, Debug)]
@@ -41,8 +43,9 @@ pub struct InteractionHandler {
     /// The public key of your application.
     pub app_public_key: PublicKey,
     client: Client,
-    // Might want to change this to use the command id rather than the name of the command: prone to duplicates.
-    handles: HashMap<&'static str, HandlerFunction>,
+    
+    global_handles: HashMap<&'static str, HandlerFunction>,
+    component_handles: HashMap<&'static str, HandlerFunction>,
 }
 
 impl InteractionHandler {
@@ -58,7 +61,8 @@ impl InteractionHandler {
         InteractionHandler {
             app_public_key,
             client: Client::new(),
-            handles: HashMap::new(),
+            global_handles: HashMap::new(),
+            component_handles: HashMap::new(),
         }
     }
     #[cfg(feature = "extended-handler")]
@@ -79,7 +83,8 @@ impl InteractionHandler {
         InteractionHandler {
             app_public_key,
             client: new_c,
-            handles: HashMap::new(),
+            global_handles: HashMap::new(),
+            component_handles: HashMap::new(),
         }
     }
 
@@ -119,8 +124,12 @@ impl InteractionHandler {
     ///     return handle.run().await;
     /// }
     /// ```
-    pub fn add_command(&mut self, name: &'static str, func: HandlerFunction) {
-        self.handles.insert(name, func);
+    pub fn add_global_command(&mut self, name: &'static str, func: HandlerFunction) {
+        self.global_handles.insert(name, func);
+    }
+
+    pub fn add_component_handle(&mut self, custom_id: &'static str, func: HandlerFunction){
+        self.component_handles.insert(custom_id, func);
     }
 
     /// Entry point function for handling `Interactions`
@@ -198,7 +207,7 @@ impl InteractionHandler {
                         };
 
                         if let Some(handler) =
-                            self.handles.get(data.name.as_ref().unwrap().as_str())
+                            self.global_handles.get(data.name.as_ref().unwrap().as_str())
                         {
                             // do stuff with v if needed
 
@@ -231,11 +240,45 @@ impl InteractionHandler {
                         }
                     }
                     InteractionType::MessageComponent => {
-                        unimplemented!();
+                        let data = if let Some(ref data) = interaction.data {
+                            data
+                        } else {
+                            error!("Failed to unwrap Interaction!");
+                            return ERROR_RESPONSE!(500, "Failed to unwrap");
+                        };
+
+                        if let Some(handler) =
+                            self.component_handles.get(data.custom_id.as_ref().unwrap().as_str())
+                        {
+                            // construct a Context
+                            let ctx = Context::new(self.client.clone(), interaction);
+
+                            // Call the handler
+                            let response = handler(ctx).await;
+
+                            if response.r#type
+                                == InteractionResponseType::DefferedUpdateMessage
+                            {
+                                /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
+                                If an application is first sending a deffered channel message response, this usually means the system
+                                is still processing whatever it is doing.
+                                See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
+                                Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
+                            } else {
+                                // Send out a response to Discord
+                                let r = HttpResponse::build(StatusCode::OK).json(response);
+
+                                Ok(r)
+                            }
+                        } else {
+                            error!(
+                                "No associated handler found for {}",
+                                data.name.as_ref().unwrap().as_str()
+                            );
+                            ERROR_RESPONSE!(500, "No associated handler found")
+                        }
                     }
-                    _ => {
-                        ERROR_RESPONSE!(500, "Not implemented")
-                    }
+                    
                 }
             }
         }

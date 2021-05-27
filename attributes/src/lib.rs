@@ -139,10 +139,10 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
 
 #[proc_macro_attribute]
 /// Convenience procedural macro that allows you to bind an async function to the [`InteractionHandler`] for handling component interactions.
-pub fn component_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn component_handler(attr: TokenStream, item: TokenStream) -> TokenStream {
     let ret = quote!(InteractionResponseType::DefferedUpdateMessage);
     
-    handler(_attr, item, ret)
+    handler(attr, item, ret)
 }
 
 

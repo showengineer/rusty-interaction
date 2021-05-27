@@ -215,7 +215,7 @@ impl InteractionResponseBuilder {
     }
 
     /// Add components to response
-    pub fn add_component(mut self, component: MessageComponent) -> Self {
+    pub fn add_component_row(mut self, component: MessageComponent) -> Self {
         match self.data.as_mut() {
             None => {
                 let mut d = InteractionApplicationCommandCallbackData::new();
