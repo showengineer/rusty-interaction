@@ -36,7 +36,7 @@ async fn main() -> std::io::Result<()> {
 
     // Initalize our InteractionHandler
     // This will handle incoming interactions and route them to your own handlers
-    let mut handle = InteractionHandler::new(PUB_KEY);
+    let mut handle = InteractionHandler::new(PUB_KEY, None);
     
     // This will tell the handler to route the `/summon` command to the test function. So if someone uses `/summon`, test() will be called.
     // Please note that you'll need to register your commands to Discord if you haven't yet. This library only handles incoming Interactions (as of now),

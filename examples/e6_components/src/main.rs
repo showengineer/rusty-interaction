@@ -75,7 +75,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     
-    let mut handle = InteractionHandler::new(PUB_KEY);
+    let mut handle = InteractionHandler::new(PUB_KEY, None);
     
     
     handle.add_global_command("summon", test);
