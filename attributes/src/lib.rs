@@ -6,12 +6,14 @@ use quote::quote;
 
 use syn::{Expr, ExprReturn, FnArg, ReturnType, Stmt};
 
-#[proc_macro_attribute]
-/// Convenience procedural macro that allows you to bind an async function to the [`InteractionHandler`]
-pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
+
+
+
+
+fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private::TokenStream) -> TokenStream{
+
     // There is _probably_ a more efficient way to do what I want to do, but hey I am here
     // to learn so why not join me on my quest to create this procedural macro...lol
-
     let mut defer = false;
 
     // Parse the stream of tokens to something more usable.
@@ -125,13 +127,31 @@ pub fn slash_command(_attr: TokenStream, item: TokenStream) -> TokenStream {
                         }
                     });
 
-                    return InteractionResponseBuilder::default().respond_type(InteractionResponseType::DefferedChannelMessageWithSource).finish();
+                    return InteractionResponseBuilder::default().respond_type(#defer_return).finish();
 
                 })
             }
         };
         subst_fn.into()
     }
+}
+
+
+#[proc_macro_attribute]
+/// Convenience procedural macro that allows you to bind an async function to the [`InteractionHandler`] for handling component interactions.
+pub fn component_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let ret = quote!(InteractionResponseType::DefferedUpdateMessage);
+    
+    handler(_attr, item, ret)
+}
+
+
+#[proc_macro_attribute]
+/// Convenience procedural macro that allows you to bind an async function to the [`InteractionHandler`]
+pub fn slash_command(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let ret = quote!(InteractionResponseType::DefferedChannelMessageWithSource);
+
+    handler(attr, item, ret)
 }
 
 #[proc_macro_attribute]
@@ -145,9 +165,6 @@ pub fn defer(_attr: TokenStream, item: TokenStream) -> TokenStream {
 #[doc(hidden)]
 // This is just here to make the tests work...lol
 pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    // There is _probably_ a more efficient way to do what I want to do, but hey I am here
-    // to learn so why not join me on my quest to create this procedural macro...lol
-
     let mut defer = false;
 
     // Parse the stream of tokens to something more usable.
@@ -229,8 +246,6 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
             );
         }));
 
-        let nvec = nbody.to_vec();
-
         // Find the name of the Context parameter
         let mut ctxname: Option<syn::Ident> = None;
         for p in params {
@@ -247,6 +262,8 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
             .unwrap_or_else(|| panic!("Expected return"))
             .expr
             .unwrap_or_else(|| panic!("Expected some return value"));
+
+        let nvec = nbody.to_vec();
 
         // Now that we have all the information we need, we can finally start building our new function!
         // The difference here being that the non-deffered function doesn't have to spawn a new thread that
