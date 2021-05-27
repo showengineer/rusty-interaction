@@ -43,7 +43,7 @@ pub struct InteractionHandler {
     /// The public key of your application.
     pub app_public_key: PublicKey,
     client: Client,
-    
+
     global_handles: HashMap<&'static str, HandlerFunction>,
     component_handles: HashMap<&'static str, HandlerFunction>,
 }
@@ -128,7 +128,7 @@ impl InteractionHandler {
         self.global_handles.insert(name, func);
     }
 
-    pub fn add_component_handle(&mut self, custom_id: &'static str, func: HandlerFunction){
+    pub fn add_component_handle(&mut self, custom_id: &'static str, func: HandlerFunction) {
         self.component_handles.insert(custom_id, func);
     }
 
@@ -206,8 +206,9 @@ impl InteractionHandler {
                             return ERROR_RESPONSE!(500, "Failed to unwrap");
                         };
 
-                        if let Some(handler) =
-                            self.global_handles.get(data.name.as_ref().unwrap().as_str())
+                        if let Some(handler) = self
+                            .global_handles
+                            .get(data.name.as_ref().unwrap().as_str())
                         {
                             // do stuff with v if needed
 
@@ -216,16 +217,14 @@ impl InteractionHandler {
 
                             // Call the handler
                             let response = handler(ctx).await;
-                            
 
-                            match response.r#type{
+                            match response.r#type {
                                 InteractionResponseType::None => {
                                     Ok(HttpResponse::build(StatusCode::NO_CONTENT).finish())
-                                },
-                                InteractionResponseType::DefferedChannelMessageWithSource |
-                                InteractionResponseType::DefferedUpdateMessage =>
-                                {
-                                     /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
+                                }
+                                InteractionResponseType::DefferedChannelMessageWithSource
+                                | InteractionResponseType::DefferedUpdateMessage => {
+                                    /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
                                     If an application is first sending a deffered channel message response, this usually means the system
                                     is still processing whatever it is doing.
                                     See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
@@ -238,7 +237,6 @@ impl InteractionHandler {
                                     Ok(r)
                                 }
                             }
-                               
                         } else {
                             error!(
                                 "No associated handler found for {}",
@@ -255,8 +253,9 @@ impl InteractionHandler {
                             return ERROR_RESPONSE!(500, "Failed to unwrap");
                         };
 
-                        if let Some(handler) =
-                            self.component_handles.get(data.custom_id.as_ref().unwrap().as_str())
+                        if let Some(handler) = self
+                            .component_handles
+                            .get(data.custom_id.as_ref().unwrap().as_str())
                         {
                             // construct a Context
                             let ctx = Context::new(self.client.clone(), interaction);
@@ -264,9 +263,7 @@ impl InteractionHandler {
                             // Call the handler
                             let response = handler(ctx).await;
 
-                            if response.r#type
-                                == InteractionResponseType::DefferedUpdateMessage
-                            {
+                            if response.r#type == InteractionResponseType::DefferedUpdateMessage {
                                 /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
                                 If an application is first sending a deffered channel message response, this usually means the system
                                 is still processing whatever it is doing.
@@ -286,7 +283,6 @@ impl InteractionHandler {
                             ERROR_RESPONSE!(500, "No associated handler found")
                         }
                     }
-                    
                 }
             }
         }

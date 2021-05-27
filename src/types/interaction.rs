@@ -66,7 +66,6 @@ pub struct Interaction {
     pub token: Option<String>,
     /// Read-only. Always `1`
     pub version: Option<i8>,
-    
 }
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
@@ -143,14 +142,14 @@ impl InteractionResponseBuilder {
     }
 
     /// Return a pong with no data. Use with caution
-    pub fn pong(mut self) -> InteractionResponse{
+    pub fn pong(mut self) -> InteractionResponse {
         self.r#type = InteractionResponseType::Pong;
         self.data = None;
         self.finish()
     }
 
     /// Return without any data. Use with caution
-    pub fn none(mut self) -> InteractionResponse{
+    pub fn none(mut self) -> InteractionResponse {
         self.r#type = InteractionResponseType::None;
         self.data = None;
         self.finish()
@@ -274,7 +273,7 @@ pub enum InteractionResponseType {
 
     /// For components, ACK an interaction and edit the original message later. The user does not see a loading state
     DefferedUpdateMessage = 6,
-    
+
     /// For components, edit the message the component was attached to
     UpdateMessage = 7,
 }
@@ -599,7 +598,7 @@ impl Context {
         let mut b = InteractionResponseBuilder::default();
 
         // Default to UpdateMessage response type if InteractionType is MessageComponent
-        if self.interaction.r#type == InteractionType::MessageComponent{
+        if self.interaction.r#type == InteractionType::MessageComponent {
             b.r#type = InteractionResponseType::UpdateMessage;
         }
 
