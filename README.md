@@ -29,6 +29,7 @@ More than welcome! :D
 - [x] - Properly respond to interactions from Discord
 - [x] - Nice system to make follow-up messages.
 - [ ] - Nice system to manage guild-specific commands.
+- [x] - Support for components
 - [ ] - Not a pile of code spaghetti that just works (oops...👀)
 
 
