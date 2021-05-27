@@ -13,7 +13,7 @@ use std::time::Duration;
 use async_std::task;
 
 
-const PUB_KEY: &str = "57028473720a7c1d4666132a68007f0902034a13c43cc2c1658b10b5fc754311"; 
+const PUB_KEY: &str = "YOUR_PUBLIC_KEY"; 
 
 
 #[slash_command]
