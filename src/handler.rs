@@ -88,7 +88,7 @@ impl InteractionHandler {
         }
     }
 
-    /// Binds an async function to a command.
+    /// Binds an async function to a **global** command.
     /// Your function must take a [`Context`] as an argument and must return a [`InteractionResponse`].
     /// Make sure to use the `#[slash_command]` procedural macro to make it usable for the handler.
     ///
@@ -128,6 +128,53 @@ impl InteractionHandler {
         self.global_handles.insert(name, func);
     }
 
+    /// Binds an async function to a **component**.
+    /// Your function must take a [`Context`] as an argument and must return a [`InteractionResponse`].
+    /// Use the `#[component_handler]` procedural macro for your own convinence.eprintln!
+    /// 
+    /// Example
+    /// ```ignore
+    /// use rusty_interaction::handler::InteractionHandler;
+    /// use rusty_interaction::types::components::*;
+    /// use rusty_interaction::types::interaction::*;
+    /// 
+    /// #[component_handler]
+    /// async fn comp_hand(ctx: Context) -> InteractionResponse {
+    ///     return ctx.respond().content("Some message content").finish();
+    /// }
+    /// 
+    /// #[slash_command]
+    /// async fn spawn_buttons(ctx: Context) -> InteractionResponse {
+    ///     // Let's build our message!
+    ///     let resp = ctx.respond()
+    ///     // Set message content
+    ///     .content("Not edited")
+    ///     // add a component action row using it's builder
+    ///     .add_component_row(
+    ///         ComponentRowBuilder::default()
+    ///        // Add buttons using it's builder
+    ///        .add_button(
+    ///           ComponentButtonBuilder::default()
+    ///                            .label("Edit")
+    ///                            .custom_id("HEHE")
+    ///                            .style(ComponentButtonStyle::Primary)
+    ///                            .finish()
+    ///        )
+    ///        .add_button(
+    ///            ComponentButtonBuilder::default()
+    ///                            .label("Delete")
+    ///                            .custom_id("DELETE")
+    ///                            .style(ComponentButtonStyle::Danger)
+    ///                            .finish()
+    ///         )
+    ///         .finish()
+    ///     )
+    ///     .finish();
+
+    ///     return resp;
+    /// 
+    /// }
+    /// ```
     pub fn add_component_handle(&mut self, custom_id: &'static str, func: HandlerFunction) {
         self.component_handles.insert(custom_id, func);
     }
