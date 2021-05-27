@@ -41,7 +41,7 @@ async fn main() -> std::io::Result<()> {
     // This will tell the handler to route the `/summon` command to the test function. So if someone uses `/summon`, test() will be called.
     // Please note that you'll need to register your commands to Discord if you haven't yet. This library only handles incoming Interactions (as of now),
     // not command management.
-    handle.add_command("summon", test);
+    handle.add_global_command("summon", test);
 
     // This is to setup TLS. 
     let mut config = ServerConfig::new(NoClientAuth::new());

@@ -39,7 +39,7 @@ async fn main() -> std::io::Result<()> {
     
     let mut handle = InteractionHandler::new(PUB_KEY);
     
-    handle.add_command("summon", test);
+    handle.add_global_command("summon", test);
 
     
     let mut config = ServerConfig::new(NoClientAuth::new());
