@@ -216,21 +216,29 @@ impl InteractionHandler {
 
                             // Call the handler
                             let response = handler(ctx).await;
+                            
 
-                            if response.r#type
-                                == InteractionResponseType::DefferedChannelMessageWithSource
-                            {
-                                /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
-                                If an application is first sending a deffered channel message response, this usually means the system
-                                is still processing whatever it is doing.
-                                See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
-                                Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
-                            } else {
-                                // Send out a response to Discord
-                                let r = HttpResponse::build(StatusCode::OK).json(response);
+                            match response.r#type{
+                                InteractionResponseType::None => {
+                                    Ok(HttpResponse::build(StatusCode::NO_CONTENT).finish())
+                                },
+                                InteractionResponseType::DefferedChannelMessageWithSource |
+                                InteractionResponseType::DefferedUpdateMessage =>
+                                {
+                                     /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
+                                    If an application is first sending a deffered channel message response, this usually means the system
+                                    is still processing whatever it is doing.
+                                    See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
+                                    Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
+                                }
+                                _ => {
+                                    // Send out a response to Discord
+                                    let r = HttpResponse::build(StatusCode::OK).json(response);
 
-                                Ok(r)
+                                    Ok(r)
+                                }
                             }
+                               
                         } else {
                             error!(
                                 "No associated handler found for {}",

@@ -66,6 +66,7 @@ pub struct Interaction {
     pub token: Option<String>,
     /// Read-only. Always `1`
     pub version: Option<i8>,
+    
 }
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
@@ -139,6 +140,20 @@ impl InteractionResponseBuilder {
             r#type: self.r#type,
             data: self.data,
         }
+    }
+
+    /// Return a pong with no data. Use with caution
+    pub fn pong(mut self) -> InteractionResponse{
+        self.r#type = InteractionResponseType::Pong;
+        self.data = None;
+        self.finish()
+    }
+
+    /// Return without any data. Use with caution
+    pub fn none(mut self) -> InteractionResponse{
+        self.r#type = InteractionResponseType::None;
+        self.data = None;
+        self.finish()
     }
 
     /// Sets the [`InteractionResponseType`]
@@ -247,6 +262,9 @@ impl InteractionResponseBuilder {
 
 /// Representing the type of response to an [`Interaction`]
 pub enum InteractionResponseType {
+    /// Non-standard None type. Should not be manually used
+    None = 0,
+
     /// ACK a PING
     Pong = 1,
     /// Respond to an [`Interaction`] with a message

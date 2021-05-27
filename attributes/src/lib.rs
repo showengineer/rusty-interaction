@@ -122,9 +122,12 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
                 Box::pin(async move {
                     ::rusty_interaction::actix::Arbiter::spawn(async move {
                         #(#nvec)*
-                        if let Err(i) = #ctxname.edit_original(&WebhookMessage::from(#expra)).await{
-                            error!("Editing original message failed: {:?}", i);
+                        if #expra.r#type != InteractionResponseType::Pong && #expra.r#type != InteractionResponseType::None{
+                            if let Err(i) = #ctxname.edit_original(&WebhookMessage::from(#expra)).await{
+                                error!("Editing original message failed: {:?}", i);
+                            }
                         }
+                        
                     });
 
                     return InteractionResponseBuilder::default().respond_type(#defer_return).finish();
