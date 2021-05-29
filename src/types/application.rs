@@ -58,7 +58,7 @@ struct ApplicationCommandOptionChoice {
 }
 
 #[serde_as]
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// Representing a slash command
 pub struct ApplicationCommandInteractionData {
     #[serde_as(as = "Option<DisplayFromStr>")]
@@ -76,7 +76,7 @@ pub struct ApplicationCommandInteractionData {
     /// For components, the custom identifier for the developer
     pub custom_id: Option<String>,
 }
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// Representing a bunch of options for slash commands
 pub struct ApplicationCommandInteractionDataOption {
     /// Name of the option

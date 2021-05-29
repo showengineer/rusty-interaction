@@ -43,6 +43,13 @@ pub struct User {
     pub public_flags: Option<i32>,
 }
 
+
+impl PartialEq for User{
+    fn eq(&self, other: &Self) -> bool{
+        self.id == other.id
+    }
+}
+
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -76,5 +83,11 @@ pub struct Member {
 impl From<Member> for User {
     fn from(member: Member) -> User {
         member.user
+    }
+}
+
+impl PartialEq for Member{
+    fn eq(&self, other: &Self) -> bool{
+        self.user.id == other.user.id
     }
 }
