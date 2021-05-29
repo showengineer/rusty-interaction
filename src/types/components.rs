@@ -64,7 +64,9 @@ pub enum ComponentButtonStyle {
 }
 
 /// Builder for creating a Component Action Row
+
 #[cfg(feature = "handler")]
+#[derive(Clone, PartialEq, Debug)]
 pub struct ComponentRowBuilder {
     obj: MessageComponent,
 }
@@ -97,6 +99,7 @@ impl ComponentRowBuilder {
     }
 }
 #[cfg(feature = "handler")]
+#[derive(Clone, PartialEq, Debug)]
 /// Builder for making an button component
 pub struct ComponentButtonBuilder {
     obj: MessageComponent,
