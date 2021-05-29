@@ -25,15 +25,16 @@ use reqwest::{Client, StatusCode};
 // ======================
 
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
-#[derive(Clone)]
-///
+#[derive(Clone, Debug)]
+/// A context contains relevant information and useful functions you can use when handling Interactions.
 pub struct Context {
     client: Client,
     /// The [`Interaction`] sent by Discord.
     pub interaction: Interaction,
 }
+
 #[serde_as]
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// The base Interaction structure. When Interactions are received, this structure is wrapped inside a [`Context`]
 /// and can be used to get information about the Interaction.
 pub struct Interaction {
