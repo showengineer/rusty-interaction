@@ -153,6 +153,14 @@ impl InteractionHandler {
     ///     return resp;
     /// 
     /// }
+    /// #[actix_web::main]
+    /// async fn main() -> std::io::Result<()> {
+    ///
+    ///     let mut handle = InteractionHandler::new(PUB_KEY);
+    ///     handle.add_command("ping", pong_handler);
+    ///     handle.add_component_handle("HEHE", comp_hand);
+    ///     return handle.run().await;
+    /// }
     /// ```
     pub fn add_component_handle(&mut self, custom_id: &'static str, func: HandlerFunction) {
         self.component_handles.insert(custom_id, func);
