@@ -281,7 +281,7 @@ async fn normal_handle_value_test(ctx: Context) -> InteractionResponse {
 }
 #[allow(unused_must_use)]
 #[slash_command_test]
-async fn normal_handle_direct_test(_: Context) -> InteractionResponse {
+async fn normal_handle_direct_test(_ctx: Context) -> InteractionResponse {
     return InteractionResponseBuilder::default()
         .content("TEST")
         .finish();
