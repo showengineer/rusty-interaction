@@ -5,6 +5,7 @@ use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use reqwest::header;
 use reqwest::Client;
 
+use std::fmt;
 use log::{debug, error};
 
 use ed25519_dalek::PublicKey;
@@ -16,10 +17,10 @@ use std::{collections::HashMap, future::Future, pin::Pin};
 /// Alias for InteractionResponse
 pub type HandlerResponse = InteractionResponse;
 
-type HandlerFunction = fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>;
+type HandlerFunction = fn(&InteractionHandler, Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>;
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 /// The InteractionHandler is the 'thing' that will handle your incoming interactions.
 /// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
 /// with [`InteractionHandler::run`] and [`InteractionHandler::run_ssl`]
@@ -30,6 +31,17 @@ pub struct InteractionHandler {
 
     global_handles: HashMap<&'static str, HandlerFunction>,
     component_handles: HashMap<&'static str, HandlerFunction>,
+}
+
+// Only here to make Debug less generic, so I can send a reference 
+impl fmt::Debug for InteractionHandler{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result{
+        return f.debug_struct("InteractionHandler")
+            .field("app_public_key", &self.app_public_key)
+            .field("global_handles_len", &self.global_handles.len())
+            .field("component_handles_len", &self.component_handles.len())
+            .finish();
+    }
 }
 
 impl InteractionHandler {
@@ -250,7 +262,7 @@ impl InteractionHandler {
                             let ctx = Context::new(self.client.clone(), interaction);
 
                             // Call the handler
-                            let response = handler(ctx).await;
+                            let response = handler(self, ctx).await;
 
                             match response.r#type {
                                 InteractionResponseType::None => {
@@ -295,7 +307,7 @@ impl InteractionHandler {
                             let ctx = Context::new(self.client.clone(), interaction);
 
                             // Call the handler
-                            let response = handler(ctx).await;
+                            let response = handler(self, ctx).await;
 
                             if response.r#type == InteractionResponseType::DefferedUpdateMessage {
                                 /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
