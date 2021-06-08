@@ -43,9 +43,8 @@ pub struct User {
     pub public_flags: Option<i32>,
 }
 
-
-impl PartialEq for User{
-    fn eq(&self, other: &Self) -> bool{
+impl PartialEq for User {
+    fn eq(&self, other: &Self) -> bool {
         self.id == other.id
     }
 }
@@ -86,8 +85,8 @@ impl From<Member> for User {
     }
 }
 
-impl PartialEq for Member{
-    fn eq(&self, other: &Self) -> bool{
+impl PartialEq for Member {
+    fn eq(&self, other: &Self) -> bool {
         self.user.id == other.user.id
     }
 }

@@ -23,9 +23,9 @@ pub struct ApplicationCommand {
     options: Option<Vec<ApplicationCommandOption>>,
 }
 
-impl Default for ApplicationCommand{
-    fn default() -> Self{
-        Self{
+impl Default for ApplicationCommand {
+    fn default() -> Self {
+        Self {
             id: None,
             application_id: None,
             name: String::new(),
@@ -109,35 +109,35 @@ pub struct ApplicationCommandInteractionDataOption {
 
 #[derive(Clone, Debug)]
 /// Simple builder for defining SlashCommands
-pub struct SlashCommandDefinitionBuilder{
-    obj: ApplicationCommand
+pub struct SlashCommandDefinitionBuilder {
+    obj: ApplicationCommand,
 }
 
-impl Default for SlashCommandDefinitionBuilder{
-    fn default() -> Self{
-        Self{
+impl Default for SlashCommandDefinitionBuilder {
+    fn default() -> Self {
+        Self {
             obj: ApplicationCommand::default(),
         }
     }
 }
 
-impl SlashCommandDefinitionBuilder{
+impl SlashCommandDefinitionBuilder {
     /// Name of slash command
-    pub fn name(mut self, name: impl Into<String>) -> Self{
+    pub fn name(mut self, name: impl Into<String>) -> Self {
         let n = name.into();
 
         self.obj.name = n;
         self
     }
     /// Command description
-    pub fn description(mut self, desc: impl Into<String>) -> Self{
+    pub fn description(mut self, desc: impl Into<String>) -> Self {
         let d = desc.into();
 
         self.obj.description = d;
         self
     }
     /// Finish building slash command
-    pub fn finish(self) -> ApplicationCommand{
+    pub fn finish(self) -> ApplicationCommand {
         self.obj
     }
 }

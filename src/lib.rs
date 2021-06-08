@@ -34,7 +34,6 @@ pub use log;
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
 pub use attributes::*;
 
-
 #[cfg(all(test, feature = "handler"))]
 mod tests;
 
@@ -96,7 +95,6 @@ macro_rules! expect_specific_api_response {
         }
     };
 }
-
 
 #[macro_export]
 #[doc(hidden)]
