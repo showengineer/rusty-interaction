@@ -1,5 +1,9 @@
+use crate::{expect_successful_api_response_and_return};
 use crate::security::*;
+use crate::types::HttpError;
 use crate::types::interaction::*;
+use crate::types::Snowflake;
+use crate::types::application::*;
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use reqwest::header;
@@ -12,12 +16,13 @@ use ed25519_dalek::PublicKey;
 
 use rustls::ServerConfig;
 
-use std::{collections::HashMap, future::Future, pin::Pin};
+use std::{collections::HashMap, future::Future, pin::Pin, sync::Mutex};
 
 /// Alias for InteractionResponse
 pub type HandlerResponse = InteractionResponse;
 
-type HandlerFunction = fn(&InteractionHandler, Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>;
+type HandlerFunction = fn(&mut InteractionHandler, Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send + '_>>;
+
 
 
 #[derive(Clone)]
@@ -25,12 +30,14 @@ type HandlerFunction = fn(&InteractionHandler, Context) -> Pin<Box<dyn Future<Ou
 /// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
 /// with [`InteractionHandler::run`] and [`InteractionHandler::run_ssl`]
 pub struct InteractionHandler {
-    /// The public key of your application.
-    pub app_public_key: PublicKey,
+    application_id: Snowflake,
+
+    app_public_key: PublicKey,
     client: Client,
 
     global_handles: HashMap<&'static str, HandlerFunction>,
     component_handles: HashMap<&'static str, HandlerFunction>,
+    guild_handles: HashMap<Snowflake, HandlerFunction>
 }
 
 // Only here to make Debug less generic, so I can send a reference 
@@ -46,7 +53,7 @@ impl fmt::Debug for InteractionHandler{
 
 impl InteractionHandler {
     /// Initalizes a new `InteractionHandler`
-    pub fn new(pbk_str: &str, token: Option<&'static str>) -> InteractionHandler {
+    pub fn new(app_id: Snowflake, pbk_str: &str, token: Option<&'static str>) -> InteractionHandler {
         let pbk_bytes =
             hex::decode(pbk_str).expect("Failed to parse the public key from hexadecimal");
 
@@ -61,18 +68,22 @@ impl InteractionHandler {
             let new_c = Client::builder().default_headers(headers).build().unwrap();
 
             InteractionHandler {
-                app_public_key,
+                application_id: app_id,
+                app_public_key: app_public_key,
                 client: new_c,
                 global_handles: HashMap::new(),
                 component_handles: HashMap::new(),
+                guild_handles: HashMap::new(),
             }
         }
         else{
             InteractionHandler {
-                app_public_key,
+                application_id: app_id,
+                app_public_key: app_public_key,
                 client: Client::new(),
                 global_handles: HashMap::new(),
                 component_handles: HashMap::new(),
+                guild_handles: HashMap::new(),
             }
         }
 
@@ -178,8 +189,32 @@ impl InteractionHandler {
         self.component_handles.insert(custom_id, func);
     }
 
+    /// Register an command with Discord!
+    pub async fn register_command_handle(&mut self, guild: impl Into<Snowflake>, cmd: ApplicationCommand, func: HandlerFunction) -> Result<ApplicationCommand, HttpError>{
+        let g = guild.into();
+
+        let url = format!("{}/applications/{}/guilds/{}/commands", crate::BASE_URL, self.application_id, g);
+
+        let r = self.client.post(&url).json(&cmd).send().await;
+
+        expect_successful_api_response_and_return!(r, ApplicationCommand, a, {
+            if let Some(id) = a.id{
+                self.guild_handles.insert(id, func);
+                Ok(a)
+            }
+            else{
+                // Pretty bad if this code reaches...
+                Err(HttpError{
+                    code: 0,
+                    message: "Command registration response did not have an ID.".to_string(),
+                })
+            }
+        })
+
+    }
+
     /// Entry point function for handling `Interactions`
-    pub async fn interaction(&self, req: HttpRequest, body: String) -> Result<HttpResponse> {
+    pub async fn interaction(&mut self, req: HttpRequest, body: String) -> Result<HttpResponse> {
         // Check for good content type --> must be application/json
 
         if let Some(ct) = req.headers().get("Content-Type") {
@@ -339,12 +374,13 @@ impl InteractionHandler {
     ///
     /// **The server runs on port 10080!**
     pub async fn run(self) -> std::io::Result<()> {
+        let data = web::Data::new(Mutex::new(self));
         HttpServer::new(move || {
-            App::new().data(self.clone()).route(
+            App::new().app_data(data.clone()).route(
                 "/api/discord/interactions",
                 web::post().to(
-                    |data: web::Data<InteractionHandler>, req: HttpRequest, body: String| async move {
-                        data.interaction(req, body).await
+                    |data: web::Data<Mutex<InteractionHandler>>, req: HttpRequest, body: String| async move {
+                        data.lock().unwrap().interaction(req, body).await
                     },
                 ),
             )
@@ -358,12 +394,13 @@ impl InteractionHandler {
     ///
     /// **The server runs on port 10443!**
     pub async fn run_ssl(self, server_conf: ServerConfig) -> std::io::Result<()> {
+        let data = web::Data::new(Mutex::new(self));
         HttpServer::new(move || {
-            App::new().data(self.clone()).route(
+            App::new().app_data(data.clone()).route(
                 "/api/discord/interactions",
                 web::post().to(
-                    |data: web::Data<InteractionHandler>, req: HttpRequest, body: String| async move {
-                        data.interaction(req, body).await
+                    |data: web::Data<Mutex<InteractionHandler>>, req: HttpRequest, body: String| async move {
+                        data.lock().unwrap().interaction(req, body).await
                     },
                 ),
             )

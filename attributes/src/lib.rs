@@ -110,7 +110,7 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
     if !defer {
         // Build the function
         let subst_fn = quote! {
-            #vis fn #fname<'context> (#ih_n: &InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
+            #vis fn #fname (#ih_n: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{
                 Box::pin(async move {
                     #body
                 })
@@ -161,7 +161,7 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
         // The difference here being that the non-deffered function doesn't have to spawn a new thread that
         // does the actual work. Here we need it to reply with a deffered channel message.
         let subst_fn = quote! {
-            #vis fn #fname<'context> (#ih_n: &InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
+            #vis fn #fname (#ih_n: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{
                 Box::pin(async move {
                     ::rusty_interaction::actix::Arbiter::spawn(async move {
                         #(#nvec)*
