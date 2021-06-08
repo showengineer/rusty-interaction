@@ -430,9 +430,7 @@ impl InteractionHandler {
 
     /// This is a predefined function that starts an `actix_web::HttpServer` and binds `self.interaction` to `/api/discord/interactions`.
     /// Note that you'll eventually have to switch to an HTTPS server. This function does not provide this.
-    ///
-    /// **The server runs on port 10080!**
-    pub async fn run(self) -> std::io::Result<()> {
+    pub async fn run(self, port: u16) -> std::io::Result<()> {
         let data = web::Data::new(Mutex::new(self));
         HttpServer::new(move || {
             App::new().app_data(data.clone()).route(
@@ -444,15 +442,13 @@ impl InteractionHandler {
                 ),
             )
         })
-        .bind("0.0.0.0:10080")?
+        .bind(("0.0.0.0:{}", port))?
         .run()
         .await
     }
 
     /// Same as [`InteractionHandler::run`] but starts a server with SSL/TLS.
-    ///
-    /// **The server runs on port 10443!**
-    pub async fn run_ssl(self, server_conf: ServerConfig) -> std::io::Result<()> {
+    pub async fn run_ssl(self, server_conf: ServerConfig, port: u16) -> std::io::Result<()> {
         let data = web::Data::new(Mutex::new(self));
         HttpServer::new(move || {
             App::new().app_data(data.clone()).route(
@@ -464,7 +460,7 @@ impl InteractionHandler {
                 ),
             )
         })
-        .bind_rustls("0.0.0.0:10443", server_conf)?
+        .bind_rustls(format!("0.0.0.0:{}", port), server_conf)?
         .run()
         .await
     }
