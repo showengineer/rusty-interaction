@@ -136,6 +136,20 @@ impl SlashCommandDefinitionBuilder {
         self.obj.description = d;
         self
     }
+
+    /// Adds an option ([`ApplicationCommandOption`]) to the slash command definition
+    pub fn add_option(mut self, opt: ApplicationCommandOption) -> Self{
+        match self.obj.options.as_mut(){
+            None => {
+                self.obj.options = Some(vec![opt]);
+            }
+            Some(o) => {
+                o.push(opt);
+            }
+        }
+        self
+    }
+
     /// Finish building slash command
     pub fn finish(self) -> ApplicationCommand {
         self.obj
