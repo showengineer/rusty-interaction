@@ -88,9 +88,9 @@ pub struct Guild {
     pub nsfw: bool,
 }
 
-impl Into<Snowflake> for Guild {
-    fn into(self) -> Snowflake {
-        self.id
+impl From<Guild> for Snowflake {
+    fn from(g: Guild) -> Snowflake {
+        g.id
     }
 }
 

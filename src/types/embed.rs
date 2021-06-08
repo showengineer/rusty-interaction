@@ -155,9 +155,9 @@ impl From<u32> for Color {
     }
 }
 
-impl Into<u32> for Color {
-    fn into(self) -> u32 {
-        ((self.red as u32) << 16) | ((self.green as u32) << 8) | self.blue as u32
+impl From<Color> for u32 {
+    fn from(c: Color) -> u32 {
+        ((c.red as u32) << 16) | ((c.green as u32) << 8) | c.blue as u32
     }
 }
 
