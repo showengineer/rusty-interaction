@@ -241,7 +241,6 @@ impl InteractionHandler {
         expect_successful_api_response_and_return!(r, ApplicationCommand, a, {
             if let Some(id) = a.id {
                 self.guild_handles.insert(id, func);
-                debug!("guild handle len: {}", self.guild_handles.len());
                 Ok(a)
             } else {
                 // Pretty bad if this code reaches...
@@ -345,13 +344,14 @@ impl InteractionHandler {
                     }
 
                     InteractionType::ApplicationCommand => {
-                        debug!("{:#?}", self.guild_handles.len());
                         let data = if let Some(ref data) = interaction.data {
                             data
                         } else {
                             error!("Failed to unwrap Interaction!");
                             return ERROR_RESPONSE!(500, "Failed to unwrap");
                         };
+
+                        // Check for matches in guild handler map
                         if let Some(handler) = self.guild_handles.get(data.id.as_ref().unwrap()) {
                             // construct a Context
                             let ctx = Context::new(self.client.clone(), interaction);
@@ -360,11 +360,13 @@ impl InteractionHandler {
                             let response = handler(self, ctx).await;
 
                             match_handler_response!(response.r#type, response)
-                        } else if let Some(handler) = self
+                            
+                        } 
+                        // Welp, nothing found. Check for matches in the global map
+                        else if let Some(handler) = self
                             .global_handles
                             .get(data.name.as_ref().unwrap().as_str())
                         {
-                            // do stuff with v if needed
 
                             // construct a Context
                             let ctx = Context::new(self.client.clone(), interaction);
@@ -373,7 +375,9 @@ impl InteractionHandler {
                             let response = handler(self, ctx).await;
 
                             match_handler_response!(response.r#type, response)
-                        } else {
+                        } 
+                        // Still nothing, return an error
+                        else {
                             error!(
                                 "No associated handler found for {}",
                                 data.name.as_ref().unwrap().as_str()
