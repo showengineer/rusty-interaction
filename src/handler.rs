@@ -24,6 +24,30 @@ pub type HandlerResponse = InteractionResponse;
 type HandlerFunction = fn(&mut InteractionHandler, Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send + '_>>;
 
 
+macro_rules! match_handler_response {
+    ($value_name:expr, $response:ident) => {
+        match $value_name {
+            InteractionResponseType::None => {
+                Ok(HttpResponse::build(StatusCode::NO_CONTENT).finish())
+            }
+            InteractionResponseType::DefferedChannelMessageWithSource
+            | InteractionResponseType::DefferedUpdateMessage => {
+                /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
+                If an application is first sending a deffered channel message response, this usually means the system
+                is still processing whatever it is doing.
+                See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
+                Ok(HttpResponse::build(StatusCode::ACCEPTED).json($response))
+            }
+            _ => {
+                // Send out a response to Discord
+                let r = HttpResponse::build(StatusCode::OK).json($response);
+
+                Ok(r)
+            }
+        }
+    };
+}
+
 
 #[derive(Clone)]
 /// The InteractionHandler is the 'thing' that will handle your incoming interactions.
@@ -103,6 +127,10 @@ impl InteractionHandler {
     ///     return todo!("Do work and return a response");
     /// }
     /// ```
+    /// 
+    /// # Note
+    /// The handler will first check if a guild-specific handler is available. If not, it will try to match a global command. If that fails too, an error will be returned.
+    /// 
     /// # Example
     /// ```ignore
     /// # use rusty_interaction::types::interaction::{Context, InteractionResponse};
@@ -134,7 +162,7 @@ impl InteractionHandler {
     /// Your function must take a [`Context`] as an argument and must return a [`InteractionResponse`].
     /// Use the `#[component_handler]` procedural macro for your own convinence.eprintln!
     /// 
-    /// Example
+    /// # Example
     /// ```ignore
     /// use rusty_interaction::handler::InteractionHandler;
     /// use rusty_interaction::types::components::*;
@@ -310,25 +338,7 @@ impl InteractionHandler {
                             // Call the handler
                             let response = handler(self, ctx).await;
 
-                            match response.r#type {
-                                InteractionResponseType::None => {
-                                    Ok(HttpResponse::build(StatusCode::NO_CONTENT).finish())
-                                }
-                                InteractionResponseType::DefferedChannelMessageWithSource
-                                | InteractionResponseType::DefferedUpdateMessage => {
-                                    /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
-                                    If an application is first sending a deffered channel message response, this usually means the system
-                                    is still processing whatever it is doing.
-                                    See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
-                                    Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
-                                }
-                                _ => {
-                                    // Send out a response to Discord
-                                    let r = HttpResponse::build(StatusCode::OK).json(response);
-
-                                    Ok(r)
-                                }
-                            }
+                            match_handler_response!(response.r#type, response)
                         }
                         else if let Some(handler) = self
                             .global_handles
@@ -342,25 +352,8 @@ impl InteractionHandler {
                             // Call the handler
                             let response = handler(self, ctx).await;
 
-                            match response.r#type {
-                                InteractionResponseType::None => {
-                                    Ok(HttpResponse::build(StatusCode::NO_CONTENT).finish())
-                                }
-                                InteractionResponseType::DefferedChannelMessageWithSource
-                                | InteractionResponseType::DefferedUpdateMessage => {
-                                    /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
-                                    If an application is first sending a deffered channel message response, this usually means the system
-                                    is still processing whatever it is doing.
-                                    See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
-                                    Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
-                                }
-                                _ => {
-                                    // Send out a response to Discord
-                                    let r = HttpResponse::build(StatusCode::OK).json(response);
+                            match_handler_response!(response.r#type, response)
 
-                                    Ok(r)
-                                }
-                            }
                         } else {
                             error!(
                                 "No associated handler found for {}",

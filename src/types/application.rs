@@ -9,9 +9,11 @@ use serde_repr::*;
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+/// AKA a 'slash command'.
 pub struct ApplicationCommand {
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
+    /// ID of command
     pub id: Option<Snowflake>,
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
@@ -34,6 +36,7 @@ impl Default for ApplicationCommand{
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+/// Command option
 pub struct ApplicationCommandOption {
     r#type: i8,
     name: String,
@@ -66,6 +69,7 @@ pub enum ApplicationCommandOptionType {
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+/// Command option choice
 pub struct ApplicationCommandOptionChoice {
     name: String,
     // This can be int
@@ -104,6 +108,7 @@ pub struct ApplicationCommandInteractionDataOption {
 }
 
 #[derive(Clone, Debug)]
+/// Simple builder for defining SlashCommands
 pub struct SlashCommandDefinitionBuilder{
     obj: ApplicationCommand
 }
@@ -117,20 +122,21 @@ impl Default for SlashCommandDefinitionBuilder{
 }
 
 impl SlashCommandDefinitionBuilder{
+    /// Name of slash command
     pub fn name(mut self, name: impl Into<String>) -> Self{
         let n = name.into();
 
         self.obj.name = n;
         self
     }
-
+    /// Command description
     pub fn description(mut self, desc: impl Into<String>) -> Self{
         let d = desc.into();
 
         self.obj.description = d;
         self
     }
-
+    /// Finish building slash command
     pub fn finish(self) -> ApplicationCommand{
         self.obj
     }
