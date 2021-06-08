@@ -7,19 +7,34 @@ use super::Snowflake;
 use serde_repr::*;
 
 #[serde_as]
-#[derive(Clone, Serialize, Deserialize, Debug)]
-struct ApplicationCommand {
-    #[serde_as(as = "DisplayFromStr")]
-    id: Snowflake,
-    #[serde_as(as = "DisplayFromStr")]
-    application_id: Snowflake,
+#[skip_serializing_none]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+pub struct ApplicationCommand {
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    pub id: Option<Snowflake>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    application_id: Option<Snowflake>,
     name: String,
     description: String,
     options: Vec<ApplicationCommandOption>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-struct ApplicationCommandOption {
+impl Default for ApplicationCommand{
+    fn default() -> Self{
+        Self{
+            id: None,
+            application_id: None,
+            name: String::new(),
+            description: String::new(),
+            options: Vec::new(),
+        }
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+pub struct ApplicationCommandOption {
     r#type: i8,
     name: String,
     description: String,
@@ -50,8 +65,8 @@ pub enum ApplicationCommandOptionType {
     Role = 8,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-struct ApplicationCommandOptionChoice {
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+pub struct ApplicationCommandOptionChoice {
     name: String,
     // This can be int
     value: String,
@@ -76,6 +91,7 @@ pub struct ApplicationCommandInteractionData {
     /// For components, the custom identifier for the developer
     pub custom_id: Option<String>,
 }
+
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// Representing a bunch of options for slash commands
 pub struct ApplicationCommandInteractionDataOption {
@@ -85,4 +101,37 @@ pub struct ApplicationCommandInteractionDataOption {
     pub value: String,
     /// More options
     pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct SlashCommandDefinitionBuilder{
+    obj: ApplicationCommand
+}
+
+impl Default for SlashCommandDefinitionBuilder{
+    fn default() -> Self{
+        Self{
+            obj: ApplicationCommand::default(),
+        }
+    }
+}
+
+impl SlashCommandDefinitionBuilder{
+    pub fn name(mut self, name: impl Into<String>) -> Self{
+        let n = name.into();
+
+        self.obj.name = n;
+        self
+    }
+
+    pub fn description(mut self, desc: impl Into<String>) -> Self{
+        let d = desc.into();
+
+        self.obj.description = d;
+        self
+    }
+
+    pub fn finish(self) -> ApplicationCommand{
+        self.obj
+    }
 }
