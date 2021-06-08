@@ -34,7 +34,7 @@ More than welcome! :D
 - [x] - Bind interactions to a function (with the help of a macro)
 - [x] - Properly respond to interactions from Discord
 - [x] - Nice system to make follow-up messages.
-- [ ] - Nice system to manage guild-specific commands.
+- [x] - Nice system to manage guild-specific commands.
 - [x] - Support for components (buttons, dropdowns, etc)
 - [ ] - Not a pile of spaghetti code that just works (oops...👀)
 
