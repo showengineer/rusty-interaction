@@ -1,4 +1,4 @@
-use crate::{expect_successful_api_response_and_return};
+use crate::{expect_successful_api_response_and_return, expect_specific_api_response};
 use crate::security::*;
 use crate::types::HttpError;
 use crate::types::interaction::*;
@@ -200,6 +200,7 @@ impl InteractionHandler {
         expect_successful_api_response_and_return!(r, ApplicationCommand, a, {
             if let Some(id) = a.id{
                 self.guild_handles.insert(id, func);
+                debug!("guild handle len: {}", self.guild_handles.len());
                 Ok(a)
             }
             else{
@@ -212,6 +213,20 @@ impl InteractionHandler {
         })
 
     }
+
+    /// Remove a guild handle
+    pub async fn deregister_command_handle(&mut self, guild: impl Into<Snowflake>, id: impl Into<Snowflake>) -> Result<(), HttpError>{
+        let g = guild.into();
+        let i = id.into();
+
+        let url = format!("{}/applications/{}/guilds/{}/commands/{}", crate::BASE_URL, self.application_id, g, i);
+
+        let r = self.client.delete(&url).send().await;
+
+        expect_specific_api_response!(r, StatusCode::NO_CONTENT, {self.guild_handles.remove(&i); Ok(())})
+
+    }
+
 
     /// Entry point function for handling `Interactions`
     pub async fn interaction(&mut self, req: HttpRequest, body: String) -> Result<HttpResponse> {
@@ -278,16 +293,44 @@ impl InteractionHandler {
                             .content_type("application/json")
                             .json(response));
                     }
+                    
 
                     InteractionType::ApplicationCommand => {
+                        debug!("{:#?}", self.guild_handles.len());
                         let data = if let Some(ref data) = interaction.data {
                             data
                         } else {
                             error!("Failed to unwrap Interaction!");
                             return ERROR_RESPONSE!(500, "Failed to unwrap");
                         };
+                        if let Some(handler) = self.guild_handles.get(data.id.as_ref().unwrap()){
+                            // construct a Context
+                            let ctx = Context::new(self.client.clone(), interaction);
 
-                        if let Some(handler) = self
+                            // Call the handler
+                            let response = handler(self, ctx).await;
+
+                            match response.r#type {
+                                InteractionResponseType::None => {
+                                    Ok(HttpResponse::build(StatusCode::NO_CONTENT).finish())
+                                }
+                                InteractionResponseType::DefferedChannelMessageWithSource
+                                | InteractionResponseType::DefferedUpdateMessage => {
+                                    /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
+                                    If an application is first sending a deffered channel message response, this usually means the system
+                                    is still processing whatever it is doing.
+                                    See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
+                                    Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
+                                }
+                                _ => {
+                                    // Send out a response to Discord
+                                    let r = HttpResponse::build(StatusCode::OK).json(response);
+
+                                    Ok(r)
+                                }
+                            }
+                        }
+                        else if let Some(handler) = self
                             .global_handles
                             .get(data.name.as_ref().unwrap().as_str())
                         {

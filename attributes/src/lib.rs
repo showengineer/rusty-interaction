@@ -57,7 +57,7 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
     // Find the name of the Context parameter
     let mut ctxname: Option<syn::Ident> = None;
     let mut handlename: Option<syn::Ident> = None;
-    eprintln!("{:#?}", params);
+    // eprintln!("{:#?}", params);
 
     // I am honestly laughing at this...
     // But hey it works! :D

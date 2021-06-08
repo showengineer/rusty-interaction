@@ -18,7 +18,7 @@ pub struct ApplicationCommand {
     application_id: Option<Snowflake>,
     name: String,
     description: String,
-    options: Vec<ApplicationCommandOption>,
+    options: Option<Vec<ApplicationCommandOption>>,
 }
 
 impl Default for ApplicationCommand{
@@ -28,7 +28,7 @@ impl Default for ApplicationCommand{
             application_id: None,
             name: String::new(),
             description: String::new(),
-            options: Vec::new(),
+            options: None,
         }
     }
 }
