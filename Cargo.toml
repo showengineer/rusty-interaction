@@ -28,7 +28,7 @@ hex = { version = "0.4", optional = true }
 rustls = { version = "0.18", optional = true } 
 actix = { version = "0.10", optional = true }
 actix-web = { version = "3", features = ["rustls"], optional = true }
-# actix-files = { version = "0.3", optional = true }
+actix-rt = { version = "2", optional = true }
 reqwest = { version = "0.10.10", features = ["json"], optional = true }
 
 async-trait = { version = "0.1", optional = true }
@@ -52,7 +52,7 @@ optional = true
 default = ["types", "security"]
 security = ["ed25519-dalek", "hex", "types"]
 types = []
-handler = ["types", "security", "actix", "actix-web", "rustls", "async-trait", "attributes", "log", "reqwest"]
+handler = ["types", "security", "actix", "actix-web", "actix-rt", "rustls", "async-trait", "attributes", "log", "reqwest"]
 extended-handler = ["handler"]
 
 [package.metadata.docs.rs]
