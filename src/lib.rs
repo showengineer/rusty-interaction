@@ -34,7 +34,6 @@ pub use log;
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
 pub use attributes::*;
 
-
 #[cfg(all(test, feature = "handler"))]
 mod tests;
 

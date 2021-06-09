@@ -6,6 +6,8 @@ use crate::types::interaction::{
 };
 use crate::*;
 
+use std::sync::Mutex;
+
 use actix_web::{http, test, web, App, HttpRequest};
 use ed25519_dalek::PublicKey;
 use log::error;
@@ -78,11 +80,12 @@ Discord Interactions API tests (endpoint: /api/discord/interactions)
 
 macro_rules! interaction_app_init {
     ($ih: ident) => {
-        test::init_service(App::new().data($ih.clone()).route(
+        
+        test::init_service(App::new().app_data($ih.clone()).route(
             "/api/discord/interactions",
             web::post().to(
-                |data: web::Data<InteractionHandler>, req: HttpRequest, body: String| async move {
-                    data.interaction(req, body).await
+                |data: web::Data<Mutex<InteractionHandler>>, req: HttpRequest, body: String| async move {
+                    data.lock().unwrap().interaction(req, body).await
                 },
             ),
         ))
@@ -92,14 +95,14 @@ macro_rules! interaction_app_init {
 #[cfg(all(feature = "handler", not(feature = "extended-handler")))]
 macro_rules! init_handler {
     () => {
-        InteractionHandler::new(TEST_PUB_KEY, None)
+        InteractionHandler::new(0, TEST_PUB_KEY, None)
     };
 }
 
 #[cfg(feature = "extended-handler")]
 macro_rules! init_handler {
     () => {
-        InteractionHandler::new(TEST_PUB_KEY, Some(EMPTY_TOKEN))
+        InteractionHandler::new(0, TEST_PUB_KEY, Some(EMPTY_TOKEN))
     };
 }
 
@@ -109,7 +112,8 @@ macro_rules! init_handler {
 async fn interactions_no_content_type_header_test() {
     let ih = init_handler!();
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -127,7 +131,8 @@ async fn interactions_no_content_type_header_test() {
 async fn interactions_bad_content_type_header_test() {
     let ih = init_handler!();
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -146,7 +151,8 @@ async fn interactions_bad_content_type_header_test() {
 async fn interactions_no_signature_header_test() {
     let ih = init_handler!();
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -166,7 +172,8 @@ async fn interactions_no_signature_header_test() {
 async fn interactions_no_timestamp_header_test() {
     let ih = init_handler!();
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -186,7 +193,8 @@ async fn interactions_no_timestamp_header_test() {
 async fn interactions_bad_signature_length_short_test() {
     let ih = init_handler!();
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -209,7 +217,8 @@ async fn interactions_bad_signature_length_short_test() {
 async fn interactions_bad_signature_length_too_long_test() {
     let ih = init_handler!();
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -229,7 +238,8 @@ async fn interactions_bad_signature_length_too_long_test() {
 async fn interactions_ping_test() {
     let ih = init_handler!();
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -254,7 +264,8 @@ async fn interactions_ping_test() {
 async fn interactions_bad_body_test() {
     let ih = init_handler!();
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -281,7 +292,7 @@ async fn normal_handle_value_test(ctx: Context) -> InteractionResponse {
 }
 #[allow(unused_must_use)]
 #[slash_command_test]
-async fn normal_handle_direct_test(_: Context) -> InteractionResponse {
+async fn normal_handle_direct_test(_ctx: Context) -> InteractionResponse {
     return InteractionResponseBuilder::default()
         .content("TEST")
         .finish();
@@ -293,7 +304,8 @@ async fn interactions_normal_handle_test() {
 
     ih.add_global_command("test", normal_handle_test);
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -321,7 +333,8 @@ async fn interactions_normal_from_value_handle_test() {
 
     ih.add_global_command("test", normal_handle_direct_test);
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -349,7 +362,8 @@ async fn interactions_normal_from_direct_call_handle_test() {
 
     ih.add_global_command("test", normal_handle_value_test);
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -400,7 +414,8 @@ async fn interactions_deffered_handle_test() {
 
     ih.add_global_command("test", deffered_handle_test);
 
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -428,8 +443,8 @@ async fn interactions_deffered_from_value_handle_test() {
     let mut ih = init_handler!();
 
     ih.add_global_command("test", deffered_handle_value_test);
-
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")
@@ -455,10 +470,10 @@ async fn interactions_deffered_from_value_handle_test() {
 #[actix_rt::test]
 async fn interactions_deffered_from_direct_value_handle_test() {
     let mut ih = init_handler!();
-
+    
     ih.add_global_command("test", deffered_handle_direct_test);
-
-    let mut app = interaction_app_init!(ih);
+    let data = web::Data::new(Mutex::new(ih));
+    let mut app = interaction_app_init!(data);
 
     let req = test::TestRequest::post()
         .uri("/api/discord/interactions")

@@ -8,8 +8,6 @@ use syn::{Expr, ExprReturn, FnArg, ReturnType, Stmt};
 
 
 
-
-
 fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private::TokenStream) -> TokenStream{
 
     // There is _probably_ a more efficient way to do what I want to do, but hey I am here
@@ -49,18 +47,70 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
     // Check for a proper return type and fill ret if found.
     match ret_sig {
         ReturnType::Default => {
-            panic!("Expected an `InteractionResponse` return type");
+            panic!("Expected an `InteractionResponse` return type, but got no return type. Consider adding `-> InteractionResponse` to your function signature.");
         }
         ReturnType::Type(_a, b) => {
             ret = *b.clone();
         }
     }
 
+    // Find the name of the Context parameter
+    let mut ctxname: Option<syn::Ident> = None;
+    let mut handlename: Option<syn::Ident> = None;
+    // eprintln!("{:#?}", params);
+
+    // I am honestly laughing at this...
+    // But hey it works! :D
+    for p in params {
+        if let FnArg::Typed(t) = p {
+            match &*t.ty{
+                // This might be a Context
+                syn::Type::Path(b) => {
+                    for segment in b.path.segments.clone(){
+                        if segment.ident == "Context"{
+                            if let syn::Pat::Ident(a) = &*t.pat {
+                                ctxname = Some(a.ident.clone());
+                                break;
+                            }
+                        }
+                    }
+                },
+                // This might be an &InteractionHandler!
+                syn::Type::Reference(r) => {
+                    let e = r.elem.clone();
+                    if let syn::Type::Path(w) = &*e{
+                        for segment in w.path.segments.clone(){
+                            if segment.ident == "InteractionHandler"{
+                                if let syn::Pat::Ident(a) = &*t.pat {
+                                    handlename = Some(a.ident.clone());
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                },
+                _ => {continue;}
+            }
+        }
+    }
+
+    if ctxname.is_none(){
+        panic!("Couldn't determine the Context parameter. Make sure you take a `Context` as an argument");
+    }
+
+    let mut ih_n = quote!(_);
+    
+    if handlename.is_some(){
+        ih_n = quote!(#handlename);
+    }
+
+
     // Using quasi-quoting to generate a new function. This is what will be the end function returned to the compiler.
     if !defer {
         // Build the function
         let subst_fn = quote! {
-            #vis fn #fname<'context> (#params) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
+            #vis fn #fname (#ih_n: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{
                 Box::pin(async move {
                     #body
                 })
@@ -95,16 +145,9 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
             );
         }));
 
-        // Find the name of the Context parameter
-        let mut ctxname: Option<syn::Ident> = None;
-        for p in params {
-            if let FnArg::Typed(t) = p {
-                if let syn::Pat::Ident(a) = &*t.pat {
-                    ctxname = Some(a.ident.clone());
-                    break;
-                }
-            }
-        }
+        
+
+        
 
         // Unwrap, unwrap, unwrap, unwrap.
         let expra = expr
@@ -118,7 +161,7 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
         // The difference here being that the non-deffered function doesn't have to spawn a new thread that
         // does the actual work. Here we need it to reply with a deffered channel message.
         let subst_fn = quote! {
-            #vis fn #fname<'context> (#params) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
+            #vis fn #fname (#ih_n: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{
                 Box::pin(async move {
                     ::rusty_interaction::actix::Arbiter::spawn(async move {
                         #(#nvec)*
@@ -168,6 +211,8 @@ pub fn defer(_attr: TokenStream, item: TokenStream) -> TokenStream {
 #[doc(hidden)]
 // This is just here to make the tests work...lol
 pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    // There is _probably_ a more efficient way to do what I want to do, but hey I am here
+    // to learn so why not join me on my quest to create this procedural macro...lol
     let mut defer = false;
 
     // Parse the stream of tokens to something more usable.
@@ -203,18 +248,70 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
     // Check for a proper return type and fill ret if found.
     match ret_sig {
         ReturnType::Default => {
-            panic!("Expected an `InteractionResponse` return type");
+            panic!("Expected an `InteractionResponse` return type, but got no return type. Consider adding `-> InteractionResponse` to your function signature.");
         }
         ReturnType::Type(_a, b) => {
             ret = *b.clone();
         }
     }
 
+    // Find the name of the Context parameter
+    let mut ctxname: Option<syn::Ident> = None;
+    let mut handlename: Option<syn::Ident> = None;
+    // eprintln!("{:#?}", params);
+
+    // I am honestly laughing at this...
+    // But hey it works! :D
+    for p in params {
+        if let FnArg::Typed(t) = p {
+            match &*t.ty{
+                // This might be a Context
+                syn::Type::Path(b) => {
+                    for segment in b.path.segments.clone(){
+                        if segment.ident == "Context"{
+                            if let syn::Pat::Ident(a) = &*t.pat {
+                                ctxname = Some(a.ident.clone());
+                                break;
+                            }
+                        }
+                    }
+                },
+                // This might be an &InteractionHandler!
+                syn::Type::Reference(r) => {
+                    let e = r.elem.clone();
+                    if let syn::Type::Path(w) = &*e{
+                        for segment in w.path.segments.clone(){
+                            if segment.ident == "InteractionHandler"{
+                                if let syn::Pat::Ident(a) = &*t.pat {
+                                    handlename = Some(a.ident.clone());
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                },
+                _ => {continue;}
+            }
+        }
+    }
+
+    if ctxname.is_none(){
+        panic!("Couldn't determine the Context parameter. Make sure you take a `Context` as an argument");
+    }
+
+    let mut ih_n = quote!(_);
+    
+    if handlename.is_some(){
+        ih_n = quote!(#handlename);
+    }
+
+
     // Using quasi-quoting to generate a new function. This is what will be the end function returned to the compiler.
     if !defer {
         // Build the function
         let subst_fn = quote! {
-            #vis fn #fname<'context> (#params) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
+            #vis fn #fname (#ih_n: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{
                 Box::pin(async move {
                     #body
                 })
@@ -249,16 +346,9 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
             );
         }));
 
-        // Find the name of the Context parameter
-        let mut ctxname: Option<syn::Ident> = None;
-        for p in params {
-            if let FnArg::Typed(t) = p {
-                if let syn::Pat::Ident(a) = &*t.pat {
-                    ctxname = Some(a.ident.clone());
-                    break;
-                }
-            }
-        }
+        
+
+        
 
         // Unwrap, unwrap, unwrap, unwrap.
         let expra = expr
@@ -272,13 +362,16 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
         // The difference here being that the non-deffered function doesn't have to spawn a new thread that
         // does the actual work. Here we need it to reply with a deffered channel message.
         let subst_fn = quote! {
-            #vis fn #fname<'context> (#params) -> ::std::pin::Pin<::std::boxed::Box<dyn 'context + Send + ::std::future::Future<Output = #ret>>>{
+            #vis fn #fname (#ih_n: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{
                 Box::pin(async move {
-                    ::actix::Arbiter::spawn(async move {
+                    actix::Arbiter::spawn(async move {
                         #(#nvec)*
-                        if let Err(i) = #ctxname.edit_original(&WebhookMessage::from(#expra)).await{
-                            error!("Editing original message failed: {:?}", i);
+                        if #expra.r#type != InteractionResponseType::Pong && #expra.r#type != InteractionResponseType::None{
+                            if let Err(i) = #ctxname.edit_original(&WebhookMessage::from(#expra)).await{
+                                error!("Editing original message failed: {:?}", i);
+                            }
                         }
+                        
                     });
 
                     return InteractionResponseBuilder::default().respond_type(InteractionResponseType::DefferedChannelMessageWithSource).finish();

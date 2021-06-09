@@ -1,47 +1,96 @@
 use crate::security::*;
+use crate::types::application::*;
 use crate::types::interaction::*;
+use crate::types::HttpError;
+use crate::types::Snowflake;
+use crate::{expect_specific_api_response, expect_successful_api_response_and_return};
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use reqwest::header;
 use reqwest::Client;
 
 use log::{debug, error};
+use std::fmt;
 
 use ed25519_dalek::PublicKey;
 
 use rustls::ServerConfig;
 
-use std::{collections::HashMap, future::Future, pin::Pin};
+use std::{collections::HashMap, future::Future, pin::Pin, sync::Mutex};
 
 /// Alias for InteractionResponse
 pub type HandlerResponse = InteractionResponse;
 
-type HandlerFunction = fn(Context) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send>>;
+type HandlerFunction = fn(
+    &mut InteractionHandler,
+    Context,
+) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send + '_>>;
 
+macro_rules! match_handler_response {
+    ($value_name:expr, $response:ident) => {
+        match $value_name {
+            InteractionResponseType::None => {
+                Ok(HttpResponse::build(StatusCode::NO_CONTENT).finish())
+            }
+            InteractionResponseType::DefferedChannelMessageWithSource
+            | InteractionResponseType::DefferedUpdateMessage => {
+                /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
+                If an application is first sending a deffered channel message response, this usually means the system
+                is still processing whatever it is doing.
+                See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
+                Ok(HttpResponse::build(StatusCode::ACCEPTED).json($response))
+            }
+            _ => {
+                // Send out a response to Discord
+                let r = HttpResponse::build(StatusCode::OK).json($response);
 
-#[derive(Clone, Debug)]
+                Ok(r)
+            }
+        }
+    };
+}
+
+#[derive(Clone)]
 /// The InteractionHandler is the 'thing' that will handle your incoming interactions.
 /// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
 /// with [`InteractionHandler::run`] and [`InteractionHandler::run_ssl`]
 pub struct InteractionHandler {
-    /// The public key of your application.
-    pub app_public_key: PublicKey,
+    application_id: Snowflake,
+
+    app_public_key: PublicKey,
     client: Client,
 
     global_handles: HashMap<&'static str, HandlerFunction>,
     component_handles: HashMap<&'static str, HandlerFunction>,
+    guild_handles: HashMap<Snowflake, HandlerFunction>,
+}
+
+// Only here to make Debug less generic, so I can send a reference
+impl fmt::Debug for InteractionHandler {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        return f
+            .debug_struct("InteractionHandler")
+            .field("app_public_key", &self.app_public_key)
+            .field("global_handles_len", &self.global_handles.len())
+            .field("component_handles_len", &self.component_handles.len())
+            .finish();
+    }
 }
 
 impl InteractionHandler {
     /// Initalizes a new `InteractionHandler`
-    pub fn new(pbk_str: &str, token: Option<&'static str>) -> InteractionHandler {
+    pub fn new(
+        app_id: Snowflake,
+        pbk_str: &str,
+        token: Option<&'static str>,
+    ) -> InteractionHandler {
         let pbk_bytes =
             hex::decode(pbk_str).expect("Failed to parse the public key from hexadecimal");
 
         let app_public_key =
             PublicKey::from_bytes(&pbk_bytes).expect("Failed to parse public key.");
 
-        if let Some(token) = token{  
+        if let Some(token) = token {
             let mut headers = header::HeaderMap::new();
             let mut auth_value = header::HeaderValue::from_static(token);
             auth_value.set_sensitive(true);
@@ -49,22 +98,23 @@ impl InteractionHandler {
             let new_c = Client::builder().default_headers(headers).build().unwrap();
 
             InteractionHandler {
-                app_public_key,
+                application_id: app_id,
+                app_public_key: app_public_key,
                 client: new_c,
                 global_handles: HashMap::new(),
                 component_handles: HashMap::new(),
+                guild_handles: HashMap::new(),
             }
-        }
-        else{
+        } else {
             InteractionHandler {
-                app_public_key,
+                application_id: app_id,
+                app_public_key: app_public_key,
                 client: Client::new(),
                 global_handles: HashMap::new(),
                 component_handles: HashMap::new(),
+                guild_handles: HashMap::new(),
             }
         }
-
-        
     }
 
     /// Binds an async function to a **global** command.
@@ -80,6 +130,10 @@ impl InteractionHandler {
     ///     return todo!("Do work and return a response");
     /// }
     /// ```
+    ///
+    /// # Note
+    /// The handler will first check if a guild-specific handler is available. If not, it will try to match a global command. If that fails too, an error will be returned.
+    ///
     /// # Example
     /// ```ignore
     /// # use rusty_interaction::types::interaction::{Context, InteractionResponse};
@@ -110,18 +164,18 @@ impl InteractionHandler {
     /// Binds an async function to a **component**.
     /// Your function must take a [`Context`] as an argument and must return a [`InteractionResponse`].
     /// Use the `#[component_handler]` procedural macro for your own convinence.eprintln!
-    /// 
-    /// Example
+    ///
+    /// # Example
     /// ```ignore
     /// use rusty_interaction::handler::InteractionHandler;
     /// use rusty_interaction::types::components::*;
     /// use rusty_interaction::types::interaction::*;
-    /// 
+    ///
     /// #[component_handler]
     /// async fn comp_hand(ctx: Context) -> InteractionResponse {
     ///     return ctx.respond().content("Some message content").finish();
     /// }
-    /// 
+    ///
     /// #[slash_command]
     /// async fn spawn_buttons(ctx: Context) -> InteractionResponse {
     ///     // Let's build our message!
@@ -151,7 +205,7 @@ impl InteractionHandler {
     ///     .finish();
 
     ///     return resp;
-    /// 
+    ///
     /// }
     /// #[actix_web::main]
     /// async fn main() -> std::io::Result<()> {
@@ -166,8 +220,65 @@ impl InteractionHandler {
         self.component_handles.insert(custom_id, func);
     }
 
+    /// Register an command with Discord!
+    pub async fn register_command_handle(
+        &mut self,
+        guild: impl Into<Snowflake>,
+        cmd: ApplicationCommand,
+        func: HandlerFunction,
+    ) -> Result<ApplicationCommand, HttpError> {
+        let g = guild.into();
+
+        let url = format!(
+            "{}/applications/{}/guilds/{}/commands",
+            crate::BASE_URL,
+            self.application_id,
+            g
+        );
+
+        let r = self.client.post(&url).json(&cmd).send().await;
+
+        expect_successful_api_response_and_return!(r, ApplicationCommand, a, {
+            if let Some(id) = a.id {
+                self.guild_handles.insert(id, func);
+                Ok(a)
+            } else {
+                // Pretty bad if this code reaches...
+                Err(HttpError {
+                    code: 0,
+                    message: "Command registration response did not have an ID.".to_string(),
+                })
+            }
+        })
+    }
+
+    /// Remove a guild handle
+    pub async fn deregister_command_handle(
+        &mut self,
+        guild: impl Into<Snowflake>,
+        id: impl Into<Snowflake>,
+    ) -> Result<(), HttpError> {
+        let g = guild.into();
+        let i = id.into();
+
+        let url = format!(
+            "{}/applications/{}/guilds/{}/commands/{}",
+            crate::BASE_URL,
+            self.application_id,
+            g,
+            i
+        );
+
+        let r = self.client.delete(&url).send().await;
+
+        expect_specific_api_response!(r, StatusCode::NO_CONTENT, {
+            self.guild_handles.remove(&i);
+            Ok(())
+        })
+    }
+
     /// Entry point function for handling `Interactions`
-    pub async fn interaction(&self, req: HttpRequest, body: String) -> Result<HttpResponse> {
+    pub async fn interaction(&mut self, req: HttpRequest, body: String) -> Result<HttpResponse> {
         // Check for good content type --> must be application/json
 
         if let Some(ct) = req.headers().get("Content-Type") {
@@ -240,38 +351,33 @@ impl InteractionHandler {
                             return ERROR_RESPONSE!(500, "Failed to unwrap");
                         };
 
-                        if let Some(handler) = self
+                        // Check for matches in guild handler map
+                        if let Some(handler) = self.guild_handles.get(data.id.as_ref().unwrap()) {
+                            // construct a Context
+                            let ctx = Context::new(self.client.clone(), interaction);
+
+                            // Call the handler
+                            let response = handler(self, ctx).await;
+
+                            match_handler_response!(response.r#type, response)
+                            
+                        } 
+                        // Welp, nothing found. Check for matches in the global map
+                        else if let Some(handler) = self
                             .global_handles
                             .get(data.name.as_ref().unwrap().as_str())
                         {
-                            // do stuff with v if needed
 
                             // construct a Context
                             let ctx = Context::new(self.client.clone(), interaction);
 
                             // Call the handler
-                            let response = handler(ctx).await;
+                            let response = handler(self, ctx).await;
 
-                            match response.r#type {
-                                InteractionResponseType::None => {
-                                    Ok(HttpResponse::build(StatusCode::NO_CONTENT).finish())
-                                }
-                                InteractionResponseType::DefferedChannelMessageWithSource
-                                | InteractionResponseType::DefferedUpdateMessage => {
-                                    /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
-                                    If an application is first sending a deffered channel message response, this usually means the system
-                                    is still processing whatever it is doing.
-                                    See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
-                                    Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
-                                }
-                                _ => {
-                                    // Send out a response to Discord
-                                    let r = HttpResponse::build(StatusCode::OK).json(response);
-
-                                    Ok(r)
-                                }
-                            }
-                        } else {
+                            match_handler_response!(response.r#type, response)
+                        } 
+                        // Still nothing, return an error
+                        else {
                             error!(
                                 "No associated handler found for {}",
                                 data.name.as_ref().unwrap().as_str()
@@ -295,7 +401,7 @@ impl InteractionHandler {
                             let ctx = Context::new(self.client.clone(), interaction);
 
                             // Call the handler
-                            let response = handler(ctx).await;
+                            let response = handler(self, ctx).await;
 
                             if response.r#type == InteractionResponseType::DefferedUpdateMessage {
                                 /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
@@ -325,12 +431,13 @@ impl InteractionHandler {
     /// This is a predefined function that starts an `actix_web::HttpServer` and binds `self.interaction` to `/api/discord/interactions`.
     /// Note that you'll eventually have to switch to an HTTPS server. This function does not provide this.
     pub async fn run(self, port: u16) -> std::io::Result<()> {
+        let data = web::Data::new(Mutex::new(self));
         HttpServer::new(move || {
-            App::new().data(self.clone()).route(
+            App::new().app_data(data.clone()).route(
                 "/api/discord/interactions",
                 web::post().to(
-                    |data: web::Data<InteractionHandler>, req: HttpRequest, body: String| async move {
-                        data.interaction(req, body).await
+                    |data: web::Data<Mutex<InteractionHandler>>, req: HttpRequest, body: String| async move {
+                        data.lock().unwrap().interaction(req, body).await
                     },
                 ),
             )
@@ -342,12 +449,13 @@ impl InteractionHandler {
 
     /// Same as [`InteractionHandler::run`] but starts a server with SSL/TLS.
     pub async fn run_ssl(self, server_conf: ServerConfig, port: u16) -> std::io::Result<()> {
+        let data = web::Data::new(Mutex::new(self));
         HttpServer::new(move || {
-            App::new().data(self.clone()).route(
+            App::new().app_data(data.clone()).route(
                 "/api/discord/interactions",
                 web::post().to(
-                    |data: web::Data<InteractionHandler>, req: HttpRequest, body: String| async move {
-                        data.interaction(req, body).await
+                    |data: web::Data<Mutex<InteractionHandler>>, req: HttpRequest, body: String| async move {
+                        data.lock().unwrap().interaction(req, body).await
                     },
                 ),
             )
