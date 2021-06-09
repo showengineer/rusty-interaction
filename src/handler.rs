@@ -220,6 +220,8 @@ impl InteractionHandler {
         self.component_handles.insert(custom_id, func);
     }
 
+    #[cfg(feature = "extended-handler")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
     /// Register an command with Discord!
     pub async fn register_command_handle(
         &mut self,
@@ -253,6 +255,8 @@ impl InteractionHandler {
         })
     }
 
+    #[cfg(feature = "extended-handler")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
     /// Remove a guild handle
     pub async fn deregister_command_handle(
         &mut self,

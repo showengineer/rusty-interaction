@@ -24,14 +24,18 @@ pub mod security;
 
 /// Provides an entire handler to handle Discord interactions.
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "handler")))]
 pub mod handler;
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "handler")))]
 pub use actix;
 
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "handler")))]
 pub use log;
 
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "handler")))]
 pub use attributes::*;
 
 #[cfg(all(test, feature = "handler"))]

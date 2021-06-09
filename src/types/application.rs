@@ -108,11 +108,14 @@ pub struct ApplicationCommandInteractionDataOption {
 }
 
 #[derive(Clone, Debug)]
+#[cfg(feature = "extended-handler")]
+#[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
 /// Simple builder for defining SlashCommands
 pub struct SlashCommandDefinitionBuilder {
     obj: ApplicationCommand,
 }
 
+#[cfg(feature = "extended-handler")]
 impl Default for SlashCommandDefinitionBuilder {
     fn default() -> Self {
         Self {
@@ -121,6 +124,7 @@ impl Default for SlashCommandDefinitionBuilder {
     }
 }
 
+#[cfg(feature = "extended-handler")]
 impl SlashCommandDefinitionBuilder {
     /// Name of slash command
     pub fn name(mut self, name: impl ToString) -> Self {
