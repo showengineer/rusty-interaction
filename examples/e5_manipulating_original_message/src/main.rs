@@ -19,7 +19,7 @@ use rusty_interaction::actix::Arbiter;
 
 const PUB_KEY: &str = "YOUR_PUBLIC_KEY"; 
 
-
+const APP_ID: u64 = 0; 
 
 #[slash_command]
 async fn test(ctx: Context) -> InteractionResponse{
@@ -48,7 +48,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     
-    let mut handle = InteractionHandler::new(PUB_KEY, None);
+    let mut handle = InteractionHandler::new(APP_ID, PUB_KEY, None);
     
     
     handle.add_global_command("summon", test);
@@ -60,7 +60,7 @@ async fn main() -> std::io::Result<()> {
     let mut keys = pkcs8_private_keys(key_file).unwrap();
     config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
 
-    return handle.run_ssl(config).await;
+    return handle.run_ssl(config, 10043).await;
     
 }
 

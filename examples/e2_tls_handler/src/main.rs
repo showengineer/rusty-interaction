@@ -12,7 +12,7 @@ use std::io::BufReader;
 // This key is needed for verifying incoming Interactions. This verification is mandatory. 
 // You can find this key in the Discord Developer Portal. 
 const PUB_KEY: &str = "YOUR_APP'S_PUBLIC_KEY"; 
-
+const APP_ID: u64 = 0; 
 
 // This macro will transform the function to something the handler can use
 #[slash_command]
@@ -36,7 +36,7 @@ async fn main() -> std::io::Result<()> {
 
     // Initalize our InteractionHandler
     // This will handle incoming interactions and route them to your own handlers
-    let mut handle = InteractionHandler::new(PUB_KEY, None);
+    let mut handle = InteractionHandler::new(APP_ID, PUB_KEY, None);
     
     // This will tell the handler to route the `/summon` command to the test function. So if someone uses `/summon`, test() will be called.
     // Please note that you'll need to register your commands to Discord if you haven't yet. This library only handles incoming Interactions (as of now),
@@ -53,7 +53,7 @@ async fn main() -> std::io::Result<()> {
 
     // Run the API. Note the use of run_ssl(config) instead of run()
     // The server runs on port 10443!
-    return handle.run_ssl(config).await;
+    return handle.run_ssl(config, 10443).await;
     
 }
 

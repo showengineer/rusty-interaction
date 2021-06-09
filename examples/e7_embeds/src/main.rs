@@ -13,7 +13,7 @@ use rustls::{NoClientAuth, ServerConfig};
 use std::fs::File;
 use std::io::BufReader;
 
-const PUB_KEY: &str = "57028473720a7c1d4666132a68007f0902034a13c43cc2c1658b10b5fc754311"; 
+const PUB_KEY: &str = "YOUR_PUBLIC_KEY"; 
 const APP_ID: u64 = 0;
 
 // Use the component_handler macro.

@@ -16,7 +16,8 @@ use async_std::task;
 
 use rusty_interaction::actix::Arbiter;
 
-const PUB_KEY: &str = "YOUR_PUBLIC_KEY"; 
+const PUB_KEY: &str = "YOUR_PUBLIC_KEY";
+const APP_ID: u64 = 0; 
 
 
 // Use the component_handler macro.
@@ -31,7 +32,7 @@ async fn edit_button(ctx: Context) -> InteractionResponse{
 async fn delete_button(ctx: Context) -> InteractionResponse{
     ctx.delete_original().await;
 
-    // Since we've delete the original message, it's safe to use respond().none()
+    // Since we've deleted the original message, it's safe to use respond().none()
     return ctx.respond().none();
 }
 #[slash_command]
@@ -43,7 +44,7 @@ async fn test(ctx: Context) -> InteractionResponse{
             .content("Not edited")
             // add a component action row using it's builder
             .add_component_row(
-                ComponentRowBuilder::default()
+                &ComponentRowBuilder::default()
                     // Add buttons using it's builder
                     .add_button(
                         ComponentButtonBuilder::default()
@@ -75,7 +76,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     
-    let mut handle = InteractionHandler::new(PUB_KEY, None);
+    let mut handle = InteractionHandler::new(APP_ID, PUB_KEY, None);
     
     
     handle.add_global_command("summon", test);
@@ -91,7 +92,7 @@ async fn main() -> std::io::Result<()> {
     let mut keys = pkcs8_private_keys(key_file).unwrap();
     config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
 
-    return handle.run_ssl(config).await;
+    return handle.run_ssl(config, 10443).await;
     
 }
 
