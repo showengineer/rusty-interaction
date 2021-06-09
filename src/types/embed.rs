@@ -5,7 +5,7 @@ use serde_with::*;
 use ::chrono::{DateTime, Utc};
 
 #[cfg(feature = "handler")]
-use log::error;
+use log::{error, warn};
 
 // ======== Structures =========
 #[serde_as]
@@ -238,7 +238,7 @@ impl EmbedBuilder {
             }
             Some(ref mut f) => {
                 if f.len() >= 25 {
-                    error!("Field limit reached. Ignoring");
+                    warn!("Field limit reached. Ignoring");
                 } else {
                     f.push(field);
                 }

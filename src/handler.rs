@@ -240,6 +240,7 @@ impl InteractionHandler {
 
         expect_successful_api_response_and_return!(r, ApplicationCommand, a, {
             if let Some(id) = a.id {
+                // Already overwrites current key if it exists, so no need to check.
                 self.guild_handles.insert(id, func);
                 Ok(a)
             } else {
@@ -418,7 +419,7 @@ impl InteractionHandler {
                         } else {
                             error!(
                                 "No associated handler found for {}",
-                                data.name.as_ref().unwrap().as_str()
+                                data.custom_id.as_ref().unwrap().as_str()
                             );
                             ERROR_RESPONSE!(500, "No associated handler found")
                         }

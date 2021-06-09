@@ -164,20 +164,20 @@ impl InteractionResponseBuilder {
 
     /// Fills the [`InteractionResponse`] with some [`InteractionApplicationCommandCallbackData`]
     /// This returns an `InteractionResponse` and consumes itself.
-    pub fn data(mut self, d: InteractionApplicationCommandCallbackData) -> InteractionResponse {
-        self.data = Some(d);
+    pub fn data(mut self, d: &InteractionApplicationCommandCallbackData) -> InteractionResponse {
+        self.data = Some(d.clone());
         self.ret()
     }
 
     /// Sets the Text-To-Speech value of this `InteractionResponse`.
-    pub fn tts(mut self, enable: bool) -> Self {
+    pub fn tts(mut self, enable: &bool) -> Self {
         // Does data exist?
         if self.data.is_none() {
             let mut d = InteractionApplicationCommandCallbackData::new();
-            d.tts = Some(enable);
+            d.tts = Some(*enable);
             self.data = Some(d);
         } else {
-            self.data.as_mut().unwrap().tts = Some(enable);
+            self.data.as_mut().unwrap().tts = Some(*enable);
         }
         self
     }
@@ -204,21 +204,21 @@ impl InteractionResponseBuilder {
 
     /// Add an [`Embed`] to the response.
     /// You can add up to 10 embeds.
-    pub fn add_embed(mut self, e: Embed) -> Self {
+    pub fn add_embed(mut self, e: &Embed) -> Self {
         match self.data.as_mut() {
             None => {
                 let mut d = InteractionApplicationCommandCallbackData::new();
-                d.embeds = Some(vec![e]);
+                d.embeds = Some(vec![e.clone()]);
                 self.data = Some(d);
             }
             Some(mut d) => {
                 if d.embeds.is_none() {
-                    d.embeds = Some(vec![e]);
+                    d.embeds = Some(vec![e.clone()]);
                 } else {
                     let v = d.embeds.as_mut().unwrap();
                     // Check if this will exceed the embed limit
                     if v.len() <= 9 {
-                        v.push(e);
+                        v.push(e.clone());
                     } else {
                         // Log an error for now.
                         error!("Tried to add embed while embed limit (max. 10 embeds) was already reached. Ignoring")
@@ -230,20 +230,20 @@ impl InteractionResponseBuilder {
     }
 
     /// Add components to response
-    pub fn add_component_row(mut self, component: MessageComponent) -> Self {
+    pub fn add_component_row(mut self, component: &MessageComponent) -> Self {
         match self.data.as_mut() {
             None => {
                 let mut d = InteractionApplicationCommandCallbackData::new();
-                d.components = Some(vec![component]);
+                d.components = Some(vec![component.clone()]);
                 self.data = Some(d);
             }
             Some(mut d) => {
                 if d.components.is_none() {
-                    d.components = Some(vec![component]);
+                    d.components = Some(vec![component.clone()]);
                 } else {
                     let comp = d.components.as_mut().unwrap();
 
-                    comp.push(component);
+                    comp.push(component.clone());
                 }
             }
         }

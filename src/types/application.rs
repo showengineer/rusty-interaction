@@ -123,15 +123,15 @@ impl Default for SlashCommandDefinitionBuilder {
 
 impl SlashCommandDefinitionBuilder {
     /// Name of slash command
-    pub fn name(mut self, name: impl Into<String>) -> Self {
-        let n = name.into();
+    pub fn name(mut self, name: impl ToString) -> Self {
+        let n = name.to_string();
 
         self.obj.name = n;
         self
     }
     /// Command description
-    pub fn description(mut self, desc: impl Into<String>) -> Self {
-        let d = desc.into();
+    pub fn description(mut self, desc: impl ToString) -> Self {
+        let d = desc.to_string();
 
         self.obj.description = d;
         self
