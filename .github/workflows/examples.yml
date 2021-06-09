@@ -16,6 +16,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build
+    - name: change to examples dir
       run: cd examples
+    - name: Build
       run: cargo build --verbose
