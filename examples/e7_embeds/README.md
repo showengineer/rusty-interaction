@@ -4,7 +4,8 @@ Embeds are a way of displaying rich content in Discord messages.
 
 This is what this demo will produce:
 
-![demo](https://raw.githubusercontent.com/0x2b00b1e5/rusty-interaction/main/examples/e6_components/img/demo.gif)
+![demo](![demo gif](https://user-images.githubusercontent.com/10338882/121349853-45b17800-c92a-11eb-80d6-d182b685c468.gif)
+)
 
 
 
