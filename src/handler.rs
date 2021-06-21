@@ -16,7 +16,7 @@ use ed25519_dalek::PublicKey;
 
 use rustls::ServerConfig;
 
-use std::{collections::HashMap, future::Future, pin::Pin, sync::Mutex};
+use std::{collections::HashMap, collections::HashSet, future::Future, pin::Pin, sync::Mutex};
 
 /// Alias for InteractionResponse
 pub type HandlerResponse = InteractionResponse;
@@ -50,6 +50,7 @@ macro_rules! match_handler_response {
     };
 }
 
+#[cfg(feature = "handler")]
 #[derive(Clone)]
 /// The InteractionHandler is the 'thing' that will handle your incoming interactions.
 /// It does interaction validation (as required by Discord) and provides a pre-defined actix-web server
@@ -62,9 +63,12 @@ pub struct InteractionHandler {
 
     global_handles: HashMap<&'static str, HandlerFunction>,
     component_handles: HashMap<&'static str, HandlerFunction>,
+
+    // These handles are 'forgotten' every time the app is shutdown (whatever the reason may be).
     guild_handles: HashMap<Snowflake, HandlerFunction>,
 }
 
+#[cfg(feature = "handler")]
 // Only here to make Debug less generic, so I can send a reference
 impl fmt::Debug for InteractionHandler {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -77,6 +81,7 @@ impl fmt::Debug for InteractionHandler {
     }
 }
 
+#[cfg(feature = "handler")]
 impl InteractionHandler {
     /// Initalizes a new `InteractionHandler`
     pub fn new(
@@ -220,10 +225,24 @@ impl InteractionHandler {
         self.component_handles.insert(custom_id, func);
     }
 
+    /// Add a guild handle without registering.
+    pub fn add_guild_handle(&mut self, id: impl Into<Snowflake>, func: HandlerFunction){
+        self.guild_handles.insert(id.into(), func);
+    }
+    
+    /// Remove a guild handle without deregistering.
+    pub fn remove_guild_handle(&mut self, id: &Snowflake){
+        self.guild_handles.remove(id);
+    }
+
     #[cfg(feature = "extended-handler")]
     #[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
-    /// Register an command with Discord!
-    pub async fn register_command_handle(
+    /// Register a guild-specific command with Discord!
+    /// 
+    /// # NOTE
+    /// Guild-specific commands are not cached or saved in any way by the handler. 
+    /// This means that between restarts, updates, crashes, or whatever that causes the app to terminate, the handler 'forgets' which command belonged to which handler.
+    pub async fn register_guild_handle(
         &mut self,
         guild: impl Into<Snowflake>,
         cmd: ApplicationCommand,
@@ -243,7 +262,7 @@ impl InteractionHandler {
         expect_successful_api_response_and_return!(r, ApplicationCommand, a, {
             if let Some(id) = a.id {
                 // Already overwrites current key if it exists, so no need to check.
-                self.guild_handles.insert(id, func);
+                self.add_guild_handle(id, func);
                 Ok(a)
             } else {
                 // Pretty bad if this code reaches...
@@ -258,7 +277,7 @@ impl InteractionHandler {
     #[cfg(feature = "extended-handler")]
     #[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
     /// Remove a guild handle
-    pub async fn deregister_command_handle(
+    pub async fn deregister_guild_handle(
         &mut self,
         guild: impl Into<Snowflake>,
         id: impl Into<Snowflake>,
@@ -277,7 +296,7 @@ impl InteractionHandler {
         let r = self.client.delete(&url).send().await;
 
         expect_specific_api_response!(r, StatusCode::NO_CONTENT, {
-            self.guild_handles.remove(&i);
+            self.remove_guild_handle(&i);
             Ok(())
         })
     }

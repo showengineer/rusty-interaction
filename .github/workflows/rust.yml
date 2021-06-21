@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build-default:
 
     runs-on: ubuntu-latest
 
@@ -18,7 +18,23 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build
       run: cargo build --verbose
+
+  build-handler:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --features handler --verbose
     - name: Run tests on handler
       run: cargo test --verbose --features handler
-    - name: Run tests on extended-handler
+
+  build-extended-handler:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --features extended-handler --verbose
+    - name: Run tests on handler
       run: cargo test --verbose --features extended-handler
