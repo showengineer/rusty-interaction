@@ -26,7 +26,7 @@ async fn delete_self(handler: &mut InteractionHandler, ctx: Context) -> Interact
             let cid = data.id;
 
             // Using this to remove the guild command
-            let r = handler.deregister_command_handle(g, cid.unwrap()).await;
+            let r = handler.deregister_guild_handle(g, cid.unwrap()).await;
             if r.is_ok(){
                 return ctx.respond().content("`/generated` deleted!").finish();
             }
@@ -53,7 +53,7 @@ async fn test(handler: &mut InteractionHandler, ctx: Context) -> InteractionResp
                     .finish();
 
         // Register that command
-        if let Ok(_) = handler.register_command_handle(i, cmd, delete_self).await{
+        if let Ok(_) = handler.register_guild_handle(i, cmd, delete_self).await{
             return ctx.respond().content("`/generated` has been registered!").finish();
         }
         else{
