@@ -6,6 +6,11 @@ When using this demo, `/summon` will create a `/generated` command. If you use `
 
 Note: These features are included in the `extended-handler` feature!
 
+# Important design note
+The handler does not 'remember' what guild-specific commands are registered and to which function they were attached.
+
+This means that every time you have to terminate the application, the handler 'forgets' what function belonged to which command.
+
 # Running this example
 You can use regular `cargo build` and `cargo run` commands.
 
