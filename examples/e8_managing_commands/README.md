@@ -11,8 +11,6 @@ The handler does not 'remember' what guild-specific commands are registered and 
 
 This means that every time you have to terminate the application, the handler 'forgets' what function belonged to which command.
 
-There are plans to make the handler 'remember' this.
-
 # Running this example
 You can use regular `cargo build` and `cargo run` commands.
 
