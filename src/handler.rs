@@ -267,13 +267,13 @@ impl InteractionHandler {
                     self.application_id,
                     g
                 );
-        
+                
                 let r = self.client.post(&url).json(cmd).send().await;
         
                 expect_successful_api_response_and_return!(r, ApplicationCommand, a, {
                     if let Some(id) = a.id {
 
-                        if scope == &ManipulationScope::Discord{
+                        if scope == &ManipulationScope::All{
                             // Already overwrites current key if it exists, so no need to check.
                             self.guild_handles.insert(id, func);
                         }
@@ -503,7 +503,7 @@ impl InteractionHandler {
                 ),
             )
         })
-        .bind(("0.0.0.0:{}", port))?
+        .bind(format!("0.0.0.0:{}", port))?
         .run()
         .await
     }

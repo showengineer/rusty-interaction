@@ -114,8 +114,9 @@ macro_rules! expect_successful_api_response_and_return {
             }
             Ok(r) => {
                 let st = r.status();
+                let text = r.text().await.unwrap();
                 if !st.is_success() {
-                    let e = format!("{:#?}", r.text().await);
+                    let e = format!("{:#?}", &text);
                     debug!("Discord API returned an error: {:#?}", e);
                     Err(HttpError {
                         code: st.as_u16(),
@@ -123,11 +124,12 @@ macro_rules! expect_successful_api_response_and_return {
                     })
                 } else {
                     let a: Result<$struc, serde_json::Error> =
-                        serde_json::from_str(&r.text().await.unwrap());
+                        serde_json::from_str(&text);
 
                     match a {
                         Err(e) => {
                             debug!("Failed to decode response: {:#?}", e);
+                            debug!("Original response: {:#?}", &text);
                             Err(HttpError {
                                 code: 500,
                                 message: format!("{:?}", e),

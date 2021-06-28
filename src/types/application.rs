@@ -38,19 +38,103 @@ impl Default for ApplicationCommand {
     }
 }
 
+
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// Command option
 pub struct ApplicationCommandOption {
-    r#type: i8,
-    name: String,
-    description: String,
-    required: bool,
-    choices: Vec<ApplicationCommandOptionChoice>,
-    options: Vec<ApplicationCommandOption>,
+    r#type: ApplicationCommandOptionType,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    name: Option<String>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    description: Option<String>,
+    #[serde_as(as = "Option<_>")]
+    #[serde(default)]
+    required: Option<bool>,
+    #[serde_as(as = "Option<Vec<_>>")]
+    #[serde(default)]
+    choices: Option<Vec<ApplicationCommandOptionChoice>>,
+
+    #[serde_as(as = "Option<Vec<_>>")]
+    #[serde(default)]
+    options: Option<Vec<ApplicationCommandOption>>,
 }
 
-#[derive(Clone, Serialize_repr, Deserialize_repr, Debug)]
+impl Default for ApplicationCommandOption{
+    fn default() -> Self{
+        Self{
+            r#type: ApplicationCommandOptionType::String,
+            name: None,
+            description: None,
+            required: None,
+            choices: None,
+            options: None,
+        }
+    }
+}
+
+impl ApplicationCommandOption{
+    /// Set the type
+    pub fn option_type(mut self, ty: &ApplicationCommandOptionType) -> Self{
+        self.r#type = ty.clone();
+        self
+    }
+    /// Set the option name
+    /// 
+    /// This can only be lower case and may not contain spaces and special characters
+    pub fn name(mut self, name: impl Into<String>) -> Self{
+        self.name = Some(name.into());
+        self
+    }
+
+    /// Set the option description
+    pub fn description(mut self, desc: impl Into<String>) -> Self{
+        self.description = Some(desc.into());
+        self
+    }
+
+    /// Sets whether this option is required to be filled in
+    pub fn required(mut self, req: &bool) -> Self{
+        self.required = Some(req.clone());
+        self
+    }
+
+    /// Add a choice
+    pub fn add_choice(mut self, choice: &ApplicationCommandOptionChoice) -> Self{
+        match self.choices.as_mut(){
+            None => {
+                self.choices = Some(vec![choice.clone()]);
+            }
+            Some(o) => {
+                o.push(choice.clone());
+            }
+        }
+        self
+    }
+    
+    /// Add another option
+    /// 
+    /// Can only be used with the `SubCommand` and `SubCommandGroup` types.
+    pub fn add_option(mut self, opt: &ApplicationCommandOption) -> Self{
+        match self.options.as_mut(){
+            None => {
+                self.options = Some(vec![opt.clone()]);
+            }
+            Some(o) => {
+                o.push(opt.clone());
+            }
+        }
+        self
+    }
+
+}
+
+#[derive(Clone, Serialize_repr, Deserialize_repr, Debug, PartialEq)]
 #[repr(u8)]
+#[non_exhaustive]
 /// Representing a type of [`ApplicationCommandOption`]
 pub enum ApplicationCommandOptionType {
     /// A subcommand
@@ -74,9 +158,11 @@ pub enum ApplicationCommandOptionType {
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// Command option choice
 pub struct ApplicationCommandOptionChoice {
-    name: String,
+    /// Name
+    pub name: String,
     // This can be int
-    value: String,
+    /// Value
+    pub value: String,
 }
 
 #[serde_as]
