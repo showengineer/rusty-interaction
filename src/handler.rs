@@ -16,7 +16,7 @@ use ed25519_dalek::PublicKey;
 
 use rustls::ServerConfig;
 
-use std::{collections::HashMap, collections::HashSet, future::Future, pin::Pin, sync::Mutex};
+use std::{collections::HashMap, future::Future, pin::Pin, sync::Mutex};
 
 /// Alias for InteractionResponse
 pub type HandlerResponse = InteractionResponse;
@@ -48,6 +48,18 @@ macro_rules! match_handler_response {
             }
         }
     };
+}
+
+#[non_exhaustive]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+/// Used for some functions to define which scope should be manipulated. 
+pub enum ManipulationScope{
+    /// Only apply changes locally
+    Local,
+    /// Apply changes locally and to Discord
+    All,
+    /// Only apply changes with Discord
+    Discord
 }
 
 #[cfg(feature = "handler")]
@@ -224,16 +236,7 @@ impl InteractionHandler {
     pub fn add_component_handle(&mut self, custom_id: &'static str, func: HandlerFunction) {
         self.component_handles.insert(custom_id, func);
     }
-
-    /// Add a guild handle without registering.
-    pub fn add_guild_handle(&mut self, id: impl Into<Snowflake>, func: HandlerFunction){
-        self.guild_handles.insert(id.into(), func);
-    }
     
-    /// Remove a guild handle without deregistering.
-    pub fn remove_guild_handle(&mut self, id: &Snowflake){
-        self.guild_handles.remove(id);
-    }
 
     #[cfg(feature = "extended-handler")]
     #[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
@@ -245,33 +248,48 @@ impl InteractionHandler {
     pub async fn register_guild_handle(
         &mut self,
         guild: impl Into<Snowflake>,
-        cmd: ApplicationCommand,
+        cmd: &ApplicationCommand,
         func: HandlerFunction,
+        scope: &ManipulationScope
     ) -> Result<ApplicationCommand, HttpError> {
+        
         let g = guild.into();
+        match scope{
+            ManipulationScope::Local =>{
+                self.guild_handles.insert(g, func);
+                Ok(cmd.clone())
+            },
+            ManipulationScope::Discord |
+            ManipulationScope::All => {
+                let url = format!(
+                    "{}/applications/{}/guilds/{}/commands",
+                    crate::BASE_URL,
+                    self.application_id,
+                    g
+                );
+        
+                let r = self.client.post(&url).json(cmd).send().await;
+        
+                expect_successful_api_response_and_return!(r, ApplicationCommand, a, {
+                    if let Some(id) = a.id {
 
-        let url = format!(
-            "{}/applications/{}/guilds/{}/commands",
-            crate::BASE_URL,
-            self.application_id,
-            g
-        );
-
-        let r = self.client.post(&url).json(&cmd).send().await;
-
-        expect_successful_api_response_and_return!(r, ApplicationCommand, a, {
-            if let Some(id) = a.id {
-                // Already overwrites current key if it exists, so no need to check.
-                self.add_guild_handle(id, func);
-                Ok(a)
-            } else {
-                // Pretty bad if this code reaches...
-                Err(HttpError {
-                    code: 0,
-                    message: "Command registration response did not have an ID.".to_string(),
+                        if scope == &ManipulationScope::Discord{
+                            // Already overwrites current key if it exists, so no need to check.
+                            self.guild_handles.insert(id, func);
+                        }
+                        
+                        Ok(a)
+                    } else {
+                        // Pretty bad if this code reaches...
+                        Err(HttpError {
+                            code: 0,
+                            message: "Command registration response did not have an ID.".to_string(),
+                        })
+                    }
                 })
-            }
-        })
+            },
+        }
+        
     }
 
     #[cfg(feature = "extended-handler")]
@@ -281,24 +299,43 @@ impl InteractionHandler {
         &mut self,
         guild: impl Into<Snowflake>,
         id: impl Into<Snowflake>,
+        scope: &ManipulationScope,
     ) -> Result<(), HttpError> {
-        let g = guild.into();
+
         let i = id.into();
+        let g = guild.into();
 
-        let url = format!(
-            "{}/applications/{}/guilds/{}/commands/{}",
-            crate::BASE_URL,
-            self.application_id,
-            g,
-            i
-        );
+        match scope{
+            ManipulationScope::Local => {
+                self.guild_handles.remove(&i);
+                Ok(())
+            },
+            ManipulationScope::All |
+            ManipulationScope::Discord => {
+                let url = format!(
+                    "{}/applications/{}/guilds/{}/commands/{}",
+                    crate::BASE_URL,
+                    self.application_id,
+                    g,
+                    i
+                );
+        
+                let r = self.client.delete(&url).send().await;
+        
+                expect_specific_api_response!(r, StatusCode::NO_CONTENT, {
+                    if scope == &ManipulationScope::All{
+                        self.guild_handles.remove(&i);
+                    }
+        
+                    Ok(())
+                })
+            },
+        }
 
-        let r = self.client.delete(&url).send().await;
+        
+        
 
-        expect_specific_api_response!(r, StatusCode::NO_CONTENT, {
-            self.remove_guild_handle(&i);
-            Ok(())
-        })
+        
     }
 
     /// Entry point function for handling `Interactions`
