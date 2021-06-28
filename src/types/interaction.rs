@@ -1,6 +1,9 @@
 #[cfg(feature = "extended-handler")]
 use crate::expect_successful_api_response_and_return;
 
+#[cfg(feature = "handler")]
+use crate::{expect_specific_api_response, expect_successful_api_response};
+
 use serde::{Deserialize, Serialize};
 
 use serde_with::*;
@@ -13,8 +16,11 @@ use super::embed::*;
 #[cfg(feature = "extended-handler")]
 use super::guild::*;
 use super::user::*;
+#[cfg(feature = "handler")]
+use super::HttpError;
 use super::Snowflake;
-
+#[cfg(feature = "handler")]
+use ::chrono::{DateTime, Utc};
 #[cfg(feature = "handler")]
 use log::{debug, error};
 #[cfg(any(feature = "handler", feature = "extended-handler"))]
