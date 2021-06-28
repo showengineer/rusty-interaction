@@ -16,8 +16,9 @@ You can use regular `cargo build` and `cargo run` commands.
 
 To run this example:
 
-`cargo run`. Note that you'll need to edit the `PUB_KEY` constant accordingly (it will panic if you don't give a vaild key).
-You'll also need to supply a TLS certificate and it's corresponding private key (`cert.pem` and `key.pem` by default).
+`cargo run`. Note that you'll need to edit the `PUB_KEY`, `APP_ID` and `TOKEN` constants accordingly (it will panic if you don't give a vaild key).
 
 # Useful documentation
 - [InteractionHandler](https://docs.rs/rusty_interaction/latest/rusty_interaction/handler/struct.InteractionHandler.html)
+- [`types::application` module](https://docs.rs/rusty_interaction/latest/rusty_interaction/types/application/index.html)
+- [ManipulationScope](add-correct-link)

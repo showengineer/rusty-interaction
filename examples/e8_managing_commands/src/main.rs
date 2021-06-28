@@ -1,22 +1,13 @@
 #[macro_use] extern crate rusty_interaction;
 
-use rusty_interaction::handler::InteractionHandler;
+use rusty_interaction::handler::{InteractionHandler, ManipulationScope};
 use rusty_interaction::types::interaction::*;
-
 // Relevant imports here
-use rusty_interaction::types::application::{SlashCommandDefinitionBuilder};
+use rusty_interaction::types::application::{SlashCommandDefinitionBuilder, ApplicationCommandOption, ApplicationCommandOptionType};
 
-
-
-// Used for getting TLS to work
-use rustls::internal::pemfile::{certs, pkcs8_private_keys};
-use rustls::{NoClientAuth, ServerConfig};
-use std::fs::File;
-use std::io::BufReader;
-
-const PUB_KEY: &str = "Your public key"; 
-const TOKEN: &str = "Some Token";
-const APP_ID: u64 = 000000000000000000;
+const PUB_KEY: &str = "MY PUB KEY"; 
+const TOKEN: &str = "MY TOKEN";
+const APP_ID: u64 = 00000000000000000;
 
 #[slash_command]
 async fn delete_self(handler: &mut InteractionHandler, ctx: Context) -> InteractionResponse{
@@ -26,7 +17,7 @@ async fn delete_self(handler: &mut InteractionHandler, ctx: Context) -> Interact
             let cid = data.id;
 
             // Using this to remove the guild command
-            let r = handler.deregister_guild_handle(g, cid.unwrap()).await;
+            let r = handler.deregister_guild_handle(g, cid.unwrap(), &ManipulationScope::All).await;
             if r.is_ok(){
                 return ctx.respond().content("`/generated` deleted!").finish();
             }
@@ -50,14 +41,21 @@ async fn test(handler: &mut InteractionHandler, ctx: Context) -> InteractionResp
         let cmd = SlashCommandDefinitionBuilder::default()
                     .name("generated")
                     .description("This is a generated guild command!")
+                    .add_option(
+                        ApplicationCommandOption::default()
+                        .option_type(&ApplicationCommandOptionType::String)
+                        .name("string")
+                        .description("I will do absolutely nothing with this")
+                    )
                     .finish();
 
-        // Register that command
-        if let Ok(_) = handler.register_guild_handle(i, cmd, delete_self).await{
-            return ctx.respond().content("`/generated` has been registered!").finish();
-        }
-        else{
-            return ctx.respond().content("Something went wrong!").finish();
+        match handler.register_guild_handle(i, &cmd, delete_self, &ManipulationScope::All).await{
+            Ok(_) => {
+                return ctx.respond().content("`/generated` has been registered!").finish();
+            }
+            Err(e) => {
+                return ctx.respond().content(format!("Error ({}): \n```json\n{:?}```", e.code, e.message)).finish();
+            }
         }
         
     }
@@ -80,13 +78,8 @@ async fn main() -> std::io::Result<()> {
     
     handle.add_global_command("summon", test);
 
-    let mut config = ServerConfig::new(NoClientAuth::new());
-    let cert_file = &mut BufReader::new(File::open("cert.pem").unwrap());
-    let key_file = &mut BufReader::new(File::open("key.pem").unwrap());
-    let cert_chain = certs(cert_file).unwrap();
-    let mut keys = pkcs8_private_keys(key_file).unwrap();
-    config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
 
-    return handle.run_ssl(config, 10443).await;
+    return handle.run(10443).await;
     
 }
+
