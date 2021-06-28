@@ -18,8 +18,11 @@ pub struct ApplicationCommand {
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
     application_id: Option<Snowflake>,
+    /// Command name
     pub name: String,
+    /// Command description
     description: String,
+    /// Command options
     options: Option<Vec<ApplicationCommandOption>>,
 }
 
