@@ -5,7 +5,7 @@ use serde_with::*;
 use ::chrono::{DateTime, Utc};
 
 #[cfg(feature = "handler")]
-use log::{warn};
+use log::warn;
 
 // ======== Structures =========
 #[serde_as]

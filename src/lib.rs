@@ -123,8 +123,7 @@ macro_rules! expect_successful_api_response_and_return {
                         message: e,
                     })
                 } else {
-                    let a: Result<$struc, serde_json::Error> =
-                        serde_json::from_str(&text);
+                    let a: Result<$struc, serde_json::Error> = serde_json::from_str(&text);
 
                     match a {
                         Err(e) => {

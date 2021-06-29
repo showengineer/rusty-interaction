@@ -607,7 +607,7 @@ impl Context {
             b.r#type = InteractionResponseType::UpdateMessage;
         }
 
-        return b;
+        b
     }
 
     /// Edit the original interaction response

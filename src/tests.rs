@@ -80,7 +80,7 @@ Discord Interactions API tests (endpoint: /api/discord/interactions)
 
 macro_rules! interaction_app_init {
     ($ih: ident) => {
-        
+
         test::init_service(App::new().app_data($ih.clone()).route(
             "/api/discord/interactions",
             web::post().to(
@@ -470,7 +470,7 @@ async fn interactions_deffered_from_value_handle_test() {
 #[actix_rt::test]
 async fn interactions_deffered_from_direct_value_handle_test() {
     let mut ih = init_handler!();
-    
+
     ih.add_global_command("test", deffered_handle_direct_test);
     let data = web::Data::new(Mutex::new(ih));
     let mut app = interaction_app_init!(data);

@@ -52,14 +52,14 @@ macro_rules! match_handler_response {
 
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-/// Used for some functions to define which scope should be manipulated. 
-pub enum ManipulationScope{
+/// Used for some functions to define which scope should be manipulated.
+pub enum ManipulationScope {
     /// Only apply changes locally
     Local,
     /// Apply changes locally and to Discord
     All,
     /// Only apply changes with Discord
-    Discord
+    Discord,
 }
 
 #[cfg(feature = "handler")]
@@ -116,7 +116,7 @@ impl InteractionHandler {
 
             InteractionHandler {
                 application_id: app_id,
-                app_public_key: app_public_key,
+                app_public_key,
                 client: new_c,
                 global_handles: HashMap::new(),
                 component_handles: HashMap::new(),
@@ -125,7 +125,7 @@ impl InteractionHandler {
         } else {
             InteractionHandler {
                 application_id: app_id,
-                app_public_key: app_public_key,
+                app_public_key,
                 client: Client::new(),
                 global_handles: HashMap::new(),
                 component_handles: HashMap::new(),
@@ -236,60 +236,56 @@ impl InteractionHandler {
     pub fn add_component_handle(&mut self, custom_id: &'static str, func: HandlerFunction) {
         self.component_handles.insert(custom_id, func);
     }
-    
 
     #[cfg(feature = "extended-handler")]
     #[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
     /// Register a guild-specific command with Discord!
-    /// 
+    ///
     /// # NOTE
-    /// Guild-specific commands are not cached or saved in any way by the handler. 
+    /// Guild-specific commands are not cached or saved in any way by the handler.
     /// This means that between restarts, updates, crashes, or whatever that causes the app to terminate, the handler 'forgets' which command belonged to which handler.
     pub async fn register_guild_handle(
         &mut self,
         guild: impl Into<Snowflake>,
         cmd: &ApplicationCommand,
         func: HandlerFunction,
-        scope: &ManipulationScope
+        scope: &ManipulationScope,
     ) -> Result<ApplicationCommand, HttpError> {
-        
         let g = guild.into();
-        match scope{
-            ManipulationScope::Local =>{
+        match scope {
+            ManipulationScope::Local => {
                 self.guild_handles.insert(g, func);
                 Ok(cmd.clone())
-            },
-            ManipulationScope::Discord |
-            ManipulationScope::All => {
+            }
+            ManipulationScope::Discord | ManipulationScope::All => {
                 let url = format!(
                     "{}/applications/{}/guilds/{}/commands",
                     crate::BASE_URL,
                     self.application_id,
                     g
                 );
-                
+
                 let r = self.client.post(&url).json(cmd).send().await;
-        
+
                 expect_successful_api_response_and_return!(r, ApplicationCommand, a, {
                     if let Some(id) = a.id {
-
-                        if scope == &ManipulationScope::All{
+                        if scope == &ManipulationScope::All {
                             // Already overwrites current key if it exists, so no need to check.
                             self.guild_handles.insert(id, func);
                         }
-                        
+
                         Ok(a)
                     } else {
                         // Pretty bad if this code reaches...
                         Err(HttpError {
                             code: 0,
-                            message: "Command registration response did not have an ID.".to_string(),
+                            message: "Command registration response did not have an ID."
+                                .to_string(),
                         })
                     }
                 })
-            },
+            }
         }
-        
     }
 
     #[cfg(feature = "extended-handler")]
@@ -301,17 +297,15 @@ impl InteractionHandler {
         id: impl Into<Snowflake>,
         scope: &ManipulationScope,
     ) -> Result<(), HttpError> {
-
         let i = id.into();
         let g = guild.into();
 
-        match scope{
+        match scope {
             ManipulationScope::Local => {
                 self.guild_handles.remove(&i);
                 Ok(())
-            },
-            ManipulationScope::All |
-            ManipulationScope::Discord => {
+            }
+            ManipulationScope::All | ManipulationScope::Discord => {
                 let url = format!(
                     "{}/applications/{}/guilds/{}/commands/{}",
                     crate::BASE_URL,
@@ -319,23 +313,18 @@ impl InteractionHandler {
                     g,
                     i
                 );
-        
+
                 let r = self.client.delete(&url).send().await;
-        
+
                 expect_specific_api_response!(r, StatusCode::NO_CONTENT, {
-                    if scope == &ManipulationScope::All{
+                    if scope == &ManipulationScope::All {
                         self.guild_handles.remove(&i);
                     }
-        
+
                     Ok(())
                 })
-            },
+            }
         }
-
-        
-        
-
-        
     }
 
     /// Entry point function for handling `Interactions`
@@ -421,14 +410,12 @@ impl InteractionHandler {
                             let response = handler(self, ctx).await;
 
                             match_handler_response!(response.r#type, response)
-                            
-                        } 
+                        }
                         // Welp, nothing found. Check for matches in the global map
                         else if let Some(handler) = self
                             .global_handles
                             .get(data.name.as_ref().unwrap().as_str())
                         {
-
                             // construct a Context
                             let ctx = Context::new(self.client.clone(), interaction);
 
@@ -436,7 +423,7 @@ impl InteractionHandler {
                             let response = handler(self, ctx).await;
 
                             match_handler_response!(response.r#type, response)
-                        } 
+                        }
                         // Still nothing, return an error
                         else {
                             error!(

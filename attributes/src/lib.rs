@@ -6,10 +6,11 @@ use quote::quote;
 
 use syn::{Expr, ExprReturn, FnArg, ReturnType, Stmt};
 
-
-
-fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private::TokenStream) -> TokenStream{
-
+fn handler(
+    _attr: TokenStream,
+    item: TokenStream,
+    defer_return: quote::__private::TokenStream,
+) -> TokenStream {
     // There is _probably_ a more efficient way to do what I want to do, but hey I am here
     // to learn so why not join me on my quest to create this procedural macro...lol
     let mut defer = false;
@@ -63,24 +64,24 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
     // But hey it works! :D
     for p in params {
         if let FnArg::Typed(t) = p {
-            match &*t.ty{
+            match &*t.ty {
                 // This might be a Context
                 syn::Type::Path(b) => {
-                    for segment in b.path.segments.clone(){
-                        if segment.ident == "Context"{
+                    for segment in b.path.segments.clone() {
+                        if segment.ident == "Context" {
                             if let syn::Pat::Ident(a) = &*t.pat {
                                 ctxname = Some(a.ident.clone());
                                 break;
                             }
                         }
                     }
-                },
+                }
                 // This might be an &InteractionHandler!
                 syn::Type::Reference(r) => {
                     let e = r.elem.clone();
-                    if let syn::Type::Path(w) = &*e{
-                        for segment in w.path.segments.clone(){
-                            if segment.ident == "InteractionHandler"{
+                    if let syn::Type::Path(w) = &*e {
+                        for segment in w.path.segments.clone() {
+                            if segment.ident == "InteractionHandler" {
                                 if let syn::Pat::Ident(a) = &*t.pat {
                                     handlename = Some(a.ident.clone());
                                     break;
@@ -88,23 +89,23 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
                             }
                         }
                     }
-                    
-                },
-                _ => {continue;}
+                }
+                _ => {
+                    continue;
+                }
             }
         }
     }
 
-    if ctxname.is_none(){
+    if ctxname.is_none() {
         panic!("Couldn't determine the Context parameter. Make sure you take a `Context` as an argument");
     }
 
     let mut ih_n = quote!(_);
-    
-    if handlename.is_some(){
+
+    if handlename.is_some() {
         ih_n = quote!(#handlename);
     }
-
 
     // Using quasi-quoting to generate a new function. This is what will be the end function returned to the compiler.
     if !defer {
@@ -145,10 +146,6 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
             );
         }));
 
-        
-
-        
-
         // Unwrap, unwrap, unwrap, unwrap.
         let expra = expr
             .unwrap_or_else(|| panic!("Expected return"))
@@ -170,7 +167,7 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
                                 ::rusty_interaction::log::error!("Editing original message failed: {:?}", i);
                             }
                         }
-                        
+
                     });
 
                     return InteractionResponseBuilder::default().respond_type(#defer_return).finish();
@@ -182,15 +179,13 @@ fn handler(_attr:TokenStream, item: TokenStream, defer_return: quote::__private:
     }
 }
 
-
 #[proc_macro_attribute]
 /// Convenience procedural macro that allows you to bind an async function to the [`InteractionHandler`] for handling component interactions.
 pub fn component_handler(attr: TokenStream, item: TokenStream) -> TokenStream {
     let ret = quote!(InteractionResponseType::DefferedUpdateMessage);
-    
+
     handler(attr, item, ret)
 }
-
 
 #[proc_macro_attribute]
 /// Convenience procedural macro that allows you to bind an async function to the [`InteractionHandler`]
@@ -264,24 +259,24 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
     // But hey it works! :D
     for p in params {
         if let FnArg::Typed(t) = p {
-            match &*t.ty{
+            match &*t.ty {
                 // This might be a Context
                 syn::Type::Path(b) => {
-                    for segment in b.path.segments.clone(){
-                        if segment.ident == "Context"{
+                    for segment in b.path.segments.clone() {
+                        if segment.ident == "Context" {
                             if let syn::Pat::Ident(a) = &*t.pat {
                                 ctxname = Some(a.ident.clone());
                                 break;
                             }
                         }
                     }
-                },
+                }
                 // This might be an &InteractionHandler!
                 syn::Type::Reference(r) => {
                     let e = r.elem.clone();
-                    if let syn::Type::Path(w) = &*e{
-                        for segment in w.path.segments.clone(){
-                            if segment.ident == "InteractionHandler"{
+                    if let syn::Type::Path(w) = &*e {
+                        for segment in w.path.segments.clone() {
+                            if segment.ident == "InteractionHandler" {
                                 if let syn::Pat::Ident(a) = &*t.pat {
                                     handlename = Some(a.ident.clone());
                                     break;
@@ -289,23 +284,23 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
                             }
                         }
                     }
-                    
-                },
-                _ => {continue;}
+                }
+                _ => {
+                    continue;
+                }
             }
         }
     }
 
-    if ctxname.is_none(){
+    if ctxname.is_none() {
         panic!("Couldn't determine the Context parameter. Make sure you take a `Context` as an argument");
     }
 
     let mut ih_n = quote!(_);
-    
-    if handlename.is_some(){
+
+    if handlename.is_some() {
         ih_n = quote!(#handlename);
     }
-
 
     // Using quasi-quoting to generate a new function. This is what will be the end function returned to the compiler.
     if !defer {
@@ -346,10 +341,6 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
             );
         }));
 
-        
-
-        
-
         // Unwrap, unwrap, unwrap, unwrap.
         let expra = expr
             .unwrap_or_else(|| panic!("Expected return"))
@@ -371,7 +362,7 @@ pub fn slash_command_test(_attr: TokenStream, item: TokenStream) -> TokenStream 
                                 error!("Editing original message failed: {:?}", i);
                             }
                         }
-                        
+
                     });
 
                     return InteractionResponseBuilder::default().respond_type(InteractionResponseType::DefferedChannelMessageWithSource).finish();

@@ -38,7 +38,6 @@ impl Default for ApplicationCommand {
     }
 }
 
-
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
@@ -63,9 +62,9 @@ pub struct ApplicationCommandOption {
     options: Option<Vec<ApplicationCommandOption>>,
 }
 
-impl Default for ApplicationCommandOption{
-    fn default() -> Self{
-        Self{
+impl Default for ApplicationCommandOption {
+    fn default() -> Self {
+        Self {
             r#type: ApplicationCommandOptionType::String,
             name: None,
             description: None,
@@ -76,35 +75,35 @@ impl Default for ApplicationCommandOption{
     }
 }
 
-impl ApplicationCommandOption{
+impl ApplicationCommandOption {
     /// Set the type
-    pub fn option_type(mut self, ty: &ApplicationCommandOptionType) -> Self{
+    pub fn option_type(mut self, ty: &ApplicationCommandOptionType) -> Self {
         self.r#type = ty.clone();
         self
     }
     /// Set the option name
-    /// 
+    ///
     /// This can only be lower case and may not contain spaces and special characters
-    pub fn name(mut self, name: impl Into<String>) -> Self{
+    pub fn name(mut self, name: impl Into<String>) -> Self {
         self.name = Some(name.into());
         self
     }
 
     /// Set the option description
-    pub fn description(mut self, desc: impl Into<String>) -> Self{
+    pub fn description(mut self, desc: impl Into<String>) -> Self {
         self.description = Some(desc.into());
         self
     }
 
     /// Sets whether this option is required to be filled in
-    pub fn required(mut self, req: &bool) -> Self{
-        self.required = Some(req.clone());
+    pub fn required(mut self, req: &bool) -> Self {
+        self.required = Some(*req);
         self
     }
 
     /// Add a choice
-    pub fn add_choice(mut self, choice: &ApplicationCommandOptionChoice) -> Self{
-        match self.choices.as_mut(){
+    pub fn add_choice(mut self, choice: &ApplicationCommandOptionChoice) -> Self {
+        match self.choices.as_mut() {
             None => {
                 self.choices = Some(vec![choice.clone()]);
             }
@@ -114,12 +113,12 @@ impl ApplicationCommandOption{
         }
         self
     }
-    
+
     /// Add another option
-    /// 
+    ///
     /// Can only be used with the `SubCommand` and `SubCommandGroup` types.
-    pub fn add_option(mut self, opt: &ApplicationCommandOption) -> Self{
-        match self.options.as_mut(){
+    pub fn add_option(mut self, opt: &ApplicationCommandOption) -> Self {
+        match self.options.as_mut() {
             None => {
                 self.options = Some(vec![opt.clone()]);
             }
@@ -129,7 +128,6 @@ impl ApplicationCommandOption{
         }
         self
     }
-
 }
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, Debug, PartialEq)]
@@ -231,8 +229,8 @@ impl SlashCommandDefinitionBuilder {
     }
 
     /// Adds an option ([`ApplicationCommandOption`]) to the slash command definition
-    pub fn add_option(mut self, opt: ApplicationCommandOption) -> Self{
-        match self.obj.options.as_mut(){
+    pub fn add_option(mut self, opt: ApplicationCommandOption) -> Self {
+        match self.obj.options.as_mut() {
             None => {
                 self.obj.options = Some(vec![opt]);
             }

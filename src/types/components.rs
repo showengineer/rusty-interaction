@@ -104,6 +104,8 @@ impl ComponentRowBuilder {
 pub struct ComponentButtonBuilder {
     obj: MessageComponent,
 }
+
+#[allow(clippy::field_reassign_with_default)]
 #[cfg(feature = "handler")]
 impl Default for ComponentButtonBuilder {
     fn default() -> Self {
