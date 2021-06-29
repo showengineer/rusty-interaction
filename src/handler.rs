@@ -99,7 +99,7 @@ impl InteractionHandler {
     pub fn new(
         app_id: Snowflake,
         pbk_str: &str,
-        token: Option<&'static str>,
+        token: Option<impl AsRef<str>>,
     ) -> InteractionHandler {
         let pbk_bytes =
             hex::decode(pbk_str).expect("Failed to parse the public key from hexadecimal");
@@ -109,7 +109,16 @@ impl InteractionHandler {
 
         if let Some(token) = token {
             let mut headers = header::HeaderMap::new();
-            let mut auth_value = header::HeaderValue::from_static(token);
+
+            // Let it panic if there is no valid value
+            let auth_value = header::HeaderValue::from_str(token.as_ref());
+
+            if auth_value.is_err(){
+                panic!("Invalid value given at token");
+            }
+            
+            let mut auth_value = auth_value.unwrap();
+
             auth_value.set_sensitive(true);
             headers.insert(header::AUTHORIZATION, auth_value);
             let new_c = Client::builder().default_headers(headers).build().unwrap();
