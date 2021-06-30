@@ -1,21 +1,28 @@
-use crate::handler::InteractionHandler;
 use crate::security::*;
+
+use ed25519_dalek::PublicKey;
+
+#[cfg(feature="handler")]
+use crate::handler::InteractionHandler;
+#[cfg(feature="handler")]
 use crate::types;
+
+#[cfg(feature="handler")]
 use crate::types::interaction::{
     Context, InteractionResponse, InteractionResponseBuilder, InteractionResponseType,
 };
+#[cfg(feature="handler")]
 use crate::*;
 
+#[cfg(feature="handler")]
 use std::sync::Mutex;
-
+#[cfg(feature="handler")]
 use actix_web::{http, test, web, App, HttpRequest};
-use ed25519_dalek::PublicKey;
-use log::error;
 
-/*const TEST_PUB_KEY: [u8; PUBLIC_KEY_LENGTH] = [
-    0x82, 0xd8, 0xd9, 0x7f, 0xe0, 0x64, 0x1e, 0x68, 0xa1, 0xb0, 0xb1, 0x12, 0x20, 0xf0, 0x5e, 0x9e,
-    0xa0, 0x53, 0x9a, 0xc, 0xdc, 0x0, 0x21, 0x19, 0xd4, 0xa9, 0xe9, 0xe0, 0x25, 0xab, 0xa1, 0xe9,
-];*/
+
+
+#[cfg(feature="handler")]
+use log::error;
 
 const TEST_PUB_KEY: &str = "82d8d97fe0641e68a1b0b11220f05e9ea0539a0cdc002119d4a9e9e025aba1e9";
 /*------------------------------
@@ -76,7 +83,7 @@ fn crypto_verify_test_fail() {
 /*-------------------------------
 Discord Interactions API tests (endpoint: /api/discord/interactions)
 */
-
+#[cfg(feature="handler")]
 macro_rules! interaction_app_init {
     ($ih: ident) => {
 
@@ -105,6 +112,7 @@ macro_rules! init_handler {
     };
 }
 
+#[cfg(feature="handler")]
 #[actix_rt::test]
 // Request with bad content with no Content-Type header present
 // Expected result: Return 400 without panicking
@@ -124,6 +132,7 @@ async fn interactions_no_content_type_header_test() {
     assert_eq!(res.message, "Bad Content-Type");
 }
 
+#[cfg(feature="handler")]
 #[actix_rt::test]
 // Request with bad content with no Content-Type header present
 // Expected result: Return 400 without panicking
@@ -144,6 +153,7 @@ async fn interactions_bad_content_type_header_test() {
     assert_eq!(res.message, "Bad Content-Type");
 }
 
+#[cfg(feature="handler")]
 #[actix_rt::test]
 // Request with missing X-Signature-Ed25519 Header
 // Expected result: Return 400 without panicking
@@ -165,6 +175,7 @@ async fn interactions_no_signature_header_test() {
     assert_eq!(res.message, "Bad signature data");
 }
 
+#[cfg(feature="handler")]
 #[actix_rt::test]
 // Request with missing X-Signature-Timestamp Header
 // Expected result: Return 400 without panicking
@@ -186,6 +197,7 @@ async fn interactions_no_timestamp_header_test() {
     assert_eq!(res.message, "Bad signature data");
 }
 
+#[cfg(feature="handler")]
 #[actix_rt::test]
 // Request with missing a signature that is too short (< 512 bits)
 // Expected result: Return 400 without panicking
@@ -210,6 +222,7 @@ async fn interactions_bad_signature_length_short_test() {
     assert_eq!(res.message, "Bad signature data");
 }
 
+#[cfg(feature="handler")]
 #[actix_rt::test]
 // Request with missing a signature that is too long (> 512 bits)
 // Expected result: Return 400 without panicking
@@ -231,6 +244,7 @@ async fn interactions_bad_signature_length_too_long_test() {
     assert_eq!(res.message, "Bad signature data");
 }
 
+#[cfg(feature="handler")]
 #[actix_rt::test]
 // Normal ping request
 // Expected result: Return 200 with payload
@@ -257,6 +271,7 @@ async fn interactions_ping_test() {
     );
 }
 
+#[cfg(feature="handler")]
 #[actix_rt::test]
 // Bad content but OK signature test
 // Expected result: Return 400 with error, don't panic
@@ -278,17 +293,20 @@ async fn interactions_bad_body_test() {
 
     assert_eq!(res.status(), http::StatusCode::BAD_REQUEST);
 }
+#[cfg(feature="handler")]
 #[allow(unused_must_use)]
 #[slash_command_test]
 async fn normal_handle_test(ctx: Context) -> InteractionResponse {
     return ctx.respond().content("TEST").finish();
 }
+#[cfg(feature="handler")]
 #[allow(unused_must_use)]
 #[slash_command_test]
 async fn normal_handle_value_test(ctx: Context) -> InteractionResponse {
     let response = ctx.respond().content("TEST").finish();
     return response;
 }
+#[cfg(feature="handler")]
 #[allow(unused_must_use)]
 #[slash_command_test]
 async fn normal_handle_direct_test(_ctx: Context) -> InteractionResponse {
@@ -296,7 +314,7 @@ async fn normal_handle_direct_test(_ctx: Context) -> InteractionResponse {
         .content("TEST")
         .finish();
 }
-
+#[cfg(feature="handler")]
 #[actix_rt::test]
 async fn interactions_normal_handle_test() {
     let mut ih = init_handler!();
@@ -325,7 +343,7 @@ async fn interactions_normal_handle_test() {
 
     assert_eq!(res, expected_data);
 }
-
+#[cfg(feature="handler")]
 #[actix_rt::test]
 async fn interactions_normal_from_value_handle_test() {
     let mut ih = init_handler!();
@@ -354,7 +372,7 @@ async fn interactions_normal_from_value_handle_test() {
 
     assert_eq!(res, expected_data);
 }
-
+#[cfg(feature="handler")]
 #[actix_rt::test]
 async fn interactions_normal_from_direct_call_handle_test() {
     let mut ih = init_handler!();
@@ -384,21 +402,22 @@ async fn interactions_normal_from_direct_call_handle_test() {
     assert_eq!(res, expected_data);
 }
 
+#[cfg(feature="handler")]
 use crate::types::interaction::WebhookMessage;
-
+#[cfg(feature="handler")]
 #[slash_command_test]
 #[defer]
 async fn deffered_handle_test(ctx: Context) -> InteractionResponse {
     return ctx.respond().content("TEST").finish();
 }
-
+#[cfg(feature="handler")]
 #[slash_command_test]
 #[defer]
 async fn deffered_handle_value_test(ctx: Context) -> InteractionResponse {
     let response = ctx.respond().content("TEST").finish();
     return response;
 }
-
+#[cfg(feature="handler")]
 #[slash_command_test]
 #[defer]
 async fn deffered_handle_direct_test(_ctx: Context) -> InteractionResponse {
@@ -406,7 +425,7 @@ async fn deffered_handle_direct_test(_ctx: Context) -> InteractionResponse {
         .content("TEST")
         .finish();
 }
-
+#[cfg(feature="handler")]
 #[actix_rt::test]
 async fn interactions_deffered_handle_test() {
     let mut ih = init_handler!();
@@ -436,7 +455,7 @@ async fn interactions_deffered_handle_test() {
 
     assert_eq!(res, expected_data);
 }
-
+#[cfg(feature="handler")]
 #[actix_rt::test]
 async fn interactions_deffered_from_value_handle_test() {
     let mut ih = init_handler!();
@@ -465,7 +484,7 @@ async fn interactions_deffered_from_value_handle_test() {
 
     assert_eq!(res, expected_data);
 }
-
+#[cfg(feature="handler")]
 #[actix_rt::test]
 async fn interactions_deffered_from_direct_value_handle_test() {
     let mut ih = init_handler!();

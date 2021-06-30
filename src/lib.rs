@@ -38,7 +38,7 @@ pub use log;
 #[cfg_attr(docsrs, doc(cfg(feature = "handler")))]
 pub use attributes::*;
 
-#[cfg(all(test, feature = "handler"))]
+#[cfg(all(test, feature = "security"))]
 mod tests;
 
 // ===== USEFUL MACROS =====
