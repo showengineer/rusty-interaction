@@ -21,4 +21,4 @@ To run this example:
 # Useful documentation
 - [InteractionHandler](https://docs.rs/rusty_interaction/latest/rusty_interaction/handler/struct.InteractionHandler.html)
 - [`types::application` module](https://docs.rs/rusty_interaction/latest/rusty_interaction/types/application/index.html)
-- [ManipulationScope](add-correct-link)
+- [ManipulationScope](https://docs.rs/rusty_interaction/latest/rusty_interaction/handler/enum.ManipulationScope.html)
