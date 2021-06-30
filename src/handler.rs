@@ -440,7 +440,7 @@ impl InteractionHandler {
                                 "No associated handler found for {}",
                                 data.name.as_ref().unwrap().as_str()
                             );
-                            ERROR_RESPONSE!(500, "No associated handler found")
+                            ERROR_RESPONSE!(501, "No associated handler found")
                         }
                     }
                     InteractionType::MessageComponent => {
@@ -478,7 +478,7 @@ impl InteractionHandler {
                                 "No associated handler found for {}",
                                 data.custom_id.as_ref().unwrap().as_str()
                             );
-                            ERROR_RESPONSE!(500, "No associated handler found")
+                            ERROR_RESPONSE!(501, "No associated handler found")
                         }
                     }
                 }
