@@ -50,6 +50,7 @@ macro_rules! match_handler_response {
     };
 }
 
+#[cfg(feature = "handler")]
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// Used for some functions to define which scope should be manipulated.
@@ -98,11 +99,11 @@ impl InteractionHandler {
     /// Initalizes a new `InteractionHandler`
     pub fn new(
         app_id: Snowflake,
-        pbk_str: &str,
-        token: Option<impl AsRef<str>>,
+        pbk_str: impl AsRef<str>,
+        token: Option<&String>,
     ) -> InteractionHandler {
         let pbk_bytes =
-            hex::decode(pbk_str).expect("Failed to parse the public key from hexadecimal");
+            hex::decode(pbk_str.as_ref()).expect("Failed to parse the public key from hexadecimal");
 
         let app_public_key =
             PublicKey::from_bytes(&pbk_bytes).expect("Failed to parse public key.");
@@ -111,7 +112,7 @@ impl InteractionHandler {
             let mut headers = header::HeaderMap::new();
 
             // Let it panic if there is no valid value
-            let auth_value = header::HeaderValue::from_str(token.as_ref());
+            let auth_value = header::HeaderValue::from_str(token.as_str());
 
             if auth_value.is_err(){
                 panic!("Invalid value given at token");

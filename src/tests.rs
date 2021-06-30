@@ -18,7 +18,6 @@ use log::error;
 ];*/
 
 const TEST_PUB_KEY: &str = "82d8d97fe0641e68a1b0b11220f05e9ea0539a0cdc002119d4a9e9e025aba1e9";
-const EMPTY_TOKEN: &str = "";
 /*------------------------------
 SECURITY TESTS
 */
@@ -102,7 +101,7 @@ macro_rules! init_handler {
 #[cfg(feature = "extended-handler")]
 macro_rules! init_handler {
     () => {
-        InteractionHandler::new(0, TEST_PUB_KEY, Some(EMPTY_TOKEN))
+        InteractionHandler::new(0, TEST_PUB_KEY, Some(&String::new()))
     };
 }
 
