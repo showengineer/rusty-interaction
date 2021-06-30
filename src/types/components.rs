@@ -1,9 +1,11 @@
 #[cfg(feature = "handler")]
-use log::error;
+use log::warn;
 use serde::{Deserialize, Serialize};
 
 use serde_repr::*;
 use serde_with::*;
+
+
 
 #[serde_as]
 #[skip_serializing_none]
@@ -14,10 +16,14 @@ pub struct MessageComponent {
     r#type: ComponentType,
     style: Option<ComponentButtonStyle>,
     label: Option<String>,
-    // pub emoji: Option<Emoji>,
+    emoji: Option<PartialEmoji>,
     custom_id: Option<String>,
     url: Option<String>,
     disabled: Option<bool>,
+    options: Option<Vec<ComponentSelectOption>>,
+    placeholder: Option<String>,
+    min_values: Option<u8>,
+    max_values: Option<u8>,
     components: Option<Vec<MessageComponent>>,
 }
 
@@ -30,6 +36,11 @@ impl Default for MessageComponent {
             custom_id: None,
             url: None,
             disabled: None,
+            emoji: None,
+            options: None,
+            placeholder: None,
+            max_values: None,
+            min_values: None,
             components: None,
         }
     }
@@ -44,6 +55,108 @@ pub enum ComponentType {
     ActionRow = 1,
     /// A clickable button
     Button = 2,
+    /// A select menu for picking from choices
+    SelectMenu = 3,
+}
+
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+/// A partial Emoji structure for Select Menu Options
+pub struct PartialEmoji{
+    id: u64,
+    name: String,
+    animated: bool,
+}
+
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+/// An option for select menu options
+pub struct ComponentSelectOption{
+    label: String,
+    value: String,
+    description: Option<String>,
+    emoji: Option<PartialEmoji>,
+    default: Option<bool>,
+}
+
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+/// A select menu
+pub struct ComponentSelectMenu{
+    custom_id: String,
+    options: Vec<ComponentSelectOption>,
+    placeholder: Option<String>,
+    min_values: u8,
+    max_values: u8,
+}
+
+#[cfg(feature = "handler")]
+impl Default for ComponentSelectMenu{
+    fn default() -> Self{
+        Self{
+            custom_id: String::new(),
+            options: Vec::new(),
+            placeholder: None,
+
+            // documented defaults
+            min_values: 1,
+            max_values: 1
+        }
+    }
+}
+
+#[cfg(feature = "handler")]
+impl From<ComponentSelectMenu> for MessageComponent{
+    fn from(t: ComponentSelectMenu) -> Self{
+        let mut o = MessageComponent::default();
+
+        o.r#type = ComponentType::SelectMenu;
+        o.custom_id = Some(t.custom_id);
+        o.options = Some(t.options);
+        o.placeholder = t.placeholder;
+        o.min_values = Some(t.min_values);
+        o.max_values = Some(t.max_values);
+
+        o
+    }
+}
+
+#[cfg(feature = "handler")]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+/// A button
+pub struct ComponentButton{
+    style: Option<ComponentButtonStyle>,
+    label: Option<String>,
+    emoji: Option<PartialEmoji>,
+    custom_id: Option<String>,
+    url: Option<String>,
+    disabled: Option<bool>,
+}
+#[cfg(feature = "handler")]
+impl Default for ComponentButton{
+    fn default() -> Self{
+        Self{
+            style: Some(ComponentButtonStyle::Secondary),
+            label: None,
+            emoji: None,
+            custom_id: None,
+            url: None,
+            disabled: None,
+        }
+    }
+}
+#[cfg(feature = "handler")]
+impl From<ComponentButton> for MessageComponent{
+    fn from(t: ComponentButton) -> Self{
+        let mut o = MessageComponent::default();
+        
+        o.r#type = ComponentType::Button;
+        o.style = t.style;
+        o.label = t.label;
+        o.emoji = t.emoji;
+        o.custom_id = t.custom_id;
+        o.url = t.url;
+        o.disabled = t.disabled;
+        
+        o
+    }
 }
 
 #[derive(Clone, Serialize_repr, Deserialize_repr, PartialEq, Debug)]
@@ -63,6 +176,8 @@ pub enum ComponentButtonStyle {
     Link = 5,
 }
 
+
+
 /// Builder for creating a Component Action Row
 
 #[cfg(feature = "handler")]
@@ -81,13 +196,27 @@ impl Default for ComponentRowBuilder {
 #[cfg(feature = "handler")]
 impl ComponentRowBuilder {
     /// Add a button
-    pub fn add_button(mut self, button: MessageComponent) -> Self {
+    pub fn add_button(mut self, button: ComponentButton) -> Self {
         match self.obj.components.as_mut() {
             None => {
-                self.obj.components = Some(vec![button]);
+                self.obj.components = Some(vec![button.into()]);
             }
             Some(c) => {
-                c.push(button);
+                c.push(button.into());
+            }
+        }
+        self
+    }
+
+    /// Add a select menu to the row
+    pub fn add_select_menu(mut self, menu: ComponentSelectMenu) -> Self{
+
+        match self.obj.components.as_mut() {
+            None => {
+                self.obj.components = Some(vec![menu.into()]);
+            }
+            Some(c) => {
+                c.push(menu.into());
             }
         }
         self
@@ -102,32 +231,30 @@ impl ComponentRowBuilder {
 #[derive(Clone, PartialEq, Debug)]
 /// Builder for making an button component
 pub struct ComponentButtonBuilder {
-    obj: MessageComponent,
+    obj: ComponentButton,
 }
 
 #[allow(clippy::field_reassign_with_default)]
 #[cfg(feature = "handler")]
 impl Default for ComponentButtonBuilder {
     fn default() -> Self {
-        let mut ob = MessageComponent::default();
-        ob.r#type = ComponentType::Button;
-        ob.style = Some(ComponentButtonStyle::Secondary);
+        let ob = ComponentButton::default();
         Self { obj: ob }
     }
 }
 #[cfg(feature = "handler")]
 impl ComponentButtonBuilder {
     /// Finish building this button
-    pub fn finish(self) -> MessageComponent {
+    pub fn finish(self) -> ComponentButton {
         match self.obj.clone().style.unwrap() {
             ComponentButtonStyle::Link => {
                 if self.obj.url.is_none() {
-                    error!("The button style is set to 'Link', but no url was specified.");
+                    warn!("The button style is set to 'Link', but no url was specified.");
                 }
             }
             _ => {
                 if self.obj.custom_id.is_none() {
-                    error!("No custom_id was supplied for this button!")
+                    warn!("No custom_id was supplied for this button!")
                 }
             }
         }
@@ -135,8 +262,8 @@ impl ComponentButtonBuilder {
     }
 
     /// Set the button style. Takes a [`ComponentButtonStyle`]
-    pub fn style(mut self, s: ComponentButtonStyle) -> Self {
-        self.obj.style = Some(s);
+    pub fn style(mut self, s: &ComponentButtonStyle) -> Self {
+        self.obj.style = Some(s.clone());
         self
     }
     /// Set the button label
