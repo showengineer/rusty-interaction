@@ -6,7 +6,7 @@
 //! Note that Discord also has [official documentation](https://discord.com/developers/docs/intro).
 //!
 //! ## Examples
-//! See the [`examples`](https://github.com/hugopilot/rusty-interaction/tree/main/examples`) directory.
+//! See the [`examples`](https://github.com/hugopilot/rusty-interaction/tree/main/examples) directory.
 
 #[macro_use]
 mod macros;
