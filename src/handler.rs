@@ -1,8 +1,15 @@
 use crate::security::*;
+
+#[cfg(feature="extended-handler")]
 use crate::types::application::*;
+
+#[cfg(feature="handler")]
 use crate::types::interaction::*;
+
+#[cfg(feature="extended-handler")]
 use crate::types::HttpError;
 use crate::types::Snowflake;
+#[cfg(feature="extended-handler")]
 use crate::{expect_specific_api_response, expect_successful_api_response_and_return};
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
@@ -172,7 +179,8 @@ impl InteractionHandler {
     /// async fn pong_handler(ctx: Context) -> InteractionResponse {
     ///     return ctx.respond()
     ///             .content("Pong!")
-    ///             .finish();
+    ///             .build()
+    ///             .unwrap();
     /// }
     ///
     /// #[actix_web::main]
@@ -200,7 +208,7 @@ impl InteractionHandler {
     ///
     /// #[component_handler]
     /// async fn comp_hand(ctx: Context) -> InteractionResponse {
-    ///     return ctx.respond().content("Some message content").finish();
+    ///     return ctx.respond().content("Some message content").build();
     /// }
     ///
     /// #[slash_command]
@@ -218,18 +226,22 @@ impl InteractionHandler {
     ///                            .label("Edit")
     ///                            .custom_id("HEHE")
     ///                            .style(ComponentButtonStyle::Primary)
-    ///                            .finish()
+    ///                            .build()
+    ///                            .unwrap()
     ///        )
     ///        .add_button(
     ///            ComponentButtonBuilder::default()
     ///                            .label("Delete")
     ///                            .custom_id("DELETE")
     ///                            .style(ComponentButtonStyle::Danger)
-    ///                            .finish()
+    ///                            .build()
+    ///                            .unwrap()
     ///         )
-    ///         .finish()
+    ///         .build()
+    ///         .unwrap()
     ///     )
-    ///     .finish();
+    ///     .build()
+    ///     .unwrap();
 
     ///     return resp;
     ///

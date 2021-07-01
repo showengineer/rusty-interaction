@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::*;
 
+#[cfg(feature="extended-handler")]
+use crate::Builder;
+
 use super::components::ComponentType;
 use super::Snowflake;
 use serde_repr::*;
@@ -241,8 +244,19 @@ impl SlashCommandDefinitionBuilder {
         self
     }
 
+    #[deprecated(
+        since = "0.1.9",
+        note = "Use the `build()` function instead"
+    )]
     /// Finish building slash command
     pub fn finish(self) -> ApplicationCommand {
         self.obj
+    }
+}
+
+#[cfg(feature = "extended-handler")]
+impl Builder<ApplicationCommand> for SlashCommandDefinitionBuilder{
+    fn build(self) -> Result<ApplicationCommand, String>{
+        Ok(self.obj)
     }
 }

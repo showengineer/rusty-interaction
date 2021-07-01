@@ -41,6 +41,12 @@ pub use attributes::*;
 #[cfg(all(test, feature = "security"))]
 mod tests;
 
+/// A trait for defining builder patterns.
+pub trait Builder<T>{
+    /// Build the given type
+    fn build(self) -> Result<T, String>;
+}
+
 // ===== USEFUL MACROS =====
 #[macro_export]
 #[doc(hidden)]
