@@ -52,7 +52,7 @@ async fn test(ctx: Context) -> InteractionResponse{
                         ComponentButtonBuilder::default()
                         .label("Delete")
                         .custom_id("DELETE")
-                        .style(ComponentButtonStyle::Danger)
+                        .style(&ComponentButtonStyle::Danger)
                         .finish()
                     )
                     .finish();
@@ -62,7 +62,7 @@ async fn test(ctx: Context) -> InteractionResponse{
     let resp = ctx.respond()
             // Set message content
             .content("Not edited")
-            .add_component_row(&components)
+            .add_component_row(components)
             // Add the embed. You can add a maximum of 10 embeds
             .add_embed(&embed)
             .finish();
