@@ -73,7 +73,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     // Note the use of the TOKEN. You'll also need to specify your application ID
-    let mut handle = InteractionHandler::new(APP_ID, PUB_KEY, Some(TOKEN));
+    let mut handle = InteractionHandler::new(APP_ID, PUB_KEY, Some(&TOKEN.to_string()));
     
     
     handle.add_global_command("summon", test);
