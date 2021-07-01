@@ -4,14 +4,14 @@ use rusty_interaction::handler::InteractionHandler;
 use rusty_interaction::types::interaction::*;
 // Import for using components
 use rusty_interaction::types::components::*;
-
+use rusty_interaction::Builder;
 
 use std::time::Duration;
 use async_std::task;
 
 use rusty_interaction::actix::Arbiter;
 
-const PUB_KEY: &str = "YOUR_PUBLIC_KEY";
+const PUB_KEY: &str = "My Public Key";
 const APP_ID: u64 = 0; 
 
 
@@ -38,24 +38,53 @@ async fn test(ctx: Context) -> InteractionResponse{
             // Set message content
             .content("Not edited")
             // add a component action row using it's builder
+            // Example for adding buttons
             .add_component_row(
-                &ComponentRowBuilder::default()
+                ComponentRowBuilder::default()
                     // Add buttons using it's builder
                     .add_button(
                         ComponentButtonBuilder::default()
                                         .label("Edit")
-                                        .custom_id("HEHE")
-                                        .style(ComponentButtonStyle::Primary)
-                                        .finish()
+                                        .custom_id("EDIT_BUTTON_PRIMARY")
+                                        .style(&ComponentButtonStyle::Primary)
+                                        .build()
+                                        .unwrap()
                     )
                     .add_button(
                         ComponentButtonBuilder::default()
                                         .label("Delete")
-                                        .custom_id("DELETE")
-                                        .style(ComponentButtonStyle::Danger)
-                                        .finish()
+                                        .custom_id("DELETE_BUTTON")
+                                        .style(&ComponentButtonStyle::Danger)
+                                        .build()
+                                        .unwrap()
                     )
-                .finish()
+                .build()
+                .unwrap()
+            )
+            // Select menu example (interactions with it will fail)
+            .add_component_row(
+                ComponentRowBuilder::default()
+                .add_select_menu(
+                    ComponentSelectMenuBuilder::default()
+                    .custom_id("TEST")
+                    .add_option(
+                        ComponentSelectOption::default()
+                            .label("Test 1")
+                            .value("Some Test idk")
+                            .description("What?")
+                            .set_default(true)
+                    )
+                    .add_option(
+                        ComponentSelectOption::default()
+                            .label("Test 2")
+                            .value("Another test")
+                            .description("What?")
+                    )
+                    .build()
+                    .unwrap()
+                )
+                .build()
+                .unwrap()
             )
             .finish();
 
