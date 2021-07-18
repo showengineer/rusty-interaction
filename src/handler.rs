@@ -159,7 +159,7 @@ impl InteractionHandler {
     /// Make sure to use the `#[slash_command]` procedural macro to make it usable for the handler.
     ///
     /// Like:
-    /// ```rust,no_run
+    /// ```ignore
     /// # use rusty_interaction::types::interaction::{Context, InteractionResponse};
     /// # use attributes::slash_command;
     /// #[slash_command]
@@ -172,7 +172,7 @@ impl InteractionHandler {
     /// The handler will first check if a guild-specific handler is available. If not, it will try to match a global command. If that fails too, an error will be returned.
     ///
     /// # Example
-    /// ```rust,no_run
+    /// ```ignore
     /// # use rusty_interaction::types::interaction::{Context, InteractionResponse};
     /// # use rusty_interaction::handler::InteractionHandler;
     /// # use attributes::slash_command;
@@ -204,7 +204,7 @@ impl InteractionHandler {
     /// Use the `#[component_handler]` procedural macro for your own convinence.eprintln!
     ///
     /// # Example
-    /// ```rust,no_run
+    /// ```ignore
     /// use rusty_interaction::handler::InteractionHandler;
     /// use rusty_interaction::types::components::*;
     /// use rusty_interaction::types::interaction::*;
