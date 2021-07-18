@@ -42,7 +42,7 @@ pub use attributes::*;
 mod tests;
 
 /// A trait for defining builder patterns.
-pub trait Builder<T>{
+pub trait Builder<T> {
     /// Build the given type
     fn build(self) -> Result<T, String>;
 }

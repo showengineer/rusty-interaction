@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use serde_with::*;
 use ::chrono::{DateTime, Utc};
+use serde_with::*;
 
 #[cfg(feature = "handler")]
-use log::warn;
-#[cfg(feature = "handler")]
 use crate::Builder;
+#[cfg(feature = "handler")]
+use log::warn;
 // ======== Structures =========
 #[serde_as]
 #[skip_serializing_none]
@@ -247,10 +247,7 @@ impl EmbedBuilder {
         self
     }
 
-    #[deprecated(
-        since = "0.1.9",
-        note = "Use the `build()` function instead"
-    )]
+    #[deprecated(since = "0.1.9", note = "Use the `build()` function instead")]
     /// Build the embed. You can't use the function after this anymore
     pub fn finish(self) -> Embed {
         self.obj
@@ -259,12 +256,11 @@ impl EmbedBuilder {
 
 #[cfg(feature = "handler")]
 
-impl Builder<Embed> for EmbedBuilder{
-    fn build(self) -> Result<Embed, String>{
+impl Builder<Embed> for EmbedBuilder {
+    fn build(self) -> Result<Embed, String> {
         Ok(self.obj)
     }
 }
-
 
 impl Default for EmbedFooter {
     fn default() -> Self {

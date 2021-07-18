@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::*;
 
-#[cfg(feature="extended-handler")]
+#[cfg(feature = "extended-handler")]
 use crate::Builder;
 
 use super::components::ComponentType;
@@ -49,25 +49,25 @@ impl Default for ApplicationCommand {
 #[repr(u8)]
 #[non_exhaustive]
 /// Type of permission override
-pub enum ApplicationCommandPermissionType{
+pub enum ApplicationCommandPermissionType {
     /// A guild role
-    ROLE = 1,
+    Role = 1,
     /// A user
-    USER = 2,
+    User = 2,
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// Used for specifying a batch of [`ApplicationCommandPermission`]s
-pub struct ApplicationCommandPermissionBatch{
+pub struct ApplicationCommandPermissionBatch {
     /// ID of the command
     pub id: Snowflake,
     /// Permissions (see [`ApplicationCommandPermission`])
-    pub permissions: Vec<ApplicationCommandPermission> 
+    pub permissions: Vec<ApplicationCommandPermission>,
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// A permission override for a [`ApplicationCommand`]
-pub struct ApplicationCommandPermission{
+pub struct ApplicationCommandPermission {
     /// Role or user ID
     pub id: Snowflake,
     /// Type of override. See [`ApplicationCommandPermissionType`]
@@ -282,15 +282,12 @@ impl SlashCommandDefinitionBuilder {
 
     /// Sets the default permission. If false, this command can't be used unless some
     /// permission override is set.
-    pub fn default_permission(mut self, permission: bool) -> Self{
+    pub fn default_permission(mut self, permission: bool) -> Self {
         self.obj.default_permission = Some(permission);
         self
     }
 
-    #[deprecated(
-        since = "0.1.9",
-        note = "Use the `build()` function instead"
-    )]
+    #[deprecated(since = "0.1.9", note = "Use the `build()` function instead")]
     /// Finish building slash command
     pub fn finish(self) -> ApplicationCommand {
         self.obj
@@ -298,8 +295,8 @@ impl SlashCommandDefinitionBuilder {
 }
 
 #[cfg(feature = "extended-handler")]
-impl Builder<ApplicationCommand> for SlashCommandDefinitionBuilder{
-    fn build(self) -> Result<ApplicationCommand, String>{
+impl Builder<ApplicationCommand> for SlashCommandDefinitionBuilder {
+    fn build(self) -> Result<ApplicationCommand, String> {
         Ok(self.obj)
     }
 }

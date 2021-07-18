@@ -1,19 +1,19 @@
 use crate::security::*;
 
-#[cfg(feature="extended-handler")]
+#[cfg(feature = "extended-handler")]
 use crate::types::application::*;
 
-#[cfg(feature="handler")]
+#[cfg(feature = "handler")]
 use crate::types::interaction::*;
 
-#[cfg(feature="extended-handler")]
+#[cfg(feature = "extended-handler")]
 use crate::types::HttpError;
 use crate::types::Snowflake;
-#[cfg(feature="extended-handler")]
+#[cfg(feature = "extended-handler")]
 use crate::{
-    expect_successful_api_response,
-    expect_specific_api_response, 
-    expect_successful_api_response_and_return};
+    expect_specific_api_response, expect_successful_api_response,
+    expect_successful_api_response_and_return,
+};
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use reqwest::header;
@@ -124,10 +124,10 @@ impl InteractionHandler {
             // Let it panic if there is no valid value
             let auth_value = header::HeaderValue::from_str(token.as_str());
 
-            if auth_value.is_err(){
+            if auth_value.is_err() {
                 panic!("Invalid value given at token");
             }
-            
+
             let mut auth_value = auth_value.unwrap();
 
             auth_value.set_sensitive(true);
@@ -358,8 +358,8 @@ impl InteractionHandler {
     pub async fn override_guild_permissions(
         &self,
         guild_id: impl Into<Snowflake>,
-        overrides: &Vec<ApplicationCommandPermissionBatch>
-    ) -> Result<(), HttpError>{
+        overrides: &Vec<ApplicationCommandPermissionBatch>,
+    ) -> Result<(), HttpError> {
         let url = format!(
             "{}/applications/{}/guilds/{}/commands/permissions",
             crate::BASE_URL,
@@ -379,8 +379,8 @@ impl InteractionHandler {
         &self,
         guild_id: impl Into<Snowflake>,
         appcmd_id: impl Into<Snowflake>,
-        permission_override: &ApplicationCommandPermission
-    ) -> Result<(), HttpError>{
+        permission_override: &ApplicationCommandPermission,
+    ) -> Result<(), HttpError> {
         let url = format!(
             "{}/applications/{}/guilds/{}/commands/{}/permissions",
             crate::BASE_URL,

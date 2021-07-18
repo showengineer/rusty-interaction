@@ -8,8 +8,6 @@ use crate::Builder;
 use serde_repr::*;
 use serde_with::*;
 
-
-
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
@@ -64,7 +62,7 @@ pub enum ComponentType {
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// A partial Emoji structure for Select Menu Options
-pub struct PartialEmoji{
+pub struct PartialEmoji {
     id: u64,
     name: String,
     animated: bool,
@@ -72,7 +70,7 @@ pub struct PartialEmoji{
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// An option for select menu options
-pub struct ComponentSelectOption{
+pub struct ComponentSelectOption {
     label: String,
     value: String,
     description: Option<String>,
@@ -80,9 +78,9 @@ pub struct ComponentSelectOption{
     default: Option<bool>,
 }
 
-impl Default for ComponentSelectOption{
-    fn default() -> Self{
-        Self{
+impl Default for ComponentSelectOption {
+    fn default() -> Self {
+        Self {
             label: String::new(),
             value: String::new(),
             emoji: None,
@@ -92,33 +90,32 @@ impl Default for ComponentSelectOption{
     }
 }
 
-impl ComponentSelectOption{
+impl ComponentSelectOption {
     /// Sets the option label
-    pub fn label(mut self, lab: impl Into<String>) -> Self{
+    pub fn label(mut self, lab: impl Into<String>) -> Self {
         self.label = lab.into();
         self
     }
     /// Sets the option value
-    pub fn value(mut self, value: impl Into<String>)-> Self{
+    pub fn value(mut self, value: impl Into<String>) -> Self {
         self.value = value.into();
         self
     }
     /// Sets the option description
-    pub fn description(mut self, des: impl Into<String>)-> Self{
+    pub fn description(mut self, des: impl Into<String>) -> Self {
         self.description = Some(des.into());
         self
     }
-    /// Sets the default checked 
-    pub fn set_default(mut self, default: bool) -> Self{
+    /// Sets the default checked
+    pub fn set_default(mut self, default: bool) -> Self {
         self.default = Some(default);
         self
     }
-
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// A select menu
-pub struct ComponentSelectMenu{
+pub struct ComponentSelectMenu {
     custom_id: String,
     options: Vec<ComponentSelectOption>,
     placeholder: Option<String>,
@@ -126,25 +123,24 @@ pub struct ComponentSelectMenu{
     max_values: u8,
 }
 
-
 #[cfg(feature = "handler")]
-impl Default for ComponentSelectMenu{
-    fn default() -> Self{
-        Self{
+impl Default for ComponentSelectMenu {
+    fn default() -> Self {
+        Self {
             custom_id: String::new(),
             options: Vec::new(),
             placeholder: None,
 
             // documented defaults
             min_values: 1,
-            max_values: 1
+            max_values: 1,
         }
     }
 }
 
 #[cfg(feature = "handler")]
-impl From<ComponentSelectMenu> for MessageComponent{
-    fn from(t: ComponentSelectMenu) -> Self{
+impl From<ComponentSelectMenu> for MessageComponent {
+    fn from(t: ComponentSelectMenu) -> Self {
         let mut o = MessageComponent::default();
 
         o.r#type = ComponentType::SelectMenu;
@@ -161,7 +157,7 @@ impl From<ComponentSelectMenu> for MessageComponent{
 #[cfg(feature = "handler")]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// A button
-pub struct ComponentButton{
+pub struct ComponentButton {
     style: Option<ComponentButtonStyle>,
     label: Option<String>,
     emoji: Option<PartialEmoji>,
@@ -170,9 +166,9 @@ pub struct ComponentButton{
     disabled: Option<bool>,
 }
 #[cfg(feature = "handler")]
-impl Default for ComponentButton{
-    fn default() -> Self{
-        Self{
+impl Default for ComponentButton {
+    fn default() -> Self {
+        Self {
             style: Some(ComponentButtonStyle::Secondary),
             label: None,
             emoji: None,
@@ -183,10 +179,10 @@ impl Default for ComponentButton{
     }
 }
 #[cfg(feature = "handler")]
-impl From<ComponentButton> for MessageComponent{
-    fn from(t: ComponentButton) -> Self{
+impl From<ComponentButton> for MessageComponent {
+    fn from(t: ComponentButton) -> Self {
         let mut o = MessageComponent::default();
-        
+
         o.r#type = ComponentType::Button;
         o.style = t.style;
         o.label = t.label;
@@ -194,7 +190,7 @@ impl From<ComponentButton> for MessageComponent{
         o.custom_id = t.custom_id;
         o.url = t.url;
         o.disabled = t.disabled;
-        
+
         o
     }
 }
@@ -216,8 +212,6 @@ pub enum ComponentButtonStyle {
     Link = 5,
 }
 
-
-
 /// Builder for creating a Component Action Row
 
 #[cfg(feature = "handler")]
@@ -234,8 +228,8 @@ impl Default for ComponentRowBuilder {
     }
 }
 #[cfg(feature = "handler")]
-impl Builder<MessageComponent> for ComponentRowBuilder{
-    fn build(self) -> Result<MessageComponent, String>{
+impl Builder<MessageComponent> for ComponentRowBuilder {
+    fn build(self) -> Result<MessageComponent, String> {
         Ok(self.obj)
     }
 }
@@ -256,8 +250,7 @@ impl ComponentRowBuilder {
     }
 
     /// Add a select menu to the row
-    pub fn add_select_menu(mut self, menu: ComponentSelectMenu) -> Self{
-
+    pub fn add_select_menu(mut self, menu: ComponentSelectMenu) -> Self {
         match self.obj.components.as_mut() {
             None => {
                 self.obj.components = Some(vec![menu.into()]);
@@ -269,10 +262,7 @@ impl ComponentRowBuilder {
         self
     }
 
-    #[deprecated(
-        since = "0.1.9",
-        note = "Use the `build()` function instead"
-    )]
+    #[deprecated(since = "0.1.9", note = "Use the `build()` function instead")]
     /// Finish building this row (returns a [`MessageComponent`])
     pub fn finish(self) -> MessageComponent {
         self.obj
@@ -296,10 +286,7 @@ impl Default for ComponentButtonBuilder {
 #[cfg(feature = "handler")]
 impl ComponentButtonBuilder {
     /// Finish building this button
-    #[deprecated(
-        since = "0.1.9",
-        note = "Use the `build()` function instead"
-    )]
+    #[deprecated(since = "0.1.9", note = "Use the `build()` function instead")]
     pub fn finish(self) -> ComponentButton {
         match self.obj.clone().style.unwrap() {
             ComponentButtonStyle::Link => {
@@ -350,15 +337,17 @@ impl ComponentButtonBuilder {
 }
 
 #[cfg(feature = "handler")]
-impl Builder<ComponentButton> for ComponentButtonBuilder{
-    fn build(self) -> Result<ComponentButton, String>{
-        if self.obj.style.is_none(){
-            return Err("Style is None.".to_string())
+impl Builder<ComponentButton> for ComponentButtonBuilder {
+    fn build(self) -> Result<ComponentButton, String> {
+        if self.obj.style.is_none() {
+            return Err("Style is None.".to_string());
         }
         match self.obj.clone().style.unwrap() {
             ComponentButtonStyle::Link => {
                 if self.obj.url.is_none() {
-                    return Err("The button style is set to 'Link', but no url was specified.".to_string());
+                    return Err(
+                        "The button style is set to 'Link', but no url was specified.".to_string(),
+                    );
                 }
             }
             _ => {
@@ -374,29 +363,29 @@ impl Builder<ComponentButton> for ComponentButtonBuilder{
 #[cfg(feature = "handler")]
 #[derive(Clone, Debug)]
 /// Builder pattern for creating menu components.
-pub struct ComponentSelectMenuBuilder{
-    obj: ComponentSelectMenu
+pub struct ComponentSelectMenuBuilder {
+    obj: ComponentSelectMenu,
 }
 
 #[cfg(feature = "handler")]
-impl Default for ComponentSelectMenuBuilder{
-    fn default() -> Self{
-        Self{
+impl Default for ComponentSelectMenuBuilder {
+    fn default() -> Self {
+        Self {
             obj: ComponentSelectMenu::default(),
         }
     }
 }
 
 #[cfg(feature = "handler")]
-impl ComponentSelectMenuBuilder{
+impl ComponentSelectMenuBuilder {
     /// The custom developer identifier. **SETTING THIS IS MANDATORY!**
-    pub fn custom_id(mut self, id: impl Into<String>) -> Self{
+    pub fn custom_id(mut self, id: impl Into<String>) -> Self {
         self.obj.custom_id = id.into();
         self
     }
 
     /// custom placeholder text if nothing is selected, max 100 characters
-    pub fn placeholder(mut self, ph: impl Into<String>) -> Self{
+    pub fn placeholder(mut self, ph: impl Into<String>) -> Self {
         let p = ph.into();
 
         if p.chars().count() > 100 {
@@ -407,9 +396,9 @@ impl ComponentSelectMenuBuilder{
         self
     }
 
-    /// Add a menu choice 
-    pub fn add_option(mut self, opt: ComponentSelectOption) -> Self{
-        if self.obj.options.len() >= 25{
+    /// Add a menu choice
+    pub fn add_option(mut self, opt: ComponentSelectOption) -> Self {
+        if self.obj.options.len() >= 25 {
             warn!("This menu already contains 25 elements, ignoring");
             return self;
         }
@@ -418,34 +407,33 @@ impl ComponentSelectMenuBuilder{
     }
 
     /// he minimum number of items that must be chosen; default 1, min 0, max 25
-    pub fn min_values(mut self, min: impl Into<u8>) -> Self{
+    pub fn min_values(mut self, min: impl Into<u8>) -> Self {
         self.obj.min_values = min.into();
         self
     }
 
     /// the maximum number of items that can be chosen; default 1, max 25
-    pub fn max_values(mut self, max: impl Into<u8>) -> Self{
+    pub fn max_values(mut self, max: impl Into<u8>) -> Self {
         self.obj.max_values = max.into();
         self
     }
 }
 
 #[cfg(feature = "handler")]
-impl Builder<ComponentSelectMenu> for ComponentSelectMenuBuilder{
-    fn build(self) -> Result<ComponentSelectMenu, String>{
-        if self.obj.custom_id.is_empty(){
+impl Builder<ComponentSelectMenu> for ComponentSelectMenuBuilder {
+    fn build(self) -> Result<ComponentSelectMenu, String> {
+        if self.obj.custom_id.is_empty() {
             return Err("custom_id is empty!".to_string());
         }
-        if self.obj.options.len() > 25{
+        if self.obj.options.len() > 25 {
             return Err("Menu more than 25 options".to_string());
         }
-        if &self.obj.min_values > &25{
+        if &self.obj.min_values > &25 {
             return Err("min_values cannot be more than 25".to_string());
         }
-        if &self.obj.max_values > &25{
+        if &self.obj.max_values > &25 {
             return Err("max_values cannot be more than 25".to_string());
         }
         Ok(self.obj)
     }
 }
-
