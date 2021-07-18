@@ -352,6 +352,8 @@ impl InteractionHandler {
         }
     }
 
+    #[cfg(feature = "extended-handler")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
     /// Override a bunch of permissions for commands in a guild.
     pub async fn override_guild_permissions(
         &self,
@@ -370,6 +372,8 @@ impl InteractionHandler {
         expect_successful_api_response!(res, Ok(()))
     }
 
+    #[cfg(feature = "extended-handler")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
     /// Add a permission override for a guild command
     pub async fn edit_guild_command_permissions(
         &self,
