@@ -27,6 +27,9 @@ pub struct ApplicationCommand {
     description: String,
     /// Command options
     options: Option<Vec<ApplicationCommandOption>>,
+
+    /// Whether the command is enabled by default when the app is added to a guild
+    default_permission: Option<bool>,
 }
 
 impl Default for ApplicationCommand {
@@ -37,8 +40,41 @@ impl Default for ApplicationCommand {
             name: String::new(),
             description: String::new(),
             options: None,
+            default_permission: Some(true),
         }
     }
+}
+
+#[derive(Clone, Serialize_repr, Deserialize_repr, Debug, PartialEq)]
+#[repr(u8)]
+#[non_exhaustive]
+/// Type of permission override
+pub enum ApplicationCommandPermissionType{
+    /// A guild role
+    ROLE = 1,
+    /// A user
+    USER = 2,
+}
+
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+/// Used for specifying a batch of [`ApplicationCommandPermission`]s
+pub struct ApplicationCommandPermissionBatch{
+    /// ID of the command
+    pub id: Snowflake,
+    /// Permissions (see [`ApplicationCommandPermission`])
+    pub permissions: Vec<ApplicationCommandPermission> 
+}
+
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+/// A permission override for a [`ApplicationCommand`]
+pub struct ApplicationCommandPermission{
+    /// Role or user ID
+    pub id: Snowflake,
+    /// Type of override. See [`ApplicationCommandPermissionType`]
+    pub r#type: ApplicationCommandPermissionType,
+
+    /// Allow or disallow for this override
+    pub permission: bool,
 }
 
 #[serde_as]

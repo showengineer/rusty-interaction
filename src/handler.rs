@@ -10,7 +10,10 @@ use crate::types::interaction::*;
 use crate::types::HttpError;
 use crate::types::Snowflake;
 #[cfg(feature="extended-handler")]
-use crate::{expect_specific_api_response, expect_successful_api_response_and_return};
+use crate::{
+    expect_successful_api_response,
+    expect_specific_api_response, 
+    expect_successful_api_response_and_return};
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use reqwest::header;
@@ -156,7 +159,7 @@ impl InteractionHandler {
     /// Make sure to use the `#[slash_command]` procedural macro to make it usable for the handler.
     ///
     /// Like:
-    /// ```ignore
+    /// ```rust,no_run
     /// # use rusty_interaction::types::interaction::{Context, InteractionResponse};
     /// # use attributes::slash_command;
     /// #[slash_command]
@@ -169,7 +172,7 @@ impl InteractionHandler {
     /// The handler will first check if a guild-specific handler is available. If not, it will try to match a global command. If that fails too, an error will be returned.
     ///
     /// # Example
-    /// ```ignore
+    /// ```rust,no_run
     /// # use rusty_interaction::types::interaction::{Context, InteractionResponse};
     /// # use rusty_interaction::handler::InteractionHandler;
     /// # use attributes::slash_command;
@@ -201,7 +204,7 @@ impl InteractionHandler {
     /// Use the `#[component_handler]` procedural macro for your own convinence.eprintln!
     ///
     /// # Example
-    /// ```ignore
+    /// ```rust,no_run
     /// use rusty_interaction::handler::InteractionHandler;
     /// use rusty_interaction::types::components::*;
     /// use rusty_interaction::types::interaction::*;
@@ -347,6 +350,44 @@ impl InteractionHandler {
                 })
             }
         }
+    }
+
+    /// Override a bunch of permissions for commands in a guild.
+    pub async fn override_guild_permissions(
+        &self,
+        guild_id: impl Into<Snowflake>,
+        overrides: &Vec<ApplicationCommandPermissionBatch>
+    ) -> Result<(), HttpError>{
+        let url = format!(
+            "{}/applications/{}/guilds/{}/commands/permissions",
+            crate::BASE_URL,
+            self.application_id,
+            guild_id.into()
+        );
+
+        let res = self.client.put(&url).json(overrides).send().await;
+
+        expect_successful_api_response!(res, Ok(()))
+    }
+
+    /// Add a permission override for a guild command
+    pub async fn edit_guild_command_permissions(
+        &self,
+        guild_id: impl Into<Snowflake>,
+        appcmd_id: impl Into<Snowflake>,
+        permission_override: &ApplicationCommandPermission
+    ) -> Result<(), HttpError>{
+        let url = format!(
+            "{}/applications/{}/guilds/{}/commands/{}/permissions",
+            crate::BASE_URL,
+            self.application_id,
+            guild_id.into(),
+            appcmd_id.into(),
+        );
+
+        let res = self.client.put(&url).json(permission_override).send().await;
+
+        expect_successful_api_response!(res, Ok(()))
     }
 
     /// Entry point function for handling `Interactions`
