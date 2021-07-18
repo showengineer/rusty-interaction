@@ -280,6 +280,13 @@ impl SlashCommandDefinitionBuilder {
         self
     }
 
+    /// Sets the default permission. If false, this command can't be used unless some
+    /// permission override is set.
+    pub fn default_permission(mut self, permission: bool) -> Self{
+        self.obj.default_permission = Some(permission);
+        self
+    }
+
     #[deprecated(
         since = "0.1.9",
         note = "Use the `build()` function instead"
