@@ -22,11 +22,15 @@ use reqwest::Client;
 use log::{debug, error};
 use std::fmt;
 
+use anymap::{Map, any::CloneAny};
+
 use ed25519_dalek::PublicKey;
 
 use rustls::ServerConfig;
 
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Mutex};
+
+type AnyMap = Map<dyn CloneAny + Send + Sync>;
 
 /// Alias for InteractionResponse
 pub type HandlerResponse = InteractionResponse;
@@ -89,6 +93,8 @@ pub struct InteractionHandler {
 
     // These handles are 'forgotten' every time the app is shutdown (whatever the reason may be).
     guild_handles: HashMap<Snowflake, HandlerFunction>,
+
+    pub data: AnyMap,
 }
 
 #[cfg(feature = "handler")]
@@ -141,6 +147,7 @@ impl InteractionHandler {
                 global_handles: HashMap::new(),
                 component_handles: HashMap::new(),
                 guild_handles: HashMap::new(),
+                data: AnyMap::new(),
             }
         } else {
             InteractionHandler {
@@ -150,10 +157,17 @@ impl InteractionHandler {
                 global_handles: HashMap::new(),
                 component_handles: HashMap::new(),
                 guild_handles: HashMap::new(),
+                data: AnyMap::new(),
             }
         }
     }
 
+    /// Add some data. Data can be accessed by handlers with `InteractionHandler.data`
+    pub fn add_data<T: Clone>(&mut self, data: T) where 
+        T: Send + 'static + Sync
+    {
+        self.data.insert(data.clone());
+    }
     /// Binds an async function to a **global** command.
     /// Your function must take a [`Context`] as an argument and must return a [`InteractionResponse`].
     /// Make sure to use the `#[slash_command]` procedural macro to make it usable for the handler.

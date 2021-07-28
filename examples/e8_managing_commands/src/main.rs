@@ -4,6 +4,7 @@ use rusty_interaction::handler::{InteractionHandler, ManipulationScope};
 use rusty_interaction::types::interaction::*;
 // Relevant imports here
 use rusty_interaction::types::application::{SlashCommandDefinitionBuilder, ApplicationCommandOption, ApplicationCommandOptionType};
+use rusty_interaction::Builder;
 
 const PUB_KEY: &str = "MY PUB KEY"; 
 const TOKEN: &str = "MY TOKEN";
@@ -47,7 +48,8 @@ async fn test(handler: &mut InteractionHandler, ctx: Context) -> InteractionResp
                         .name("string")
                         .description("I will do absolutely nothing with this")
                     )
-                    .finish();
+                    .build()
+                    .unwrap();
 
         match handler.register_guild_handle(i, &cmd, delete_self, &ManipulationScope::All).await{
             Ok(_) => {
