@@ -95,6 +95,9 @@ fn handler(
                 }
             }
         }
+        if let FnArg::Receiver(_) = p{
+            panic!("`self` arguments are not allowed. If you need to access data in your function, use the `InteractionHandler.data` field and `InteractionHandler::add_data` method")
+        }
     }
 
     if ctxname.is_none() {
@@ -106,6 +109,10 @@ fn handler(
     if handlename.is_some() {
         ih_n = quote!(#handlename);
     }
+
+    
+
+    
 
     // Using quasi-quoting to generate a new function. This is what will be the end function returned to the compiler.
     if !defer {
