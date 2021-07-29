@@ -53,7 +53,7 @@ optional = true
 default = ["types", "security"]
 security = ["ed25519-dalek", "hex", "types"]
 types = []
-handler = ["types", "security", "actix", "actix-web", "actix-rt", "rustls", "async-trait", "attributes", "log", "reqwest", "anymap", "fix-hidden-lifetime-bug"]
+handler = ["types", "security", "actix", "actix-web", "actix-rt", "rustls", "async-trait", "attributes", "log", "reqwest", "anymap"]
 extended-handler = ["handler"]
 
 [package.metadata.docs.rs]

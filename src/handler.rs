@@ -94,6 +94,7 @@ pub struct InteractionHandler {
     // These handles are 'forgotten' every time the app is shutdown (whatever the reason may be).
     guild_handles: HashMap<Snowflake, HandlerFunction>,
 
+    /// Field to access data
     pub data: AnyMap,
 }
 
