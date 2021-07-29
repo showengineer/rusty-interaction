@@ -6,8 +6,8 @@ use rusty_interaction::types::interaction::*;
 use rusty_interaction::types::application::{SlashCommandDefinitionBuilder, ApplicationCommandOption, ApplicationCommandOptionType};
 use rusty_interaction::Builder;
 
-const PUB_KEY: &str = "57028473720a7c1d4666132a68007f0902034a13c43cc2c1658b10b5fc754311"; 
-const APP_ID: u64 = 615112470033596416;
+const PUB_KEY: &str = "YOUR PUB KEY"; 
+const APP_ID: u64 = 000000000000000000;
 
 // Must implement Clone
 #[derive(Clone)]
