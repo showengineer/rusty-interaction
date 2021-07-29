@@ -168,7 +168,7 @@ impl InteractionHandler {
     where
         T: Send + 'static + Sync,
     {
-        self.data.insert(data.clone());
+        self.data.insert(data);
     }
     /// Binds an async function to a **global** command.
     /// Your function must take a [`Context`] as an argument and must return a [`InteractionResponse`].
