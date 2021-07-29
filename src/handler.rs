@@ -22,7 +22,7 @@ use reqwest::Client;
 use log::{debug, error};
 use std::fmt;
 
-use anymap::{Map, any::CloneAny};
+use anymap::{any::CloneAny, Map};
 
 use ed25519_dalek::PublicKey;
 
@@ -164,8 +164,9 @@ impl InteractionHandler {
     }
 
     /// Add some data. Data can be accessed by handlers with `InteractionHandler.data`
-    pub fn add_data<T: Clone>(&mut self, data: T) where 
-        T: Send + 'static + Sync
+    pub fn add_data<T: Clone>(&mut self, data: T)
+    where
+        T: Send + 'static + Sync,
     {
         self.data.insert(data.clone());
     }
@@ -373,7 +374,7 @@ impl InteractionHandler {
     pub async fn override_guild_permissions(
         &self,
         guild_id: impl Into<Snowflake>,
-        overrides: &Vec<ApplicationCommandPermissionBatch>,
+        overrides: &[ApplicationCommandPermissionBatch],
     ) -> Result<(), HttpError> {
         let url = format!(
             "{}/applications/{}/guilds/{}/commands/permissions",

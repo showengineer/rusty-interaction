@@ -239,16 +239,16 @@ impl InteractionResponseBuilder {
         match self.data.as_mut() {
             None => {
                 let mut d = InteractionApplicationCommandCallbackData::new();
-                d.components = Some(vec![component.clone()]);
+                d.components = Some(vec![component]);
                 self.data = Some(d);
             }
             Some(mut d) => {
                 if d.components.is_none() {
-                    d.components = Some(vec![component.clone()]);
+                    d.components = Some(vec![component]);
                 } else {
                     let comp = d.components.as_mut().unwrap();
 
-                    comp.push(component.clone());
+                    comp.push(component);
                 }
             }
         }

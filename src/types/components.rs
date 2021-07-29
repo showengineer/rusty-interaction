@@ -428,10 +428,10 @@ impl Builder<ComponentSelectMenu> for ComponentSelectMenuBuilder {
         if self.obj.options.len() > 25 {
             return Err("Menu more than 25 options".to_string());
         }
-        if &self.obj.min_values > &25 {
+        if self.obj.min_values > 25 {
             return Err("min_values cannot be more than 25".to_string());
         }
-        if &self.obj.max_values > &25 {
+        if self.obj.max_values > 25 {
             return Err("max_values cannot be more than 25".to_string());
         }
         Ok(self.obj)
