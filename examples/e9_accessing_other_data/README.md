@@ -6,7 +6,8 @@ You can add data to the handler using `InteractionHandler::add_data()`. The back
 
 
 # Result
-Insert pic here
+![Peek 2021-07-29 21-53](https://user-images.githubusercontent.com/10338882/127557511-724e139a-4a5c-44cf-b403-6d270bbd8953.gif)
+
 
 # Running this example
 You can use regular `cargo build` and `cargo run` commands.
