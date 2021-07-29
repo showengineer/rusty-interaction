@@ -7,5 +7,6 @@ members = [
     "e5_manipulating_original_message",
     "e6_components",    
     "e7_embeds",
-    "e8_managing_commands"
+    "e8_managing_commands",
+    "e9_accessing_other_data"
 ]
