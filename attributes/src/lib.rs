@@ -60,6 +60,7 @@ fn handler(
     let mut handlename: Option<syn::Ident> = None;
     // eprintln!("{:#?}", params);
 
+
     // I am honestly laughing at this...
     // But hey it works! :D
     for p in params {
@@ -73,6 +74,9 @@ fn handler(
                                 ctxname = Some(a.ident.clone());
                                 break;
                             }
+                        }
+                        else if segment.ident == "InteractionHandler"{
+                            panic!("Cannot take ownership of `InteractionHandler`. Try using &InteractionHandler!")
                         }
                     }
                 }
@@ -165,8 +169,10 @@ fn handler(
         // The difference here being that the non-deffered function doesn't have to spawn a new thread that
         // does the actual work. Here we need it to reply with a deffered channel message.
         let subst_fn = quote! {
-            #vis fn #fname (#ih_n: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{
+            #vis fn #fname (__ih: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{
+                
                 Box::pin(async move {
+                    let #ih_n = __ih.clone();
                     ::rusty_interaction::actix::Arbiter::spawn(async move {
                         #(#nvec)*
                         if #expra.r#type != InteractionResponseType::Pong && #expra.r#type != InteractionResponseType::None{
