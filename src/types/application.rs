@@ -6,6 +6,7 @@ use serde_with::*;
 use crate::Builder;
 
 use super::components::ComponentType;
+use super::user::*;
 use super::Snowflake;
 use serde_repr::*;
 
@@ -227,24 +228,48 @@ pub struct ApplicationCommandOptionChoice {
     pub value: String,
 }
 
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+/// Stripped down version of ResolvedData
+pub struct ResolvedData{
+    /// User map
+    pub users: Option<User>,
+    /// Member map
+    pub members: Option<Member>,
+}
+
+
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// Representing a slash command
 pub struct ApplicationCommandInteractionData {
-    #[serde_as(as = "Option<DisplayFromStr>")]
-    #[serde(default)]
     /// The unique id of the command
-    pub id: Option<Snowflake>,
+    pub id: Snowflake,
     /// The name of the command
-    pub name: Option<String>,
+    pub name: String,
+
+    /// The type of the invoked command
+    pub r#type: ApplicationCommandType,
+
     /// An array of [`ApplicationCommandInteractionDataOption`]
     pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
+
+    /// converted users + roles + channels
+    // Not including this yet
+    //pub resolved: Option<ResolvedData>,
 
     /// For components, the component type
     pub component_type: Option<ComponentType>,
 
     /// For components, the custom identifier for the developer
     pub custom_id: Option<String>,
+
+    /// For Select Menus, the selected values
+    pub values: Option<Vec<ApplicationCommandOption>>,
+
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    /// For User- and Message Commands, the id of the user or message targeted.
+    pub target_id: Option<Snowflake>
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
