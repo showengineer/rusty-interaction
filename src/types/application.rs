@@ -18,9 +18,19 @@ pub struct ApplicationCommand {
     #[serde(default)]
     /// ID of command
     pub id: Option<Snowflake>,
+
+    /// the type of command, defaults `1` if not set
+    pub r#type: Option<ApplicationCommandType>,
+
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
     application_id: Option<Snowflake>,
+
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    /// guild id of the command, if not global
+    pub guild_id: Option<Snowflake>,
+
     /// Command name
     pub name: String,
     /// Command description
@@ -32,11 +42,26 @@ pub struct ApplicationCommand {
     default_permission: Option<bool>,
 }
 
+#[derive(Clone, Serialize_repr, Deserialize_repr, Debug, PartialEq)]
+#[repr(u8)]
+#[non_exhaustive]
+/// Type of `ApplicationCommand`
+pub enum ApplicationCommandType{
+    /// Slash commands; a text-based command that shows up when a user types `/` 
+    ChatInput = 1,
+    /// A UI-based command that shows up when you right click or tap on a user
+    User = 2,
+    /// A UI-based command that shows up when you right click or tap on a messages
+    Message = 3,
+}
+
 impl Default for ApplicationCommand {
     fn default() -> Self {
         Self {
             id: None,
+            r#type: Some(ApplicationCommandType::ChatInput),
             application_id: None,
+            guild_id: None,
             name: String::new(),
             description: String::new(),
             options: None,
@@ -45,7 +70,7 @@ impl Default for ApplicationCommand {
     }
 }
 
-#[derive(Clone, Serialize_repr, Deserialize_repr, Debug, PartialEq)]
+#[derive(Clone, Copy, Serialize_repr, Deserialize_repr, Debug, PartialEq)]
 #[repr(u8)]
 #[non_exhaustive]
 /// Type of permission override
@@ -252,13 +277,20 @@ impl Default for SlashCommandDefinitionBuilder {
 
 #[cfg(feature = "extended-handler")]
 impl SlashCommandDefinitionBuilder {
-    /// Name of slash command
+    /// Name of the application command
     pub fn name(mut self, name: impl ToString) -> Self {
         let n = name.to_string();
 
         self.obj.name = n;
         self
     }
+
+    /// Sets the type of command you're defining. See [`ApplicationCommandType`]
+    pub fn command_type(mut self, c_type: ApplicationCommandType) -> Self{
+        self.obj.r#type = Some(c_type);
+        self
+    }
+
     /// Command description
     pub fn description(mut self, desc: impl ToString) -> Self {
         let d = desc.to_string();
