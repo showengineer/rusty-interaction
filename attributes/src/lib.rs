@@ -3,6 +3,7 @@ extern crate proc_macro;
 use proc_macro::*;
 
 use quote::quote;
+use quote::format_ident;
 
 use syn::{Expr, ExprReturn, FnArg, ReturnType, Stmt};
 
@@ -132,51 +133,28 @@ fn handler(
     }
     // Deferring is requested, this will require a bit more manipulation.
     else {
-        // Find the return statement and split the entire tokenstream there.
-        let mut ind: Option<usize> = None;
-        let mut expr: Option<ExprReturn> = None;
-        for n in 0..body.stmts.len() {
-            let s = &body.stmts[n];
-            match s {
-                Stmt::Expr(Expr::Return(a)) => {
-                    expr = Some(a.clone());
-                    ind = Some(n);
-                    break;
-                }
-                Stmt::Semi(Expr::Return(a), _) => {
-                    expr = Some(a.clone());
-                    ind = Some(n);
-                    break;
-                }
-                _ => (),
-            }
-        }
-        let (nbody, _reta) = body.stmts.split_at(ind.unwrap_or_else(|| {
-            panic!(
-                "Could not find return statement in slash-command. Explicit returns are required."
-            );
-        }));
 
-        // Unwrap, unwrap, unwrap, unwrap.
-        let expra = expr
-            .unwrap_or_else(|| panic!("Expected return"))
-            .expr
-            .unwrap_or_else(|| panic!("Expected some return value"));
+        // Create two functions. One that actually does the work, and one that handles the threading. 
 
-        let nvec = nbody.to_vec();
+        let act_fn = format_ident!("__actual_{}", fname);
 
-        // Now that we have all the information we need, we can finally start building our new function!
-        // The difference here being that the non-deffered function doesn't have to spawn a new thread that
-        // does the actual work. Here we need it to reply with a deffered channel message.
         let subst_fn = quote! {
-            #vis fn #fname (__ih: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{
-                
+            fn #act_fn (#ih_n: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{                
                 Box::pin(async move {
-                    let #ih_n = __ih.clone();
+                    #body
+                })
+            }
+            #vis fn #fname (ihd: &mut InteractionHandler, ctx: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{
+                Box::pin(async move {
+                    // TODO: Try to do this without cloning.
+                    let mut __ih_c = ihd.clone();
+
                     ::rusty_interaction::actix::Arbiter::spawn(async move {
-                        #(#nvec)*
-                        if #expra.r#type != InteractionResponseType::Pong && #expra.r#type != InteractionResponseType::None{
-                            if let Err(i) = #ctxname.edit_original(&WebhookMessage::from(#expra)).await{
+                        
+                        let response = #act_fn (&mut __ih_c, ctx.clone()).await;
+
+                        if response.r#type != InteractionResponseType::Pong && response.r#type != InteractionResponseType::None{
+                            if let Err(i) = ctx.edit_original(&WebhookMessage::from(response)).await{
                                 ::rusty_interaction::log::error!("Editing original message failed: {:?}", i);
                             }
                         }
@@ -195,7 +173,7 @@ fn handler(
 #[proc_macro_attribute]
 /// Convenience procedural macro that allows you to bind an async function to the [`InteractionHandler`] for handling component interactions.
 pub fn component_handler(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let ret = quote!(InteractionResponseType::DefferedUpdateMessage);
+    let ret = quote!(::rusty_interaction::types::interaction::InteractionResponseType::DefferedUpdateMessage);
 
     handler(attr, item, ret)
 }
@@ -203,7 +181,7 @@ pub fn component_handler(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 /// Convenience procedural macro that allows you to bind an async function to the [`InteractionHandler`]
 pub fn slash_command(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let ret = quote!(InteractionResponseType::DefferedChannelMessageWithSource);
+    let ret = quote!(::rusty_interaction::types::interaction::InteractionResponseType::DefferedChannelMessageWithSource);
 
     handler(attr, item, ret)
 }
