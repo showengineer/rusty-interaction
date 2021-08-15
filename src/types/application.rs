@@ -243,6 +243,7 @@ pub struct ResolvedData{
 /// Representing a slash command
 pub struct ApplicationCommandInteractionData {
     /// The unique id of the command
+    #[serde_as(as = "DisplayFromStr")]
     pub id: Snowflake,
     /// The name of the command
     pub name: String,
