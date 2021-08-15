@@ -49,7 +49,7 @@ fn handler(
     // Check for a proper return type and fill ret if found.
     match ret_sig {
         ReturnType::Default => {
-            panic!("Expected an `InteractionResponse` return type, but got no return type. Consider adding `-> InteractionResponse` to your function signature.");
+            panic!("Expected an `Result<InteractionResponse, ()>` return type, but got no return type. Consider adding `-> Result<InteractionResponse, ()>` to your function signature.");
         }
         ReturnType::Type(_a, b) => {
             ret = *b.clone();
