@@ -33,6 +33,10 @@ use reqwest::{Client, StatusCode};
 /// A context contains relevant information and useful functions you can use when handling Interactions.
 pub struct Context {
     client: Client,
+
+    /// Resolved user ID of author
+    pub author_id: Option<Snowflake>,
+
     /// The [`Interaction`] sent by Discord.
     pub interaction: Interaction,
 }
@@ -272,6 +276,7 @@ pub enum InteractionResponseType {
 
     /// ACK a PING
     Pong = 1,
+
     /// Respond to an [`Interaction`] with a message
     ChannelMessageWithSource = 4,
     /// ACK an interaction and edit a response later, the user sees a loading state
@@ -583,9 +588,25 @@ impl FollowupMessage {
 impl Context {
     /// Creates a new [`Context`]
     pub fn new(c: Client, i: Interaction) -> Self {
+        let mut user_id = None;
+
+        if i.user.is_none(){
+            // Try to unwrap member
+            if let Some(member) = &i.member{
+                user_id = Some(member.user.id);
+            }
+        }
+        else{
+            // Try to unwrap user
+            if let Some(u) = &i.user{
+                user_id = Some(u.id);
+            }
+        }
+        
         Self {
             client: c,
             interaction: i,
+            author_id: user_id,
         }
     }
 
