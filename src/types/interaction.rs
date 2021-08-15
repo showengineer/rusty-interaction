@@ -151,14 +151,14 @@ impl InteractionResponseBuilder {
     }
 
     /// Return a pong with no data. Use with caution
-    pub fn pong(mut self) -> InteractionResponse {
+    pub fn pong(mut self) -> Result<InteractionResponse, ()> {
         self.r#type = InteractionResponseType::Pong;
         self.data = None;
         self.finish()
     }
 
     /// Return without any data. Use with caution
-    pub fn none(mut self) -> InteractionResponse {
+    pub fn none(mut self) -> Result<InteractionResponse, ()> {
         self.r#type = InteractionResponseType::None;
         self.data = None;
         self.finish()
@@ -261,8 +261,11 @@ impl InteractionResponseBuilder {
 
     /// Returns an `InteractionResponse`, consuming itself.
     /// You can't use the builder anymore after you called this function.
-    pub fn finish(self) -> InteractionResponse {
-        self.ret()
+    /// 
+    /// # Note
+    /// This function retuns an `Ok`, no matter what.
+    pub fn finish(self) -> Result<InteractionResponse, ()> {
+        Ok(self.ret())
     }
 }
 
