@@ -33,7 +33,7 @@ use std::{collections::HashMap, future::Future, pin::Pin, sync::Mutex};
 type AnyMap = Map<dyn CloneAny + Send + Sync>;
 
 /// Alias for InteractionResponse
-pub type HandlerResponse = InteractionResponse;
+pub type HandlerResponse = Result<InteractionResponse, ()>;
 
 type HandlerFunction = fn(
     &mut InteractionHandler,
@@ -41,26 +41,33 @@ type HandlerFunction = fn(
 ) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send + '_>>;
 
 macro_rules! match_handler_response {
-    ($value_name:expr, $response:ident) => {
-        match $value_name {
-            InteractionResponseType::None => {
-                Ok(HttpResponse::build(StatusCode::NO_CONTENT).finish())
-            }
-            InteractionResponseType::DefferedChannelMessageWithSource
-            | InteractionResponseType::DefferedUpdateMessage => {
-                /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
-                If an application is first sending a deffered channel message response, this usually means the system
-                is still processing whatever it is doing.
-                See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
-                Ok(HttpResponse::build(StatusCode::ACCEPTED).json($response))
-            }
-            _ => {
-                // Send out a response to Discord
-                let r = HttpResponse::build(StatusCode::OK).json($response);
+    ($response:ident) => {
 
-                Ok(r)
+        if let Ok(ref __unwrapped_response__) = $response{
+            match __unwrapped_response__.r#type {
+                InteractionResponseType::None => {
+                    Ok(HttpResponse::build(StatusCode::NO_CONTENT).finish())
+                }
+                InteractionResponseType::DefferedChannelMessageWithSource
+                | InteractionResponseType::DefferedUpdateMessage => {
+                    /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
+                    If an application is first sending a deffered channel message response, this usually means the system
+                    is still processing whatever it is doing.
+                    See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
+                    Ok(HttpResponse::build(StatusCode::ACCEPTED).json($response))
+                }
+                _ => {
+                    // Send out a response to Discord
+                    let r = HttpResponse::build(StatusCode::OK).json($response);
+    
+                    Ok(r)
+                }
             }
         }
+        else{
+            Ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).finish())
+        }
+        
     };
 }
 
@@ -492,7 +499,7 @@ impl InteractionHandler {
                             // Call the handler
                             let response = handler(self, ctx).await;
 
-                            match_handler_response!(response.r#type, response)
+                            match_handler_response!(response)
                         }
                         // Welp, nothing found. Check for matches in the global map
                         else if let Some(handler) = self
@@ -505,7 +512,7 @@ impl InteractionHandler {
                             // Call the handler
                             let response = handler(self, ctx).await;
 
-                            match_handler_response!(response.r#type, response)
+                            match_handler_response!(response)
                         }
                         // Still nothing, return an error
                         else {
@@ -534,18 +541,8 @@ impl InteractionHandler {
                             // Call the handler
                             let response = handler(self, ctx).await;
 
-                            if response.r#type == InteractionResponseType::DefferedUpdateMessage {
-                                /* The use of HTTP code 202 is more appropriate when an Interaction is deffered.
-                                If an application is first sending a deffered channel message response, this usually means the system
-                                is still processing whatever it is doing.
-                                See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
-                                Ok(HttpResponse::build(StatusCode::ACCEPTED).json(response))
-                            } else {
-                                // Send out a response to Discord
-                                let r = HttpResponse::build(StatusCode::OK).json(response);
+                            match_handler_response!(response)
 
-                                Ok(r)
-                            }
                         } else {
                             error!(
                                 "No associated handler found for {}",
