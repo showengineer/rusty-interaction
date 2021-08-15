@@ -151,13 +151,18 @@ fn handler(
 
                     ::rusty_interaction::actix::Arbiter::spawn(async move {
                         
-                        let response = #act_fn (&mut __ih_c, ctx.clone()).await;
-
-                        if response.r#type != InteractionResponseType::Pong && response.r#type != InteractionResponseType::None{
-                            if let Err(i) = ctx.edit_original(&WebhookMessage::from(response)).await{
-                                ::rusty_interaction::log::error!("Editing original message failed: {:?}", i);
+                        let __response = #act_fn (&mut __ih_c, ctx.clone()).await;
+                        if let Ok(__r) = __response{
+                            if __r.r#type != InteractionResponseType::Pong && __r.r#type != InteractionResponseType::None{
+                                if let Err(i) = ctx.edit_original(&WebhookMessage::from(__r)).await{
+                                    ::rusty_interaction::log::error!("Editing original message failed: {:?}", i);
+                                }
                             }
                         }
+                        else{
+                            // Nothing
+                        }
+                        
 
                     });
 
