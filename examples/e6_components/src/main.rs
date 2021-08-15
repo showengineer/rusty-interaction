@@ -17,21 +17,21 @@ const APP_ID: u64 = 0;
 
 // Use the component_handler macro.
 #[component_handler]
-async fn edit_button(ctx: Context) -> InteractionResponse{
+async fn edit_button(ctx: Context) -> Result<InteractionResponse, ()>{
     return ctx.respond().message("HAHA").finish();
 }
 
 // We defer in this instance, because we don't want to edit anything
 #[component_handler]
 #[defer]
-async fn delete_button(ctx: Context) -> InteractionResponse{
+async fn delete_button(ctx: Context) -> Result<InteractionResponse, ()>{
     ctx.delete_original().await;
 
     // Since we've deleted the original message, it's safe to use respond().none()
     return ctx.respond().none();
 }
 #[slash_command]
-async fn test(ctx: Context) -> InteractionResponse{
+async fn test(ctx: Context) -> Result<InteractionResponse, ()>{
 
     // Let's build our message!
     let resp = ctx.respond()

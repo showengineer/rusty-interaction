@@ -16,7 +16,7 @@ struct MyStruct{
 }
 
 #[slash_command]
-async fn test(handler: &mut InteractionHandler, ctx: Context) -> InteractionResponse{
+async fn test(handler: &mut InteractionHandler, ctx: Context) -> Result<InteractionResponse, ()>{
 
     // Get a mutable reference to MyStruct
     let my_struct = handler.data.get_mut::<MyStruct>().unwrap();
