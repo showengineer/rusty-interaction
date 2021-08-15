@@ -13,7 +13,7 @@ const APP_ID: u64 = 0;
 #[slash_command]
 // Sending a deffered response by adding the `#[defer]` attribute
 #[defer]
-async fn test(ctx: Context) -> InteractionResponse{
+async fn test(ctx: Context) -> Result<InteractionResponse, ()>{
     println!("I HAVE BEEN SUMMONED!!!");
     
     // This is representing some work that needs to be done before a response can be made

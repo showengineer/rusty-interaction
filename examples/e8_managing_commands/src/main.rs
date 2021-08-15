@@ -11,14 +11,14 @@ const TOKEN: &str = "MY TOKEN";
 const APP_ID: u64 = 00000000000000000;
 
 #[slash_command]
-async fn delete_self(handler: &mut InteractionHandler, ctx: Context) -> InteractionResponse{
+async fn delete_self(handler: &mut InteractionHandler, ctx: Context) -> Result<InteractionResponse, ()>{
     let sec_ctx = ctx.clone();
     if let Some(g) = sec_ctx.interaction.guild_id{
         if let Some(data) = sec_ctx.interaction.data{
             let cid = data.id;
 
             // Using this to remove the guild command
-            let r = handler.deregister_guild_handle(g, cid.unwrap(), &ManipulationScope::All).await;
+            let r = handler.deregister_guild_handle(g, cid, &ManipulationScope::All).await;
             if r.is_ok(){
                 return ctx.respond().content("`/generated` deleted!").finish();
             }
@@ -34,7 +34,7 @@ async fn delete_self(handler: &mut InteractionHandler, ctx: Context) -> Interact
 }
 
 #[slash_command]
-async fn test(handler: &mut InteractionHandler, ctx: Context) -> InteractionResponse{
+async fn test(handler: &mut InteractionHandler, ctx: Context) -> Result<InteractionResponse, ()>{
 
     if let Some(i) = ctx.interaction.guild_id{
         

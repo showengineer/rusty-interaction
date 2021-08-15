@@ -17,7 +17,7 @@ const APP_ID: u64 = 0;
 // This macro will transform the function to something the handler can use
 #[slash_command]
 // Function handlers should take an `Interaction` object and should return an `InteractionResponse`
-async fn test(ctx: Context) -> InteractionResponse{
+async fn test(ctx: Context) -> Result<InteractionResponse, ()>{
     println!("I HAVE BEEN SUMMONED!!!");
         
     // Return a response by using the `Context.respond` function.

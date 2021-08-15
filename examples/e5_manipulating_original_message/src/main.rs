@@ -17,7 +17,7 @@ const PUB_KEY: &str = "YOUR_PUBLIC_KEY";
 const APP_ID: u64 = 0; 
 
 #[slash_command]
-async fn test(ctx: Context) -> InteractionResponse{
+async fn test(ctx: Context) -> Result<InteractionResponse, ()>{
 
 
     let m = ctx.clone();
