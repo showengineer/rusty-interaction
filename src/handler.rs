@@ -54,17 +54,18 @@ macro_rules! match_handler_response {
                     If an application is first sending a deffered channel message response, this usually means the system
                     is still processing whatever it is doing.
                     See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
-                    Ok(HttpResponse::build(StatusCode::ACCEPTED).json($response))
+                    Ok(HttpResponse::build(StatusCode::ACCEPTED).json(__unwrapped_response__))
                 }
                 _ => {
                     // Send out a response to Discord
-                    let r = HttpResponse::build(StatusCode::OK).json($response);
+                    let r = HttpResponse::build(StatusCode::OK).json(__unwrapped_response__);
     
                     Ok(r)
                 }
             }
         }
         else{
+            debug!("Responding with 500!");
             Ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).finish())
         }
         
