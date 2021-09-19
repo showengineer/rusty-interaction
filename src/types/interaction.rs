@@ -353,6 +353,8 @@ pub struct WebhookMessage {
     pub content: Option<String>,
     /// Embeds in the message (max 10)
     pub embeds: Option<Vec<Embed>>,
+    /// Components in the message
+    pub components: Option<Vec<MessageComponent>>,
     /// Used for files.
     pub payload_json: Option<String>,
     allowed_mentions: Option<AllowedMentions>,
@@ -389,6 +391,7 @@ impl Default for WebhookMessage {
         WebhookMessage {
             content: None,
             embeds: None,
+            components: None,
             payload_json: None,
             allowed_mentions: None,
         }
@@ -402,6 +405,7 @@ impl From<InteractionResponse> for WebhookMessage {
         WebhookMessage {
             content: data.content,
             embeds: data.embeds,
+            components: data.components,
             payload_json: None,
             allowed_mentions: None,
         }
