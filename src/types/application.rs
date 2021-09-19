@@ -243,13 +243,14 @@ pub struct ResolvedData{
 /// Representing a slash command
 pub struct ApplicationCommandInteractionData {
     /// The unique id of the command
-    #[serde_as(as = "DisplayFromStr")]
-    pub id: Snowflake,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    #[serde(default)]
+    pub id: Option<Snowflake>,
     /// The name of the command
-    pub name: String,
+    pub name: Option<String>,
 
     /// The type of the invoked command
-    pub r#type: ApplicationCommandType,
+    pub r#type: Option<ApplicationCommandType>,
 
     /// An array of [`ApplicationCommandInteractionDataOption`]
     pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,

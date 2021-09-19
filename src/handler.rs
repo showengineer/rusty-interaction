@@ -492,8 +492,8 @@ impl InteractionHandler {
                             return ERROR_RESPONSE!(500, "Failed to unwrap");
                         };
 
-                        // Check for matches in guild handler map
-                        if let Some(handler) = self.guild_handles.get(&data.id) {
+                        // Check for matches in guild handler map. Unwrapping because this should always contain an ID
+                        if let Some(handler) = self.guild_handles.get(data.id.as_ref().unwrap()) {
                             // construct a Context
                             let ctx = Context::new(self.client.clone(), interaction);
 
@@ -505,7 +505,7 @@ impl InteractionHandler {
                         // Welp, nothing found. Check for matches in the global map
                         else if let Some(handler) = self
                             .global_handles
-                            .get(data.name.as_str())
+                            .get(data.name.as_ref().unwrap().as_str() /* Don't question it */)
                         {
                             // construct a Context
                             let ctx = Context::new(self.client.clone(), interaction);
@@ -519,7 +519,7 @@ impl InteractionHandler {
                         else {
                             error!(
                                 "No associated handler found for {}",
-                                data.name.as_str()
+                                data.name.as_ref().unwrap().as_str()
                             );
                             ERROR_RESPONSE!(501, "No associated handler found")
                         }
