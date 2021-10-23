@@ -261,7 +261,7 @@ impl InteractionResponseBuilder {
 
     /// Returns an `InteractionResponse`, consuming itself.
     /// You can't use the builder anymore after you called this function.
-    /// 
+    ///
     /// # Note
     /// This function retuns an `Ok`, no matter what.
     pub fn finish(self) -> Result<InteractionResponse, ()> {
@@ -597,19 +597,18 @@ impl Context {
     pub fn new(c: Client, i: Interaction) -> Self {
         let mut user_id = None;
 
-        if i.user.is_none(){
+        if i.user.is_none() {
             // Try to unwrap member
-            if let Some(member) = &i.member{
+            if let Some(member) = &i.member {
                 user_id = Some(member.user.id);
             }
-        }
-        else{
+        } else {
             // Try to unwrap user
-            if let Some(u) = &i.user{
+            if let Some(u) = &i.user {
                 user_id = Some(u.id);
             }
         }
-        
+
         Self {
             client: c,
             interaction: i,

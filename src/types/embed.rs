@@ -123,7 +123,7 @@ pub struct EmbedBuilder {
 #[derive(Clone, Copy, Debug, PartialEq)]
 /// Representing RGB colors.
 ///
-/// Each color is an 8bit unsigned integer.  
+/// Each color is an 8bit unsigned integer.
 pub struct Color {
     /// Red value
     pub red: u8,
