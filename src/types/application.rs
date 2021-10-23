@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::*;
 
-#[cfg(feature = "extended-handler")]
+#[cfg(feature = "builder")]
 use crate::Builder;
 
 use super::components::ComponentType;
@@ -286,14 +286,14 @@ pub struct ApplicationCommandInteractionDataOption {
 }
 
 #[derive(Clone, Debug)]
-#[cfg(feature = "extended-handler")]
-#[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
+#[cfg(feature = "builder")]
+#[cfg_attr(docsrs, doc(cfg(feature = "builder")))]
 /// Simple builder for defining SlashCommands
 pub struct SlashCommandDefinitionBuilder {
     obj: ApplicationCommand,
 }
 
-#[cfg(feature = "extended-handler")]
+#[cfg(feature = "builder")]
 impl Default for SlashCommandDefinitionBuilder {
     fn default() -> Self {
         Self {
@@ -302,7 +302,7 @@ impl Default for SlashCommandDefinitionBuilder {
     }
 }
 
-#[cfg(feature = "extended-handler")]
+#[cfg(feature = "builder")]
 impl SlashCommandDefinitionBuilder {
     /// Name of the application command
     pub fn name(mut self, name: impl ToString) -> Self {
@@ -353,7 +353,7 @@ impl SlashCommandDefinitionBuilder {
     }
 }
 
-#[cfg(feature = "extended-handler")]
+#[cfg(feature = "builder")]
 impl Builder<ApplicationCommand> for SlashCommandDefinitionBuilder {
     fn build(self) -> Result<ApplicationCommand, String> {
         Ok(self.obj)
