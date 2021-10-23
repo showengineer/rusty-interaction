@@ -357,7 +357,11 @@ impl Builder<ComponentButton> for ComponentButtonBuilder {
     type Error = ComponentBuilderError;
 
     fn build(self) -> Result<ComponentButton, Self::Error> {
-        let style = self.obj.style.as_ref().ok_or(ComponentBuilderError::NoStyle)?;
+        let style = self
+            .obj
+            .style
+            .as_ref()
+            .ok_or(ComponentBuilderError::NoStyle)?;
         match style {
             ComponentButtonStyle::Link => {
                 if self.obj.url.is_none() {
