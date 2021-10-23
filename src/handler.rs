@@ -59,7 +59,7 @@ macro_rules! match_handler_response {
                 _ => {
                     // Send out a response to Discord
                     let r = HttpResponse::build(StatusCode::OK).json(__unwrapped_response__);
-    
+
                     Ok(r)
                 }
             }
@@ -68,7 +68,7 @@ macro_rules! match_handler_response {
             debug!("Responding with 500!");
             Ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).finish())
         }
-        
+
     };
 }
 
@@ -215,7 +215,7 @@ impl InteractionHandler {
     ///
     ///     let mut handle = InteractionHandler::new(PUB_KEY);
     ///     handle.add_command("ping", pong_handler);
-    ///     
+    ///
     ///     return handle.run().await;
     /// }
     /// ```
@@ -503,10 +503,9 @@ impl InteractionHandler {
                             match_handler_response!(response)
                         }
                         // Welp, nothing found. Check for matches in the global map
-                        else if let Some(handler) = self
-                            .global_handles
-                            .get(data.name.as_ref().unwrap().as_str() /* Don't question it */)
-                        {
+                        else if let Some(handler) = self.global_handles.get(
+                            data.name.as_ref().unwrap().as_str(), /* Don't question it */
+                        ) {
                             // construct a Context
                             let ctx = Context::new(self.client.clone(), interaction);
 
@@ -543,7 +542,6 @@ impl InteractionHandler {
                             let response = handler(self, ctx).await;
 
                             match_handler_response!(response)
-
                         } else {
                             error!(
                                 "No associated handler found for {}",

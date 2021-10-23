@@ -47,8 +47,8 @@ pub struct ApplicationCommand {
 #[repr(u8)]
 #[non_exhaustive]
 /// Type of `ApplicationCommand`
-pub enum ApplicationCommandType{
-    /// Slash commands; a text-based command that shows up when a user types `/` 
+pub enum ApplicationCommandType {
+    /// Slash commands; a text-based command that shows up when a user types `/`
     ChatInput = 1,
     /// A UI-based command that shows up when you right click or tap on a user
     User = 2,
@@ -230,13 +230,12 @@ pub struct ApplicationCommandOptionChoice {
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// Stripped down version of ResolvedData
-pub struct ResolvedData{
+pub struct ResolvedData {
     /// User map
     pub users: Option<User>,
     /// Member map
     pub members: Option<Member>,
 }
-
 
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
@@ -271,7 +270,7 @@ pub struct ApplicationCommandInteractionData {
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
     /// For User- and Message Commands, the id of the user or message targeted.
-    pub target_id: Option<Snowflake>
+    pub target_id: Option<Snowflake>,
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
@@ -313,7 +312,7 @@ impl SlashCommandDefinitionBuilder {
     }
 
     /// Sets the type of command you're defining. See [`ApplicationCommandType`]
-    pub fn command_type(mut self, c_type: ApplicationCommandType) -> Self{
+    pub fn command_type(mut self, c_type: ApplicationCommandType) -> Self {
         self.obj.r#type = Some(c_type);
         self
     }
