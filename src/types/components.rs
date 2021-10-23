@@ -1,8 +1,8 @@
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 use log::warn;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 use crate::Builder;
 
 use serde_repr::*;
@@ -123,7 +123,7 @@ pub struct ComponentSelectMenu {
     max_values: u8,
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Default for ComponentSelectMenu {
     fn default() -> Self {
         Self {
@@ -138,7 +138,7 @@ impl Default for ComponentSelectMenu {
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl From<ComponentSelectMenu> for MessageComponent {
     fn from(t: ComponentSelectMenu) -> Self {
         let mut o = MessageComponent::default();
@@ -154,7 +154,7 @@ impl From<ComponentSelectMenu> for MessageComponent {
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// A button
 pub struct ComponentButton {
@@ -165,7 +165,7 @@ pub struct ComponentButton {
     url: Option<String>,
     disabled: Option<bool>,
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Default for ComponentButton {
     fn default() -> Self {
         Self {
@@ -178,7 +178,7 @@ impl Default for ComponentButton {
         }
     }
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl From<ComponentButton> for MessageComponent {
     fn from(t: ComponentButton) -> Self {
         let mut o = MessageComponent::default();
@@ -214,12 +214,12 @@ pub enum ComponentButtonStyle {
 
 /// Builder for creating a Component Action Row
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 #[derive(Clone, PartialEq, Debug)]
 pub struct ComponentRowBuilder {
     obj: MessageComponent,
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Default for ComponentRowBuilder {
     fn default() -> Self {
         Self {
@@ -227,14 +227,14 @@ impl Default for ComponentRowBuilder {
         }
     }
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Builder<MessageComponent> for ComponentRowBuilder {
     fn build(self) -> Result<MessageComponent, String> {
         Ok(self.obj)
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl ComponentRowBuilder {
     /// Add a button
     pub fn add_button(mut self, button: ComponentButton) -> Self {
@@ -268,7 +268,7 @@ impl ComponentRowBuilder {
         self.obj
     }
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 #[derive(Clone, PartialEq, Debug)]
 /// Builder for making an button component
 pub struct ComponentButtonBuilder {
@@ -276,14 +276,14 @@ pub struct ComponentButtonBuilder {
 }
 
 #[allow(clippy::field_reassign_with_default)]
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Default for ComponentButtonBuilder {
     fn default() -> Self {
         let ob = ComponentButton::default();
         Self { obj: ob }
     }
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl ComponentButtonBuilder {
     /// Finish building this button
     #[deprecated(since = "0.1.9", note = "Use the `build()` function instead")]
@@ -336,7 +336,7 @@ impl ComponentButtonBuilder {
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Builder<ComponentButton> for ComponentButtonBuilder {
     fn build(self) -> Result<ComponentButton, String> {
         if self.obj.style.is_none() {
@@ -360,14 +360,14 @@ impl Builder<ComponentButton> for ComponentButtonBuilder {
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 #[derive(Clone, Debug)]
 /// Builder pattern for creating menu components.
 pub struct ComponentSelectMenuBuilder {
     obj: ComponentSelectMenu,
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Default for ComponentSelectMenuBuilder {
     fn default() -> Self {
         Self {
@@ -376,7 +376,7 @@ impl Default for ComponentSelectMenuBuilder {
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl ComponentSelectMenuBuilder {
     /// The custom developer identifier. **SETTING THIS IS MANDATORY!**
     pub fn custom_id(mut self, id: impl Into<String>) -> Self {
@@ -419,7 +419,7 @@ impl ComponentSelectMenuBuilder {
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Builder<ComponentSelectMenu> for ComponentSelectMenuBuilder {
     fn build(self) -> Result<ComponentSelectMenu, String> {
         if self.obj.custom_id.is_empty() {

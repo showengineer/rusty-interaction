@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 use ::chrono::{DateTime, Utc};
 use serde_with::*;
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 use crate::Builder;
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 use log::warn;
 // ======== Structures =========
 #[serde_as]
@@ -114,7 +114,7 @@ pub struct EmbedField {
     /// Whether or not this field should display inline
     inline: Option<bool>,
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 #[derive(Clone, Debug, PartialEq)]
 /// Builder to construct an [`Embed`]
 pub struct EmbedBuilder {
@@ -179,7 +179,7 @@ impl Default for Embed {
         }
     }
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Default for EmbedBuilder {
     fn default() -> Self {
         Self {
@@ -187,7 +187,7 @@ impl Default for EmbedBuilder {
         }
     }
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl EmbedBuilder {
     /// Set the title of this embed
     pub fn title(mut self, title: impl ToString) -> Self {
@@ -254,7 +254,7 @@ impl EmbedBuilder {
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 
 impl Builder<Embed> for EmbedBuilder {
     fn build(self) -> Result<Embed, String> {
