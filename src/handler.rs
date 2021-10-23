@@ -139,9 +139,7 @@ impl InteractionHandler {
             // Let it panic if there is no valid value
             let auth_value = header::HeaderValue::from_str(token.as_str());
 
-            if auth_value.is_err() {
-                panic!("Invalid value given at token");
-            }
+            assert!(!auth_value.is_err(), "Invalid value given at token");
 
             let mut auth_value = auth_value.unwrap();
 
