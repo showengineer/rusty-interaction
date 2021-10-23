@@ -33,7 +33,7 @@ use std::{collections::HashMap, future::Future, pin::Pin, sync::Mutex};
 type AnyMap = Map<dyn CloneAny + Send + Sync>;
 
 /// Alias for InteractionResponse
-pub type HandlerResponse = Result<InteractionResponse, ()>;
+pub type HandlerResponse = Result<InteractionResponse, std::convert::Infallible>;
 
 type HandlerFunction = fn(
     &mut InteractionHandler,

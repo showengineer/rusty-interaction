@@ -1,4 +1,9 @@
 #[cfg(feature = "builder")]
+use std::error;
+#[cfg(feature = "builder")]
+use std::fmt::{self, Display};
+
+#[cfg(feature = "builder")]
 use log::warn;
 use serde::{Deserialize, Serialize};
 
@@ -229,7 +234,9 @@ impl Default for ComponentRowBuilder {
 }
 #[cfg(feature = "builder")]
 impl Builder<MessageComponent> for ComponentRowBuilder {
-    fn build(self) -> Result<MessageComponent, String> {
+    type Error = std::convert::Infallible;
+
+    fn build(self) -> Result<MessageComponent, Self::Error> {
         Ok(self.obj)
     }
 }
@@ -337,22 +344,51 @@ impl ComponentButtonBuilder {
 }
 
 #[cfg(feature = "builder")]
-impl Builder<ComponentButton> for ComponentButtonBuilder {
-    fn build(self) -> Result<ComponentButton, String> {
-        if self.obj.style.is_none() {
-            return Err("Style is None.".to_string());
+#[derive(Debug)]
+/// An error that occurred when building a Component
+pub enum ComponentBuilderError {
+    /// The component had no specified style
+    NoStyle,
+    /// The component was a Link without a specified URL
+    LinkWithoutUrl,
+    /// The component was a Button without a specified custom ID
+    NoCustomId,
+}
+
+#[cfg(feature = "builder")]
+impl Display for ComponentBuilderError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ComponentBuilderError::NoStyle => write!(f, "style is none"),
+            ComponentBuilderError::LinkWithoutUrl => write!(
+                f,
+                "the button style is set to 'Link', but no url was specified"
+            ),
+            ComponentBuilderError::NoCustomId => {
+                write!(f, "no custom ID specified for this button")
+            }
         }
-        match self.obj.clone().style.unwrap() {
+    }
+}
+
+#[cfg(feature = "builder")]
+impl error::Error for ComponentBuilderError {}
+
+#[cfg(feature = "builder")]
+impl Builder<ComponentButton> for ComponentButtonBuilder {
+    type Error = ComponentBuilderError;
+
+    fn build(self) -> Result<ComponentButton, Self::Error> {
+        let style = self.obj.style.as_ref().ok_or(ComponentBuilderError::NoStyle)?;
+        match style {
             ComponentButtonStyle::Link => {
                 if self.obj.url.is_none() {
-                    return Err(
-                        "The button style is set to 'Link', but no url was specified.".to_string(),
-                    );
+                    return Err(ComponentBuilderError::LinkWithoutUrl);
                 }
             }
             _ => {
                 if self.obj.custom_id.is_none() {
-                    return Err("No custom_id was supplied for this button!".to_string());
+                    return Err(ComponentBuilderError::NoCustomId);
                 }
             }
         }
@@ -420,19 +456,56 @@ impl ComponentSelectMenuBuilder {
 }
 
 #[cfg(feature = "builder")]
+#[derive(Debug)]
+/// Represents an error that occurred when building a ComponentSelectMenu
+pub enum ComponentSelectMenuBuilderError {
+    /// There was no Custom ID supplied with this menu
+    EmptyCustomId,
+    /// There were over 25 options supplied for this menu
+    Over25MenuOptions,
+    /// There were over 25 min_values supplied for this menu
+    Over25MinValues,
+    /// There were over 25 max_values supplied for this menu
+    Over25MaxValues,
+}
+
+#[cfg(feature = "builder")]
+impl Display for ComponentSelectMenuBuilderError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ComponentSelectMenuBuilderError::EmptyCustomId => write!(f, "custom_id is empty"),
+            ComponentSelectMenuBuilderError::Over25MenuOptions => {
+                write!(f, "over 25 menu options supplied")
+            }
+            ComponentSelectMenuBuilderError::Over25MinValues => {
+                write!(f, "over 25 min_values options supplied")
+            }
+            ComponentSelectMenuBuilderError::Over25MaxValues => {
+                write!(f, "over 25 max_values options supplied")
+            }
+        }
+    }
+}
+
+#[cfg(feature = "builder")]
+impl error::Error for ComponentSelectMenuBuilderError {}
+
+#[cfg(feature = "builder")]
 impl Builder<ComponentSelectMenu> for ComponentSelectMenuBuilder {
-    fn build(self) -> Result<ComponentSelectMenu, String> {
+    type Error = ComponentSelectMenuBuilderError;
+
+    fn build(self) -> Result<ComponentSelectMenu, Self::Error> {
         if self.obj.custom_id.is_empty() {
-            return Err("custom_id is empty!".to_string());
+            return Err(ComponentSelectMenuBuilderError::EmptyCustomId);
         }
         if self.obj.options.len() > 25 {
-            return Err("Menu more than 25 options".to_string());
+            return Err(ComponentSelectMenuBuilderError::Over25MenuOptions);
         }
         if self.obj.min_values > 25 {
-            return Err("min_values cannot be more than 25".to_string());
+            return Err(ComponentSelectMenuBuilderError::Over25MinValues);
         }
         if self.obj.max_values > 25 {
-            return Err("max_values cannot be more than 25".to_string());
+            return Err(ComponentSelectMenuBuilderError::Over25MaxValues);
         }
         Ok(self.obj)
     }

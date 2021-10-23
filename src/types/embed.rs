@@ -255,9 +255,10 @@ impl EmbedBuilder {
 }
 
 #[cfg(feature = "builder")]
-
 impl Builder<Embed> for EmbedBuilder {
-    fn build(self) -> Result<Embed, String> {
+    type Error = std::convert::Infallible;
+
+    fn build(self) -> Result<Embed, Self::Error> {
         Ok(self.obj)
     }
 }
