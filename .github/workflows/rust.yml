@@ -38,3 +38,10 @@ jobs:
       run: cargo build --features extended-handler --verbose
     #- name: Run tests on handler
     #  run: cargo test --verbose --features extended-handler
+
+  rustfmt:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Rustfmt
+      run: 'bash -c "find src/ -name \"*.rs\" | xargs rustfmt --check"'
