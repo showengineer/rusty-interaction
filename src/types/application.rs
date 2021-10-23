@@ -284,21 +284,12 @@ pub struct ApplicationCommandInteractionDataOption {
     pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 #[cfg(feature = "builder")]
 #[cfg_attr(docsrs, doc(cfg(feature = "builder")))]
 /// Simple builder for defining SlashCommands
 pub struct SlashCommandDefinitionBuilder {
     obj: ApplicationCommand,
-}
-
-#[cfg(feature = "builder")]
-impl Default for SlashCommandDefinitionBuilder {
-    fn default() -> Self {
-        Self {
-            obj: ApplicationCommand::default(),
-        }
-    }
 }
 
 #[cfg(feature = "builder")]

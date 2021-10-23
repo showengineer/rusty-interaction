@@ -42,7 +42,7 @@ pub struct Embed {
     pub fields: Option<Vec<EmbedField>>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Clone, Default, Serialize, Deserialize, Debug, PartialEq)]
 /// Representing a Thumbnail for an [`Embed`]
 pub struct EmbedThumbnail {
     /// Url of the thumbnail
@@ -80,7 +80,7 @@ pub struct EmbedProvider {
     url: String,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Clone, Default, Serialize, Deserialize, Debug, PartialEq)]
 /// Representing the author of an [`Embed`]
 pub struct EmbedAuthor {
     /// Name of author
@@ -115,7 +115,7 @@ pub struct EmbedField {
     inline: Option<bool>,
 }
 #[cfg(feature = "builder")]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Default, Debug, PartialEq)]
 /// Builder to construct an [`Embed`]
 pub struct EmbedBuilder {
     obj: Embed,
@@ -176,14 +176,6 @@ impl Default for Embed {
             provider: None,
             author: None,
             fields: None,
-        }
-    }
-}
-#[cfg(feature = "builder")]
-impl Default for EmbedBuilder {
-    fn default() -> Self {
-        Self {
-            obj: Embed::default(),
         }
     }
 }
@@ -339,17 +331,6 @@ impl EmbedField {
     }
 }
 
-impl Default for EmbedAuthor {
-    fn default() -> Self {
-        Self {
-            name: None,
-            icon_url: None,
-            proxy_icon_url: None,
-            url: None,
-        }
-    }
-}
-
 impl EmbedAuthor {
     /// Set the author name
     pub fn name(mut self, name: impl ToString) -> Self {
@@ -379,17 +360,6 @@ impl EmbedAuthor {
 
         self.proxy_icon_url = Some(u);
         self
-    }
-}
-
-impl Default for EmbedThumbnail {
-    fn default() -> Self {
-        Self {
-            url: None,
-            proxy_url: None,
-            height: None,
-            width: None,
-        }
     }
 }
 

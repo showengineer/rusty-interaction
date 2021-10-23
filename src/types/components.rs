@@ -73,7 +73,7 @@ pub struct PartialEmoji {
     animated: bool,
 }
 
-#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, PartialEq, Debug)]
 /// An option for select menu options
 pub struct ComponentSelectOption {
     label: String,
@@ -81,18 +81,6 @@ pub struct ComponentSelectOption {
     description: Option<String>,
     emoji: Option<PartialEmoji>,
     default: Option<bool>,
-}
-
-impl Default for ComponentSelectOption {
-    fn default() -> Self {
-        Self {
-            label: String::new(),
-            value: String::new(),
-            emoji: None,
-            description: None,
-            default: None,
-        }
-    }
 }
 
 impl ComponentSelectOption {
@@ -146,16 +134,15 @@ impl Default for ComponentSelectMenu {
 #[cfg(feature = "builder")]
 impl From<ComponentSelectMenu> for MessageComponent {
     fn from(t: ComponentSelectMenu) -> Self {
-        let mut o = MessageComponent::default();
-
-        o.r#type = ComponentType::SelectMenu;
-        o.custom_id = Some(t.custom_id);
-        o.options = Some(t.options);
-        o.placeholder = t.placeholder;
-        o.min_values = Some(t.min_values);
-        o.max_values = Some(t.max_values);
-
-        o
+        MessageComponent {
+            r#type: ComponentType::SelectMenu,
+            custom_id: Some(t.custom_id),
+            options: Some(t.options),
+            placeholder: t.placeholder,
+            min_values: Some(t.min_values),
+            max_values: Some(t.max_values),
+            ..Default::default()
+        }
     }
 }
 
@@ -186,17 +173,16 @@ impl Default for ComponentButton {
 #[cfg(feature = "builder")]
 impl From<ComponentButton> for MessageComponent {
     fn from(t: ComponentButton) -> Self {
-        let mut o = MessageComponent::default();
-
-        o.r#type = ComponentType::Button;
-        o.style = t.style;
-        o.label = t.label;
-        o.emoji = t.emoji;
-        o.custom_id = t.custom_id;
-        o.url = t.url;
-        o.disabled = t.disabled;
-
-        o
+        MessageComponent {
+            r#type: ComponentType::Button,
+            style: t.style,
+            label: t.label,
+            emoji: t.emoji,
+            custom_id: t.custom_id,
+            url: t.url,
+            disabled: t.disabled,
+            ..Default::default()
+        }
     }
 }
 
@@ -220,17 +206,9 @@ pub enum ComponentButtonStyle {
 /// Builder for creating a Component Action Row
 
 #[cfg(feature = "builder")]
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Default, PartialEq, Debug)]
 pub struct ComponentRowBuilder {
     obj: MessageComponent,
-}
-#[cfg(feature = "builder")]
-impl Default for ComponentRowBuilder {
-    fn default() -> Self {
-        Self {
-            obj: MessageComponent::default(),
-        }
-    }
 }
 #[cfg(feature = "builder")]
 impl Builder<MessageComponent> for ComponentRowBuilder {
@@ -397,19 +375,10 @@ impl Builder<ComponentButton> for ComponentButtonBuilder {
 }
 
 #[cfg(feature = "builder")]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 /// Builder pattern for creating menu components.
 pub struct ComponentSelectMenuBuilder {
     obj: ComponentSelectMenu,
-}
-
-#[cfg(feature = "builder")]
-impl Default for ComponentSelectMenuBuilder {
-    fn default() -> Self {
-        Self {
-            obj: ComponentSelectMenu::default(),
-        }
-    }
 }
 
 #[cfg(feature = "builder")]
