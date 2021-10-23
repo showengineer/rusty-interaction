@@ -354,7 +354,9 @@ impl SlashCommandDefinitionBuilder {
 
 #[cfg(feature = "builder")]
 impl Builder<ApplicationCommand> for SlashCommandDefinitionBuilder {
-    fn build(self) -> Result<ApplicationCommand, String> {
+    type Error = std::convert::Infallible;
+
+    fn build(self) -> Result<ApplicationCommand, Self::Error> {
         Ok(self.obj)
     }
 }
