@@ -1,6 +1,6 @@
 [package]
 name = "rusty_interaction"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Hugo Woesthuis <hugow2011@outlook.com>"]
 license = "ISC"
 description = "Handle Discord Interactions as outgoing webhook"
@@ -46,7 +46,7 @@ features = [ "macros", "chrono", "json" ]
 
 [dependencies.attributes]
 path = "./attributes"
-version = "0.0.7"
+version = "0.0.8"
 optional = true
 
 [features]
