@@ -1,11 +1,13 @@
 [package]
 name = "attributes"
-version = "0.0.7"
+version = "0.0.8"
 authors = ["Hugo Woesthuis <hugow2011@outlook.com>"]
 edition = "2018"
 description = "Procedural macros for command creation with rusty-interaction"
 license = "ISC"
 readme = "README.md"
+homepage = "https://github.com/0x2b00b1e5/rusty-interaction"
+
 [lib]
 proc-macro = true
 
