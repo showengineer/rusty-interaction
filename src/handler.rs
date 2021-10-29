@@ -33,7 +33,7 @@ use std::{collections::HashMap, future::Future, pin::Pin, sync::Mutex};
 type AnyMap = Map<dyn CloneAny + Send + Sync>;
 
 /// Alias for InteractionResponse
-pub type HandlerResponse = Result<InteractionResponse, ()>;
+pub type HandlerResponse = Result<InteractionResponse, std::convert::Infallible>;
 
 type HandlerFunction = fn(
     &mut InteractionHandler,
@@ -59,7 +59,7 @@ macro_rules! match_handler_response {
                 _ => {
                     // Send out a response to Discord
                     let r = HttpResponse::build(StatusCode::OK).json(__unwrapped_response__);
-    
+
                     Ok(r)
                 }
             }
@@ -68,7 +68,7 @@ macro_rules! match_handler_response {
             debug!("Responding with 500!");
             Ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).finish())
         }
-        
+
     };
 }
 
@@ -139,9 +139,7 @@ impl InteractionHandler {
             // Let it panic if there is no valid value
             let auth_value = header::HeaderValue::from_str(token.as_str());
 
-            if auth_value.is_err() {
-                panic!("Invalid value given at token");
-            }
+            assert!(!auth_value.is_err(), "Invalid value given at token");
 
             let mut auth_value = auth_value.unwrap();
 
@@ -215,7 +213,7 @@ impl InteractionHandler {
     ///
     ///     let mut handle = InteractionHandler::new(PUB_KEY);
     ///     handle.add_command("ping", pong_handler);
-    ///     
+    ///
     ///     return handle.run().await;
     /// }
     /// ```
@@ -503,10 +501,9 @@ impl InteractionHandler {
                             match_handler_response!(response)
                         }
                         // Welp, nothing found. Check for matches in the global map
-                        else if let Some(handler) = self
-                            .global_handles
-                            .get(data.name.as_ref().unwrap().as_str() /* Don't question it */)
-                        {
+                        else if let Some(handler) = self.global_handles.get(
+                            data.name.as_ref().unwrap().as_str(), /* Don't question it */
+                        ) {
                             // construct a Context
                             let ctx = Context::new(self.client.clone(), interaction);
 
@@ -543,7 +540,6 @@ impl InteractionHandler {
                             let response = handler(self, ctx).await;
 
                             match_handler_response!(response)
-
                         } else {
                             error!(
                                 "No associated handler found for {}",

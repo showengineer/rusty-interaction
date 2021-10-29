@@ -151,14 +151,14 @@ impl InteractionResponseBuilder {
     }
 
     /// Return a pong with no data. Use with caution
-    pub fn pong(mut self) -> Result<InteractionResponse, ()> {
+    pub fn pong(mut self) -> Result<InteractionResponse, std::convert::Infallible> {
         self.r#type = InteractionResponseType::Pong;
         self.data = None;
         self.finish()
     }
 
     /// Return without any data. Use with caution
-    pub fn none(mut self) -> Result<InteractionResponse, ()> {
+    pub fn none(mut self) -> Result<InteractionResponse, std::convert::Infallible> {
         self.r#type = InteractionResponseType::None;
         self.data = None;
         self.finish()
@@ -261,10 +261,7 @@ impl InteractionResponseBuilder {
 
     /// Returns an `InteractionResponse`, consuming itself.
     /// You can't use the builder anymore after you called this function.
-    /// 
-    /// # Note
-    /// This function retuns an `Ok`, no matter what.
-    pub fn finish(self) -> Result<InteractionResponse, ()> {
+    pub fn finish(self) -> Result<InteractionResponse, std::convert::Infallible> {
         Ok(self.ret())
     }
 }
@@ -294,7 +291,7 @@ pub enum InteractionResponseType {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Clone, Default, Serialize, Deserialize, Debug, PartialEq)]
 /// Representing the data used to respond to an [`Interaction`]
 pub struct InteractionApplicationCommandCallbackData {
     tts: Option<bool>,
@@ -309,19 +306,6 @@ impl InteractionApplicationCommandCallbackData {
     /// Creates a new [`InteractionApplicationCommandCallbackData`]
     pub fn new() -> Self {
         Self::default()
-    }
-}
-
-impl Default for InteractionApplicationCommandCallbackData {
-    fn default() -> Self {
-        Self {
-            tts: None,
-            content: None,
-            embeds: None,
-            allowed_mentions: None,
-            flags: None,
-            components: None,
-        }
     }
 }
 
@@ -346,7 +330,7 @@ pub struct AllowedMentions {
 }
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, Debug)]
 /// Representing a webhook message
 pub struct WebhookMessage {
     /// The message contents
@@ -384,17 +368,6 @@ impl WebhookMessage {
             }
         }
         self
-    }
-}
-impl Default for WebhookMessage {
-    fn default() -> Self {
-        WebhookMessage {
-            content: None,
-            embeds: None,
-            components: None,
-            payload_json: None,
-            allowed_mentions: None,
-        }
     }
 }
 
@@ -597,19 +570,18 @@ impl Context {
     pub fn new(c: Client, i: Interaction) -> Self {
         let mut user_id = None;
 
-        if i.user.is_none(){
+        if i.user.is_none() {
             // Try to unwrap member
-            if let Some(member) = &i.member{
+            if let Some(member) = &i.member {
                 user_id = Some(member.user.id);
             }
-        }
-        else{
+        } else {
             // Try to unwrap user
-            if let Some(u) = &i.user{
+            if let Some(u) = &i.user {
                 user_id = Some(u.id);
             }
         }
-        
+
         Self {
             client: c,
             interaction: i,
@@ -647,7 +619,7 @@ impl Context {
             "{}/webhooks/{:?}/{}/messages/@original",
             crate::BASE_URL,
             self.interaction.application_id.unwrap(),
-            self.interaction.token.as_ref().unwrap().to_string()
+            self.interaction.token.as_ref().unwrap()
         );
         let c = self.client.patch(&url).json(new_content).send().await;
 
@@ -660,7 +632,7 @@ impl Context {
             "{}/webhooks/{:?}/{}/messages/@original",
             crate::BASE_URL,
             self.interaction.application_id.unwrap(),
-            self.interaction.token.as_ref().unwrap().to_string()
+            self.interaction.token.as_ref().unwrap()
         );
         let c = self.client.delete(&url).send().await;
 
@@ -676,7 +648,7 @@ impl Context {
             "{}/webhooks/{:?}/{}?wait=true",
             crate::BASE_URL,
             self.interaction.application_id.unwrap(),
-            self.interaction.token.as_ref().unwrap().to_string()
+            self.interaction.token.as_ref().unwrap()
         );
 
         let c = self.client.post(&url).json(content).send().await;

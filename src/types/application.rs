@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::*;
 
-#[cfg(feature = "extended-handler")]
+#[cfg(feature = "builder")]
 use crate::Builder;
 
 use super::components::ComponentType;
@@ -47,8 +47,8 @@ pub struct ApplicationCommand {
 #[repr(u8)]
 #[non_exhaustive]
 /// Type of `ApplicationCommand`
-pub enum ApplicationCommandType{
-    /// Slash commands; a text-based command that shows up when a user types `/` 
+pub enum ApplicationCommandType {
+    /// Slash commands; a text-based command that shows up when a user types `/`
     ChatInput = 1,
     /// A UI-based command that shows up when you right click or tap on a user
     User = 2,
@@ -230,13 +230,12 @@ pub struct ApplicationCommandOptionChoice {
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// Stripped down version of ResolvedData
-pub struct ResolvedData{
+pub struct ResolvedData {
     /// User map
     pub users: Option<User>,
     /// Member map
     pub members: Option<Member>,
 }
-
 
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
@@ -271,7 +270,7 @@ pub struct ApplicationCommandInteractionData {
     #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
     /// For User- and Message Commands, the id of the user or message targeted.
-    pub target_id: Option<Snowflake>
+    pub target_id: Option<Snowflake>,
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
@@ -285,24 +284,15 @@ pub struct ApplicationCommandInteractionDataOption {
     pub options: Option<Vec<ApplicationCommandInteractionDataOption>>,
 }
 
-#[derive(Clone, Debug)]
-#[cfg(feature = "extended-handler")]
-#[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
+#[derive(Clone, Debug, Default)]
+#[cfg(feature = "builder")]
+#[cfg_attr(docsrs, doc(cfg(feature = "builder")))]
 /// Simple builder for defining SlashCommands
 pub struct SlashCommandDefinitionBuilder {
     obj: ApplicationCommand,
 }
 
-#[cfg(feature = "extended-handler")]
-impl Default for SlashCommandDefinitionBuilder {
-    fn default() -> Self {
-        Self {
-            obj: ApplicationCommand::default(),
-        }
-    }
-}
-
-#[cfg(feature = "extended-handler")]
+#[cfg(feature = "builder")]
 impl SlashCommandDefinitionBuilder {
     /// Name of the application command
     pub fn name(mut self, name: impl ToString) -> Self {
@@ -313,7 +303,7 @@ impl SlashCommandDefinitionBuilder {
     }
 
     /// Sets the type of command you're defining. See [`ApplicationCommandType`]
-    pub fn command_type(mut self, c_type: ApplicationCommandType) -> Self{
+    pub fn command_type(mut self, c_type: ApplicationCommandType) -> Self {
         self.obj.r#type = Some(c_type);
         self
     }
@@ -353,9 +343,11 @@ impl SlashCommandDefinitionBuilder {
     }
 }
 
-#[cfg(feature = "extended-handler")]
+#[cfg(feature = "builder")]
 impl Builder<ApplicationCommand> for SlashCommandDefinitionBuilder {
-    fn build(self) -> Result<ApplicationCommand, String> {
+    type Error = std::convert::Infallible;
+
+    fn build(self) -> Result<ApplicationCommand, Self::Error> {
         Ok(self.obj)
     }
 }

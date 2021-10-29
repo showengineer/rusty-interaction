@@ -2,8 +2,8 @@ extern crate proc_macro;
 
 use proc_macro::*;
 
-use quote::quote;
 use quote::format_ident;
+use quote::quote;
 
 use syn::{Expr, ExprReturn, FnArg, ReturnType, Stmt};
 
@@ -49,7 +49,7 @@ fn handler(
     // Check for a proper return type and fill ret if found.
     match ret_sig {
         ReturnType::Default => {
-            panic!("Expected an `Result<InteractionResponse, ()>` return type, but got no return type. Consider adding `-> Result<InteractionResponse, ()>` to your function signature.");
+            panic!("Expected an `Result<InteractionResponse, std::convert::Infallible>` return type, but got no return type. Consider adding `-> Result<InteractionResponse, Infallible>` to your function signature.");
         }
         ReturnType::Type(_a, b) => {
             ret = *b.clone();
@@ -60,7 +60,6 @@ fn handler(
     let mut ctxname: Option<syn::Ident> = None;
     let mut handlename: Option<syn::Ident> = None;
     // eprintln!("{:#?}", params);
-
 
     // I am honestly laughing at this...
     // But hey it works! :D
@@ -75,8 +74,7 @@ fn handler(
                                 ctxname = Some(a.ident.clone());
                                 break;
                             }
-                        }
-                        else if segment.ident == "InteractionHandler"{
+                        } else if segment.ident == "InteractionHandler" {
                             panic!("Cannot take ownership of `InteractionHandler`. Try using &InteractionHandler!")
                         }
                     }
@@ -100,7 +98,7 @@ fn handler(
                 }
             }
         }
-        if let FnArg::Receiver(_) = p{
+        if let FnArg::Receiver(_) = p {
             panic!("`self` arguments are not allowed. If you need to access data in your function, use the `InteractionHandler.data` field and `InteractionHandler::add_data` method")
         }
     }
@@ -114,10 +112,6 @@ fn handler(
     if handlename.is_some() {
         ih_n = quote!(#handlename);
     }
-
-    
-
-    
 
     // Using quasi-quoting to generate a new function. This is what will be the end function returned to the compiler.
     if !defer {
@@ -133,13 +127,12 @@ fn handler(
     }
     // Deferring is requested, this will require a bit more manipulation.
     else {
-
-        // Create two functions. One that actually does the work, and one that handles the threading. 
+        // Create two functions. One that actually does the work, and one that handles the threading.
 
         let act_fn = format_ident!("__actual_{}", fname);
 
         let subst_fn = quote! {
-            fn #act_fn (#ih_n: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{                
+            fn #act_fn (#ih_n: &mut InteractionHandler, #ctxname: Context) -> ::std::pin::Pin<::std::boxed::Box<dyn Send + ::std::future::Future<Output = #ret> + '_>>{
                 Box::pin(async move {
                     #body
                 })
@@ -150,7 +143,7 @@ fn handler(
                     let mut __ih_c = ihd.clone();
 
                     ::rusty_interaction::actix::Arbiter::spawn(async move {
-                        
+
                         let __response = #act_fn (&mut __ih_c, ctx.clone()).await;
                         if let Ok(__r) = __response{
                             if __r.r#type != InteractionResponseType::Pong && __r.r#type != InteractionResponseType::None{
@@ -162,7 +155,7 @@ fn handler(
                         else{
                             // Nothing
                         }
-                        
+
 
                     });
 
@@ -178,7 +171,9 @@ fn handler(
 #[proc_macro_attribute]
 /// Convenience procedural macro that allows you to bind an async function to the [`InteractionHandler`] for handling component interactions.
 pub fn component_handler(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let ret = quote!(::rusty_interaction::types::interaction::InteractionResponseType::DefferedUpdateMessage);
+    let ret = quote!(
+        ::rusty_interaction::types::interaction::InteractionResponseType::DefferedUpdateMessage
+    );
 
     handler(attr, item, ret)
 }

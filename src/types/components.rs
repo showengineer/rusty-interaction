@@ -1,8 +1,13 @@
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
+use std::error;
+#[cfg(feature = "builder")]
+use std::fmt::{self, Display};
+
+#[cfg(feature = "builder")]
 use log::warn;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 use crate::Builder;
 
 use serde_repr::*;
@@ -68,7 +73,7 @@ pub struct PartialEmoji {
     animated: bool,
 }
 
-#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, PartialEq, Debug)]
 /// An option for select menu options
 pub struct ComponentSelectOption {
     label: String,
@@ -76,18 +81,6 @@ pub struct ComponentSelectOption {
     description: Option<String>,
     emoji: Option<PartialEmoji>,
     default: Option<bool>,
-}
-
-impl Default for ComponentSelectOption {
-    fn default() -> Self {
-        Self {
-            label: String::new(),
-            value: String::new(),
-            emoji: None,
-            description: None,
-            default: None,
-        }
-    }
 }
 
 impl ComponentSelectOption {
@@ -123,7 +116,7 @@ pub struct ComponentSelectMenu {
     max_values: u8,
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Default for ComponentSelectMenu {
     fn default() -> Self {
         Self {
@@ -138,23 +131,22 @@ impl Default for ComponentSelectMenu {
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl From<ComponentSelectMenu> for MessageComponent {
     fn from(t: ComponentSelectMenu) -> Self {
-        let mut o = MessageComponent::default();
-
-        o.r#type = ComponentType::SelectMenu;
-        o.custom_id = Some(t.custom_id);
-        o.options = Some(t.options);
-        o.placeholder = t.placeholder;
-        o.min_values = Some(t.min_values);
-        o.max_values = Some(t.max_values);
-
-        o
+        MessageComponent {
+            r#type: ComponentType::SelectMenu,
+            custom_id: Some(t.custom_id),
+            options: Some(t.options),
+            placeholder: t.placeholder,
+            min_values: Some(t.min_values),
+            max_values: Some(t.max_values),
+            ..Default::default()
+        }
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// A button
 pub struct ComponentButton {
@@ -165,7 +157,7 @@ pub struct ComponentButton {
     url: Option<String>,
     disabled: Option<bool>,
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Default for ComponentButton {
     fn default() -> Self {
         Self {
@@ -178,20 +170,19 @@ impl Default for ComponentButton {
         }
     }
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl From<ComponentButton> for MessageComponent {
     fn from(t: ComponentButton) -> Self {
-        let mut o = MessageComponent::default();
-
-        o.r#type = ComponentType::Button;
-        o.style = t.style;
-        o.label = t.label;
-        o.emoji = t.emoji;
-        o.custom_id = t.custom_id;
-        o.url = t.url;
-        o.disabled = t.disabled;
-
-        o
+        MessageComponent {
+            r#type: ComponentType::Button,
+            style: t.style,
+            label: t.label,
+            emoji: t.emoji,
+            custom_id: t.custom_id,
+            url: t.url,
+            disabled: t.disabled,
+            ..Default::default()
+        }
     }
 }
 
@@ -214,27 +205,21 @@ pub enum ComponentButtonStyle {
 
 /// Builder for creating a Component Action Row
 
-#[cfg(feature = "handler")]
-#[derive(Clone, PartialEq, Debug)]
+#[cfg(feature = "builder")]
+#[derive(Clone, Default, PartialEq, Debug)]
 pub struct ComponentRowBuilder {
     obj: MessageComponent,
 }
-#[cfg(feature = "handler")]
-impl Default for ComponentRowBuilder {
-    fn default() -> Self {
-        Self {
-            obj: MessageComponent::default(),
-        }
-    }
-}
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Builder<MessageComponent> for ComponentRowBuilder {
-    fn build(self) -> Result<MessageComponent, String> {
+    type Error = std::convert::Infallible;
+
+    fn build(self) -> Result<MessageComponent, Self::Error> {
         Ok(self.obj)
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl ComponentRowBuilder {
     /// Add a button
     pub fn add_button(mut self, button: ComponentButton) -> Self {
@@ -268,7 +253,7 @@ impl ComponentRowBuilder {
         self.obj
     }
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 #[derive(Clone, PartialEq, Debug)]
 /// Builder for making an button component
 pub struct ComponentButtonBuilder {
@@ -276,14 +261,14 @@ pub struct ComponentButtonBuilder {
 }
 
 #[allow(clippy::field_reassign_with_default)]
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl Default for ComponentButtonBuilder {
     fn default() -> Self {
         let ob = ComponentButton::default();
         Self { obj: ob }
     }
 }
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl ComponentButtonBuilder {
     /// Finish building this button
     #[deprecated(since = "0.1.9", note = "Use the `build()` function instead")]
@@ -336,23 +321,56 @@ impl ComponentButtonBuilder {
     }
 }
 
-#[cfg(feature = "handler")]
-impl Builder<ComponentButton> for ComponentButtonBuilder {
-    fn build(self) -> Result<ComponentButton, String> {
-        if self.obj.style.is_none() {
-            return Err("Style is None.".to_string());
+#[cfg(feature = "builder")]
+#[derive(Debug)]
+/// An error that occurred when building a Component
+pub enum ComponentBuilderError {
+    /// The component had no specified style
+    NoStyle,
+    /// The component was a Link without a specified URL
+    LinkWithoutUrl,
+    /// The component was a Button without a specified custom ID
+    NoCustomId,
+}
+
+#[cfg(feature = "builder")]
+impl Display for ComponentBuilderError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ComponentBuilderError::NoStyle => write!(f, "style is none"),
+            ComponentBuilderError::LinkWithoutUrl => write!(
+                f,
+                "the button style is set to 'Link', but no url was specified"
+            ),
+            ComponentBuilderError::NoCustomId => {
+                write!(f, "no custom ID specified for this button")
+            }
         }
-        match self.obj.clone().style.unwrap() {
+    }
+}
+
+#[cfg(feature = "builder")]
+impl error::Error for ComponentBuilderError {}
+
+#[cfg(feature = "builder")]
+impl Builder<ComponentButton> for ComponentButtonBuilder {
+    type Error = ComponentBuilderError;
+
+    fn build(self) -> Result<ComponentButton, Self::Error> {
+        let style = self
+            .obj
+            .style
+            .as_ref()
+            .ok_or(ComponentBuilderError::NoStyle)?;
+        match style {
             ComponentButtonStyle::Link => {
                 if self.obj.url.is_none() {
-                    return Err(
-                        "The button style is set to 'Link', but no url was specified.".to_string(),
-                    );
+                    return Err(ComponentBuilderError::LinkWithoutUrl);
                 }
             }
             _ => {
                 if self.obj.custom_id.is_none() {
-                    return Err("No custom_id was supplied for this button!".to_string());
+                    return Err(ComponentBuilderError::NoCustomId);
                 }
             }
         }
@@ -360,23 +378,14 @@ impl Builder<ComponentButton> for ComponentButtonBuilder {
     }
 }
 
-#[cfg(feature = "handler")]
-#[derive(Clone, Debug)]
+#[cfg(feature = "builder")]
+#[derive(Clone, Debug, Default)]
 /// Builder pattern for creating menu components.
 pub struct ComponentSelectMenuBuilder {
     obj: ComponentSelectMenu,
 }
 
-#[cfg(feature = "handler")]
-impl Default for ComponentSelectMenuBuilder {
-    fn default() -> Self {
-        Self {
-            obj: ComponentSelectMenu::default(),
-        }
-    }
-}
-
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl ComponentSelectMenuBuilder {
     /// The custom developer identifier. **SETTING THIS IS MANDATORY!**
     pub fn custom_id(mut self, id: impl Into<String>) -> Self {
@@ -419,20 +428,57 @@ impl ComponentSelectMenuBuilder {
     }
 }
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
+#[derive(Debug)]
+/// Represents an error that occurred when building a ComponentSelectMenu
+pub enum ComponentSelectMenuBuilderError {
+    /// There was no Custom ID supplied with this menu
+    EmptyCustomId,
+    /// There were over 25 options supplied for this menu
+    Over25MenuOptions,
+    /// There were over 25 min_values supplied for this menu
+    Over25MinValues,
+    /// There were over 25 max_values supplied for this menu
+    Over25MaxValues,
+}
+
+#[cfg(feature = "builder")]
+impl Display for ComponentSelectMenuBuilderError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ComponentSelectMenuBuilderError::EmptyCustomId => write!(f, "custom_id is empty"),
+            ComponentSelectMenuBuilderError::Over25MenuOptions => {
+                write!(f, "over 25 menu options supplied")
+            }
+            ComponentSelectMenuBuilderError::Over25MinValues => {
+                write!(f, "over 25 min_values options supplied")
+            }
+            ComponentSelectMenuBuilderError::Over25MaxValues => {
+                write!(f, "over 25 max_values options supplied")
+            }
+        }
+    }
+}
+
+#[cfg(feature = "builder")]
+impl error::Error for ComponentSelectMenuBuilderError {}
+
+#[cfg(feature = "builder")]
 impl Builder<ComponentSelectMenu> for ComponentSelectMenuBuilder {
-    fn build(self) -> Result<ComponentSelectMenu, String> {
+    type Error = ComponentSelectMenuBuilderError;
+
+    fn build(self) -> Result<ComponentSelectMenu, Self::Error> {
         if self.obj.custom_id.is_empty() {
-            return Err("custom_id is empty!".to_string());
+            return Err(ComponentSelectMenuBuilderError::EmptyCustomId);
         }
         if self.obj.options.len() > 25 {
-            return Err("Menu more than 25 options".to_string());
+            return Err(ComponentSelectMenuBuilderError::Over25MenuOptions);
         }
         if self.obj.min_values > 25 {
-            return Err("min_values cannot be more than 25".to_string());
+            return Err(ComponentSelectMenuBuilderError::Over25MinValues);
         }
         if self.obj.max_values > 25 {
-            return Err("max_values cannot be more than 25".to_string());
+            return Err(ComponentSelectMenuBuilderError::Over25MaxValues);
         }
         Ok(self.obj)
     }

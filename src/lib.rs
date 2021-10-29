@@ -43,8 +43,11 @@ mod tests;
 
 /// A trait for defining builder patterns.
 pub trait Builder<T> {
+    /// Associated error type to return
+    type Error: std::error::Error;
+
     /// Build the given type
-    fn build(self) -> Result<T, String>;
+    fn build(self) -> Result<T, Self::Error>;
 }
 
 // ===== USEFUL MACROS =====

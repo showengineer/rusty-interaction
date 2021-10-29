@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 use ::chrono::{DateTime, Utc};
 use serde_with::*;
 
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 use crate::Builder;
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 use log::warn;
 // ======== Structures =========
 #[serde_as]
@@ -42,7 +42,7 @@ pub struct Embed {
     pub fields: Option<Vec<EmbedField>>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Clone, Default, Serialize, Deserialize, Debug, PartialEq)]
 /// Representing a Thumbnail for an [`Embed`]
 pub struct EmbedThumbnail {
     /// Url of the thumbnail
@@ -80,7 +80,7 @@ pub struct EmbedProvider {
     url: String,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Clone, Default, Serialize, Deserialize, Debug, PartialEq)]
 /// Representing the author of an [`Embed`]
 pub struct EmbedAuthor {
     /// Name of author
@@ -114,8 +114,8 @@ pub struct EmbedField {
     /// Whether or not this field should display inline
     inline: Option<bool>,
 }
-#[cfg(feature = "handler")]
-#[derive(Clone, Debug, PartialEq)]
+#[cfg(feature = "builder")]
+#[derive(Clone, Default, Debug, PartialEq)]
 /// Builder to construct an [`Embed`]
 pub struct EmbedBuilder {
     obj: Embed,
@@ -123,7 +123,7 @@ pub struct EmbedBuilder {
 #[derive(Clone, Copy, Debug, PartialEq)]
 /// Representing RGB colors.
 ///
-/// Each color is an 8bit unsigned integer.  
+/// Each color is an 8bit unsigned integer.
 pub struct Color {
     /// Red value
     pub red: u8,
@@ -179,15 +179,7 @@ impl Default for Embed {
         }
     }
 }
-#[cfg(feature = "handler")]
-impl Default for EmbedBuilder {
-    fn default() -> Self {
-        Self {
-            obj: Embed::default(),
-        }
-    }
-}
-#[cfg(feature = "handler")]
+#[cfg(feature = "builder")]
 impl EmbedBuilder {
     /// Set the title of this embed
     pub fn title(mut self, title: impl ToString) -> Self {
@@ -254,10 +246,11 @@ impl EmbedBuilder {
     }
 }
 
-#[cfg(feature = "handler")]
-
+#[cfg(feature = "builder")]
 impl Builder<Embed> for EmbedBuilder {
-    fn build(self) -> Result<Embed, String> {
+    type Error = std::convert::Infallible;
+
+    fn build(self) -> Result<Embed, Self::Error> {
         Ok(self.obj)
     }
 }
@@ -338,17 +331,6 @@ impl EmbedField {
     }
 }
 
-impl Default for EmbedAuthor {
-    fn default() -> Self {
-        Self {
-            name: None,
-            icon_url: None,
-            proxy_icon_url: None,
-            url: None,
-        }
-    }
-}
-
 impl EmbedAuthor {
     /// Set the author name
     pub fn name(mut self, name: impl ToString) -> Self {
@@ -378,17 +360,6 @@ impl EmbedAuthor {
 
         self.proxy_icon_url = Some(u);
         self
-    }
-}
-
-impl Default for EmbedThumbnail {
-    fn default() -> Self {
-        Self {
-            url: None,
-            proxy_url: None,
-            height: None,
-            width: None,
-        }
     }
 }
 

@@ -1,10 +1,10 @@
 [package]
 name = "rusty_interaction"
 version = "0.2.1"
-authors = ["Hugo Woesthuis <hugow2011@outlook.com>"]
+authors = ["Hugo Woesthuis <hugo@woesthuis.eu>"]
 license = "ISC"
 description = "Handle Discord Interactions as outgoing webhook"
-repository = "https://github.com/hugopilot/rusty-interaction"
+repository = "https://github.com/0x2b00b1e5/rusty-interaction"
 readme = "README.md"
 edition = "2018"
 keywords = ["discord", "interactions", "discord-interactions", "slash-commands", "api"]
@@ -52,8 +52,9 @@ optional = true
 [features]
 default = ["types", "security"]
 security = ["ed25519-dalek", "hex", "types"]
+builder = ["log"]
 types = []
-handler = ["types", "security", "actix", "actix-web", "actix-rt", "rustls", "async-trait", "attributes", "log", "reqwest", "anymap"]
+handler = ["types", "builder", "security", "actix", "actix-web", "actix-rt", "rustls", "async-trait", "attributes", "reqwest", "anymap"]
 extended-handler = ["handler"]
 
 [package.metadata.docs.rs]

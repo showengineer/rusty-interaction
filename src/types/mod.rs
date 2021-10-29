@@ -20,7 +20,7 @@ pub mod components;
 pub mod guild;
 //use interaction::{InteractionResponse, Interaction};
 
-/// Discord's 'snowflake'. It's a 64bit unsigned integer that is mainly used for identifying anything Discord.  
+/// Discord's 'snowflake'. It's a 64bit unsigned integer that is mainly used for identifying anything Discord.
 pub type Snowflake = u64;
 
 #[doc(hidden)]
