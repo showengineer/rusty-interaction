@@ -44,7 +44,7 @@ Setting up your own endpoint makes Discord send the interactions to your own API
 
 If you already have an API that runs your service and you're looking to integrate with Discord, this way of receiving interactions can be really interesting.
 
-One destinct difference is that you do not need a bot or oauth token for most features. Some features (like command management) do require a bot token. 
+One distinct difference is that you do not need a bot or oauth token for most features. Some features (like command management) do require a bot token. 
 
 ### Ok, I want to receive interactions through the gateway. Does your library support that?
 No. If you want to receive interactions through the gateway, you want to take a look at [Serenity](https://github.com/serenity-rs/serenity) or one of the [other libraries](https://discord.com/developers/docs/topics/community-resources#libraries-discord-libraries).
