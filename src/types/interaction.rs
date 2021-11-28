@@ -210,6 +210,41 @@ impl InteractionResponseBuilder {
         self.content(c)
     }
 
+    /// Sets the 'ephermeral' message flag. This will cause the message to show for its recipient only.
+    pub fn is_ephemeral(mut self, e: bool) -> Self{
+        match self.data.as_mut(){
+            None =>{
+                let mut d = InteractionApplicationCommandCallbackData::new();
+                if e {
+                    d.flags = Some(1 << 6);
+                }
+                self.data = Some(d);
+            }
+            Some(mut d) => {
+                if let Some(mut flag) = d.flags{
+                    if e {
+                        flag |= 1 << 6;
+                    }
+                    else{
+                        flag |= 0 << 6;
+                    }
+                    d.flags = Some(flag);
+                }
+                else{
+                    if e{
+                        d.flags = Some(1 << 6);
+                    } else{
+                        d.flags = Some(0);
+                    }
+                }
+            }
+        }
+        
+        self
+
+
+    }
+
     /// Add an [`Embed`] to the response.
     /// You can add up to 10 embeds.
     pub fn add_embed(mut self, e: &Embed) -> Self {
@@ -298,7 +333,7 @@ pub struct InteractionApplicationCommandCallbackData {
     content: Option<String>,
     embeds: Option<Vec<Embed>>,
     allowed_mentions: Option<AllowedMentions>,
-    flags: Option<i32>,
+    flags: Option<u8>,
     components: Option<Vec<MessageComponent>>,
 }
 
