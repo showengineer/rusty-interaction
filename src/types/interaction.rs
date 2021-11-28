@@ -211,9 +211,9 @@ impl InteractionResponseBuilder {
     }
 
     /// Sets the 'ephermeral' message flag. This will cause the message to show for its recipient only.
-    pub fn is_ephemeral(mut self, e: bool) -> Self{
-        match self.data.as_mut(){
-            None =>{
+    pub fn is_ephemeral(mut self, e: bool) -> Self {
+        match self.data.as_mut() {
+            None => {
                 let mut d = InteractionApplicationCommandCallbackData::new();
                 if e {
                     d.flags = Some(1 << 6);
@@ -221,28 +221,22 @@ impl InteractionResponseBuilder {
                 self.data = Some(d);
             }
             Some(mut d) => {
-                if let Some(mut flag) = d.flags{
+                if let Some(mut flag) = d.flags {
                     if e {
                         flag |= 1 << 6;
-                    }
-                    else{
+                    } else {
                         flag |= 0 << 6;
                     }
                     d.flags = Some(flag);
-                }
-                else{
-                    if e{
-                        d.flags = Some(1 << 6);
-                    } else{
-                        d.flags = Some(0);
-                    }
+                } else if e {
+                    d.flags = Some(1 << 6);
+                } else {
+                    d.flags = Some(0);
                 }
             }
         }
-        
+
         self
-
-
     }
 
     /// Add an [`Embed`] to the response.
