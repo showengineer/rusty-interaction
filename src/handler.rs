@@ -443,9 +443,7 @@ impl InteractionHandler {
 
         if let Some((se, st)) = se.zip(st) {
             // Verify timestamp + body against given signature
-            if verify_discord_message(self.app_public_key, se, st, &body).is_ok() {
-                // Signature OK. Continue with interaction processing.
-            } else {
+            if !verify_discord_message(self.app_public_key, se, st, &body).is_ok() {
                 // Verification failed, reject.
                 // TODO: Switch error response
                 debug!(
