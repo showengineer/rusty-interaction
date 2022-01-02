@@ -293,20 +293,20 @@ async fn interactions_bad_body_test() {
 }
 #[cfg(feature = "handler")]
 #[allow(unused_must_use)]
-#[slash_command_test]
+#[slash_command]
 async fn normal_handle_test(ctx: Context) -> InteractionResponse {
     return ctx.respond().content("TEST").finish();
 }
 #[cfg(feature = "handler")]
 #[allow(unused_must_use)]
-#[slash_command_test]
+#[slash_command]
 async fn normal_handle_value_test(ctx: Context) -> InteractionResponse {
     let response = ctx.respond().content("TEST").finish();
     return response;
 }
 #[cfg(feature = "handler")]
 #[allow(unused_must_use)]
-#[slash_command_test]
+#[slash_command]
 async fn normal_handle_direct_test(_ctx: Context) -> InteractionResponse {
     return InteractionResponseBuilder::default()
         .content("TEST")
