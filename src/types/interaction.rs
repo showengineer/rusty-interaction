@@ -73,6 +73,8 @@ pub struct Interaction {
     pub user: Option<User>,
     /// Unique token used for editing messages and managing follow-up messages
     pub token: Option<String>,
+    /// The locale the client is set to.
+    pub locale: Option<String>,
     /// Read-only. Always `1`
     pub version: Option<i8>,
 }
