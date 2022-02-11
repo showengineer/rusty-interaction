@@ -1,4 +1,4 @@
-#[cfg(feature = "builder")]
+1#[cfg(feature = "builder")]
 use std::error;
 #[cfg(feature = "builder")]
 use std::fmt::{self, Display};
@@ -31,6 +31,13 @@ pub struct MessageComponent {
     min_values: Option<u8>,
     max_values: Option<u8>,
     components: Option<Vec<MessageComponent>>,
+
+    // Text input specific
+    label: Option<String>,
+    min_length: Option<u16>,
+    max_length: Option<u16>,
+    required: Option<bool>,
+    value: Option<String>,
 }
 
 impl Default for MessageComponent {
@@ -48,6 +55,11 @@ impl Default for MessageComponent {
             max_values: None,
             min_values: None,
             components: None,
+            label: None,
+            min_length: None,
+            max_length: None,
+            required: None,
+            value: None,
         }
     }
 }
@@ -63,6 +75,8 @@ pub enum ComponentType {
     Button = 2,
     /// A select menu for picking from choices
     SelectMenu = 3,
+    /// A text input object
+    TextInput = 4,
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
@@ -362,6 +376,7 @@ impl Builder<ComponentButton> for ComponentButtonBuilder {
             .style
             .as_ref()
             .ok_or(ComponentBuilderError::NoStyle)?;
+
         match style {
             ComponentButtonStyle::Link => {
                 if self.obj.url.is_none() {
@@ -415,7 +430,7 @@ impl ComponentSelectMenuBuilder {
         self
     }
 
-    /// he minimum number of items that must be chosen; default 1, min 0, max 25
+    /// The minimum number of items that must be chosen; default 1, min 0, max 25
     pub fn min_values(mut self, min: impl Into<u8>) -> Self {
         self.obj.min_values = min.into();
         self
