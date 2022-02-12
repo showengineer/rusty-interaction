@@ -28,12 +28,16 @@ pub fn verify_discord_message(
 
     let signature_bytes =
         signature_bytes
+            .as_slice()
             .try_into()
             .map_err(|_| ValidationError::KeyConversionError {
                 name: "Signature Length",
             })?;
 
-    let signature = Signature::new(signature_bytes);
+    let signature = Signature::from_bytes(signature_bytes)
+                                .map_err(|_| ValidationError::KeyConversionError{
+                                    name: "From bytes conversion error"
+                                })?;
 
     // Format the data to verify (Timestamp + body)
     let msg = format!("{}{}", timestamp, body);
