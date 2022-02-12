@@ -1,4 +1,4 @@
-1#[cfg(feature = "builder")]
+#[cfg(feature = "builder")]
 use std::error;
 #[cfg(feature = "builder")]
 use std::fmt::{self, Display};
@@ -33,7 +33,6 @@ pub struct MessageComponent {
     components: Option<Vec<MessageComponent>>,
 
     // Text input specific
-    label: Option<String>,
     min_length: Option<u16>,
     max_length: Option<u16>,
     required: Option<bool>,
@@ -55,7 +54,6 @@ impl Default for MessageComponent {
             max_values: None,
             min_values: None,
             components: None,
-            label: None,
             min_length: None,
             max_length: None,
             required: None,
@@ -130,7 +128,6 @@ pub struct ComponentSelectMenu {
     max_values: u8,
 }
 
-#[cfg(feature = "builder")]
 impl Default for ComponentSelectMenu {
     fn default() -> Self {
         Self {
@@ -145,7 +142,6 @@ impl Default for ComponentSelectMenu {
     }
 }
 
-#[cfg(feature = "builder")]
 impl From<ComponentSelectMenu> for MessageComponent {
     fn from(t: ComponentSelectMenu) -> Self {
         MessageComponent {
@@ -496,5 +492,73 @@ impl Builder<ComponentSelectMenu> for ComponentSelectMenuBuilder {
             return Err(ComponentSelectMenuBuilderError::Over25MaxValues);
         }
         Ok(self.obj)
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct ComponentTextBox {
+    placeholder: Option<String>,
+    label: Option<String>,
+    min_length: Option<u16>,
+    max_length: Option<u16>,
+    required: Option<bool>,
+}
+
+impl From<ComponentTextBox> for MessageComponent {
+    fn from(t: ComponentTextBox) -> Self {
+        MessageComponent {
+            r#type: ComponentType::TextInput,
+            label: t.label,
+            min_length: t.min_length,
+            max_length: t.max_length,
+            required: t.required,
+            ..Default::default()
+        }
+    }
+}
+
+#[cfg(feature = "builder")]
+pub struct ComponentTextBoxBuilder {
+    obj: ComponentTextBox,
+}
+
+#[cfg(feature = "builder")]
+impl ComponentTextBoxBuilder {
+    pub fn placeholder(mut self, placeholder: String) -> Self {
+        self.obj.placeholder = Some(placeholder);
+        self
+    }
+
+    pub fn min_length(mut self, minimum_length: u16) -> Self {
+        if minimum_length < 1 || minimum_length > 4000 {
+            warn!("Minimum length for this text box exceeds the limits, ignoring");
+            return self;
+        }
+
+        self.obj.min_length = Some(minimum_length);
+        self
+    }
+
+    pub fn max_length(mut self, maximum_length: u16) -> Self {
+        if maximum_length < 2 || maximum_length > 4000 {
+            warn!("Maximum length for this text box exceeds the limits, ignoring");
+            return self;
+        }
+
+        self.obj.max_length = Some(maximum_length);
+        self
+    }
+
+    pub fn required(mut self, is_required: bool) -> Self {
+        self.obj.required = Some(is_required);
+        self
+    }
+}
+
+impl Builder<MessageComponent> for ComponentTextBoxBuilder {
+    type Error = std::convert::Infallible;
+
+    fn build(self) -> Result<MessageComponent, Self::Error> {
+        Ok(self.obj.into())
     }
 }
