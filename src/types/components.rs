@@ -1,4 +1,4 @@
-1#[cfg(feature = "builder")]
+#[cfg(feature = "builder")]
 use std::error;
 #[cfg(feature = "builder")]
 use std::fmt::{self, Display};
@@ -32,8 +32,6 @@ pub struct MessageComponent {
     max_values: Option<u8>,
     components: Option<Vec<MessageComponent>>,
 
-    // Text input specific
-    label: Option<String>,
     min_length: Option<u16>,
     max_length: Option<u16>,
     required: Option<bool>,
@@ -55,7 +53,6 @@ impl Default for MessageComponent {
             max_values: None,
             min_values: None,
             components: None,
-            label: None,
             min_length: None,
             max_length: None,
             required: None,

@@ -1,7 +1,7 @@
-use serde::{Serialize, Deserialize}
+use serde::{Serialize, Deserialize};
 
 use serde_with::*;
-use super::Components;
+use super::components::MessageComponent;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Modal{
