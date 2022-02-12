@@ -555,6 +555,7 @@ impl ComponentTextBoxBuilder {
     }
 }
 
+#[cfg(feature = "builder")]
 impl Builder<MessageComponent> for ComponentTextBoxBuilder {
     type Error = std::convert::Infallible;
 
