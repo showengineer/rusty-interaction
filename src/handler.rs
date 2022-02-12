@@ -546,11 +546,11 @@ impl InteractionHandler {
                             );
                             ERROR_RESPONSE!(501, "No associated handler found")
                         }
-                    },
+                    }
                     InteractionType::ApplicationCommandAutocomplete => {
                         //TODO: Implement autocomplete stuff
                         unimplemented!();
-                    },
+                    }
                     InteractionType::ModalSubmit => {
                         //TODO: Implement Modal submit event
                         unimplemented!();
