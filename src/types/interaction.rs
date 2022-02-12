@@ -91,6 +91,12 @@ pub enum InteractionType {
 
     /// A message component
     MessageComponent = 3,
+
+    /// An autocomplete interaction
+    ApplicationCommandAutocomplete = 4,
+
+    /// A response coming from a modal.
+    ModalSubmit = 5,
 }
 
 #[serde_as]
@@ -318,6 +324,12 @@ pub enum InteractionResponseType {
 
     /// For components, edit the message the component was attached to
     UpdateMessage = 7,
+
+    /// For responding to autocomplete interactions
+    ApplicationCommandAutocompleteResult = 8,
+
+    /// Respond with a Popup [`Modal`]
+    Modal = 9,
 }
 
 #[serde_as]
