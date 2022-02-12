@@ -465,6 +465,7 @@ impl InteractionHandler {
         match serde_json::from_str::<Interaction>(&body) {
             Err(e) => {
                 // It's probably bad on our end if this code is reached.
+                // Could be that new features were implemented and breaks code
                 error!("Failed to decode interaction! Error: {}", e);
                 debug!("Body sent: {}", body);
                 return ERROR_RESPONSE!(400, format!("Bad body: {}", e));
@@ -545,6 +546,14 @@ impl InteractionHandler {
                             );
                             ERROR_RESPONSE!(501, "No associated handler found")
                         }
+                    },
+                    InteractionType::ApplicationCommandAutocomplete => {
+                        //TODO: Implement autocomplete stuff
+                        unimplemented!();
+                    },
+                    InteractionType::ModalSubmit => {
+                        //TODO: Implement Modal submit event
+                        unimplemented!();
                     }
                 }
             }

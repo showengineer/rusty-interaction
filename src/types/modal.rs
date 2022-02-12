@@ -7,7 +7,7 @@ use serde_with::*;
 
 #[cfg(feature = "builder")]
 use crate::Builder;
-
+#[cfg(feature = "builder")]
 use log::{warn};
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
