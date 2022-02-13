@@ -332,6 +332,22 @@ pub enum InteractionResponseType {
     Modal = 9,
 }
 
+impl From<super::modal::Modal> for InteractionResponse {
+    fn from(m: super::modal::Modal) -> InteractionResponse {
+        let r = InteractionResponse {
+            r#type: InteractionResponseType::Modal,
+            data: Some(InteractionApplicationCommandCallbackData {
+                custom_id: Some(m.get_custom_id()),
+                title: Some(m.get_title()),
+                components: Some(m.get_components()),
+                ..Default::default()
+            }),
+        };
+
+        r
+    }
+}
+
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Default, Serialize, Deserialize, Debug, PartialEq)]
@@ -343,6 +359,8 @@ pub struct InteractionApplicationCommandCallbackData {
     allowed_mentions: Option<AllowedMentions>,
     flags: Option<u8>,
     components: Option<Vec<MessageComponent>>,
+    custom_id: Option<String>,
+    title: Option<String>,
 }
 
 impl InteractionApplicationCommandCallbackData {
@@ -652,6 +670,12 @@ impl Context {
         }
 
         b
+    }
+
+    /// Respond to an [`Interaction`] by sending a [`Modal`]
+    /// Note that this **does not** return an [`InteractionResponseBuilder`], but an [`InteractionResponse`]
+    pub fn respond_with_modal(&self, m: super::modal::Modal) -> InteractionResponse {
+        m.into()
     }
 
     /// Edit the original interaction response

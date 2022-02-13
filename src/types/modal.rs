@@ -11,13 +11,28 @@ use crate::Builder;
 use log::warn;
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
-/// A modal is a popup form formed after an interaction. 
+/// A modal is a popup form formed after an interaction.
 /// After sending an [`InteractionResponseType::Modal`], it will send out a form for the user to fill.
 /// After filling, Discord will send out an [`InteractionType::ModalSubmit`], where data processing will be done.
 pub struct Modal {
     custom_id: String,
     title: String,
     components: Vec<MessageComponent>,
+}
+
+impl Modal {
+    /// Get custom id
+    pub fn get_custom_id(&self) -> String {
+        self.custom_id.clone()
+    }
+    /// Get title
+    pub fn get_title(&self) -> String {
+        self.title.clone()
+    }
+    /// Get components
+    pub fn get_components(&self) -> Vec<MessageComponent> {
+        self.components.clone()
+    }
 }
 
 #[cfg(feature = "builder")]
@@ -29,12 +44,13 @@ pub struct ModalBuilder {
 
 #[cfg(feature = "builder")]
 impl ModalBuilder {
-    /// Sets the custom_id. This is mandatory! 
+    /// Sets the custom_id. This is mandatory!
     /// The custom id may not be more than 100 characters long
-    /// 
+    ///
     /// ### Errors
     /// If the supplied custom id is above 100 characters, the library will print out a warning and ignore the request.
-    pub fn custom_id(mut self, id: String) -> Self {
+    pub fn custom_id(mut self, id: impl Into<String>) -> Self {
+        let id = id.into();
         if id.len() > 100 {
             warn!("Exceeding maximum id char count (100), ignoring");
             return self;
@@ -43,12 +59,13 @@ impl ModalBuilder {
         self
     }
     /// Sets the title. This is mandatory!
-    pub fn title(mut self, title: String) -> Self {
+    pub fn title(mut self, title: impl Into<String>) -> Self {
+        let title = title.into();
         self.obj.title = title;
         self
     }
     /// Adds a component to the form. You must supply at lease 1 component and no more than 5 components.
-    /// 
+    ///
     /// ### Errors
     /// If the component count exceeds 5, this library will print out a warning and ignore the request.
     pub fn add_component(mut self, component: impl Into<MessageComponent>) -> Self {

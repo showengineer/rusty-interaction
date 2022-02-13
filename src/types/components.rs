@@ -519,6 +519,7 @@ impl From<ComponentTextBox> for MessageComponent {
 }
 
 #[cfg(feature = "builder")]
+#[derive(Clone, Debug, Default)]
 /// Build a textbox component
 pub struct ComponentTextBoxBuilder {
     obj: ComponentTextBox,
@@ -527,7 +528,8 @@ pub struct ComponentTextBoxBuilder {
 #[cfg(feature = "builder")]
 impl ComponentTextBoxBuilder {
     /// Sets the placeholder
-    pub fn placeholder(mut self, placeholder: String) -> Self {
+    pub fn placeholder(mut self, placeholder: impl Into<String>) -> Self {
+        let placeholder = placeholder.into();
         self.obj.placeholder = Some(placeholder);
         self
     }
@@ -543,7 +545,7 @@ impl ComponentTextBoxBuilder {
     }
 
     /// Sets the maximum amount of characters that may be inserted
-    /// 
+    ///
     /// **The maximum settable length is 4000 characters**
     pub fn max_length(mut self, maximum_length: u16) -> Self {
         if maximum_length < 2 || maximum_length > 4000 {
@@ -567,19 +569,19 @@ impl Builder<MessageComponent> for ComponentTextBoxBuilder {
     type Error = ComponentTextBoxBuilderError;
 
     fn build(self) -> Result<MessageComponent, Self::Error> {
-        if let Some(ml) = self.obj.min_length.as_ref(){
-            if ml > &4000{
+        if let Some(ml) = self.obj.min_length.as_ref() {
+            if ml > &4000 {
                 return Err(ComponentTextBoxBuilderError::MinimumLengthTooHigh);
             }
         }
-        if let Some(ml) = self.obj.max_length.as_ref(){
+        if let Some(ml) = self.obj.max_length.as_ref() {
             if ml < &1 {
                 return Err(ComponentTextBoxBuilderError::MaximumLengthTooLow);
             }
             if ml > &4000 {
                 return Err(ComponentTextBoxBuilderError::MaximumLengthTooHigh);
             }
-            if let Some(minl) = self.obj.min_length.as_ref(){
+            if let Some(minl) = self.obj.min_length.as_ref() {
                 if minl > ml {
                     return Err(ComponentTextBoxBuilderError::MinimumGreaterThanMaximum);
                 }
@@ -592,7 +594,7 @@ impl Builder<MessageComponent> for ComponentTextBoxBuilder {
 #[cfg(feature = "builder")]
 #[derive(Clone, Debug)]
 /// Errors that arise when building the textbox component.
-pub enum ComponentTextBoxBuilderError{
+pub enum ComponentTextBoxBuilderError {
     /// The minimum length is set too high (> 4000)
     MinimumLengthTooHigh,
     /// The maximum length is set too high (> 4000)
@@ -612,13 +614,13 @@ impl Display for ComponentTextBoxBuilderError {
         match self {
             ComponentTextBoxBuilderError::MinimumLengthTooHigh => {
                 write!(f, "Minimum length exceeded 4000 characters")
-            },
+            }
             ComponentTextBoxBuilderError::MaximumLengthTooHigh => {
                 write!(f, "Maximum length exceeded 4000 characters")
             }
             ComponentTextBoxBuilderError::MaximumLengthTooLow => {
                 write!(f, "Maximum length is below 1")
-            },
+            }
             ComponentTextBoxBuilderError::MinimumGreaterThanMaximum => {
                 write!(f, "The minimum length is greater than the maximum length")
             }
