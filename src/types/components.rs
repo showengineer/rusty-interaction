@@ -33,7 +33,6 @@ pub struct MessageComponent {
     components: Option<Vec<MessageComponent>>,
 
     // Text input specific
-
     min_length: Option<u16>,
     max_length: Option<u16>,
     required: Option<bool>,
@@ -497,6 +496,7 @@ impl Builder<ComponentSelectMenu> for ComponentSelectMenuBuilder {
 }
 
 #[derive(Clone, Debug, Default)]
+/// A textbox component, where users can put text in
 pub struct ComponentTextBox {
     placeholder: Option<String>,
     label: Option<String>,
@@ -519,17 +519,19 @@ impl From<ComponentTextBox> for MessageComponent {
 }
 
 #[cfg(feature = "builder")]
+/// Build a textbox component
 pub struct ComponentTextBoxBuilder {
     obj: ComponentTextBox,
 }
 
 #[cfg(feature = "builder")]
 impl ComponentTextBoxBuilder {
+    /// Sets the placeholder
     pub fn placeholder(mut self, placeholder: String) -> Self {
         self.obj.placeholder = Some(placeholder);
         self
     }
-
+    /// Sets the minimum amount of characters that need to be inserted
     pub fn min_length(mut self, minimum_length: u16) -> Self {
         if minimum_length < 1 || minimum_length > 4000 {
             warn!("Minimum length for this text box exceeds the limits, ignoring");
@@ -540,6 +542,9 @@ impl ComponentTextBoxBuilder {
         self
     }
 
+    /// Sets the maximum amount of characters that may be inserted
+    /// 
+    /// **The maximum settable length is 4000 characters**
     pub fn max_length(mut self, maximum_length: u16) -> Self {
         if maximum_length < 2 || maximum_length > 4000 {
             warn!("Maximum length for this text box exceeds the limits, ignoring");
@@ -550,6 +555,7 @@ impl ComponentTextBoxBuilder {
         self
     }
 
+    /// Sets if this textbox is required to fill
     pub fn required(mut self, is_required: bool) -> Self {
         self.obj.required = Some(is_required);
         self
@@ -558,9 +564,64 @@ impl ComponentTextBoxBuilder {
 
 #[cfg(feature = "builder")]
 impl Builder<MessageComponent> for ComponentTextBoxBuilder {
-    type Error = std::convert::Infallible;
+    type Error = ComponentTextBoxBuilderError;
 
     fn build(self) -> Result<MessageComponent, Self::Error> {
+        if let Some(ml) = self.obj.min_length.as_ref(){
+            if ml > &4000{
+                return Err(ComponentTextBoxBuilderError::MinimumLengthTooHigh);
+            }
+        }
+        if let Some(ml) = self.obj.max_length.as_ref(){
+            if ml < &1 {
+                return Err(ComponentTextBoxBuilderError::MaximumLengthTooLow);
+            }
+            if ml > &4000 {
+                return Err(ComponentTextBoxBuilderError::MaximumLengthTooHigh);
+            }
+            if let Some(minl) = self.obj.min_length.as_ref(){
+                if minl > ml {
+                    return Err(ComponentTextBoxBuilderError::MinimumGreaterThanMaximum);
+                }
+            }
+        }
         Ok(self.obj.into())
+    }
+}
+
+#[cfg(feature = "builder")]
+#[derive(Clone, Debug)]
+/// Errors that arise when building the textbox component.
+pub enum ComponentTextBoxBuilderError{
+    /// The minimum length is set too high (> 4000)
+    MinimumLengthTooHigh,
+    /// The maximum length is set too high (> 4000)
+    MaximumLengthTooHigh,
+    /// The maximum length is set too low (< 1)
+    MaximumLengthTooLow,
+    /// The minimum required length is set to a higher value than the set maximum.
+    MinimumGreaterThanMaximum,
+}
+
+#[cfg(feature = "builder")]
+impl error::Error for ComponentTextBoxBuilderError {}
+
+#[cfg(feature = "builder")]
+impl Display for ComponentTextBoxBuilderError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ComponentTextBoxBuilderError::MinimumLengthTooHigh => {
+                write!(f, "Minimum length exceeded 4000 characters")
+            },
+            ComponentTextBoxBuilderError::MaximumLengthTooHigh => {
+                write!(f, "Maximum length exceeded 4000 characters")
+            }
+            ComponentTextBoxBuilderError::MaximumLengthTooLow => {
+                write!(f, "Maximum length is below 1")
+            },
+            ComponentTextBoxBuilderError::MinimumGreaterThanMaximum => {
+                write!(f, "The minimum length is greater than the maximum length")
+            }
+        }
     }
 }

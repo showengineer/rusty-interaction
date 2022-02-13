@@ -177,7 +177,7 @@ impl InteractionHandler {
         self.data.insert(data);
     }
     /// Binds an async function to a **global** command.
-    /// Your function must take a [`Context`] as an argument and must return a [`InteractionResponse`].
+    /// Your function must take a [`Context`] and optionally an [`InteractionHandler`] as an argument and must return a [`InteractionResponse`].
     /// Make sure to use the `#[slash_command]` procedural macro to make it usable for the handler.
     ///
     /// Like:
@@ -222,7 +222,7 @@ impl InteractionHandler {
     }
 
     /// Binds an async function to a **component**.
-    /// Your function must take a [`Context`] as an argument and must return a [`InteractionResponse`].
+    /// Your function must take a [`Context`] and optionally an [`InteractionHandler`] as an argument and must return a [`InteractionResponse`].
     /// Use the `#[component_handler]` procedural macro for your own convinence.eprintln!
     ///
     /// # Example
