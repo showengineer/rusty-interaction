@@ -1,9 +1,7 @@
 use ed25519_dalek::Verifier;
 use ed25519_dalek::{PublicKey, Signature};
 
-use std::convert::TryInto;
-
-/// If verification failes, it will return the `ValidationError` enum.
+/// If verification fails, it will return the `ValidationError` enum.
 pub enum ValidationError {
     /// For anything related to conversion errors
     KeyConversionError {
@@ -26,14 +24,11 @@ pub fn verify_discord_message(
     let signature_bytes = hex::decode(signature)
         .map_err(|_| ValidationError::KeyConversionError { name: "Signature" })?;
 
-    let signature_bytes =
-        signature_bytes
-            .try_into()
-            .map_err(|_| ValidationError::KeyConversionError {
-                name: "Signature Length",
-            })?;
-
-    let signature = Signature::new(signature_bytes);
+    let signature = Signature::from_bytes(signature_bytes.as_slice()).map_err(|_| {
+        ValidationError::KeyConversionError {
+            name: "From bytes conversion error",
+        }
+    })?;
 
     // Format the data to verify (Timestamp + body)
     let msg = format!("{}{}", timestamp, body);

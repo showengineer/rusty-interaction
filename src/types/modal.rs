@@ -11,6 +11,7 @@ use crate::Builder;
 use log::warn;
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
+
 pub struct Modal {
     custom_id: String,
     title: String,

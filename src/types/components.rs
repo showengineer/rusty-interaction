@@ -33,6 +33,7 @@ pub struct MessageComponent {
     components: Option<Vec<MessageComponent>>,
 
     // Text input specific
+
     min_length: Option<u16>,
     max_length: Option<u16>,
     required: Option<bool>,
