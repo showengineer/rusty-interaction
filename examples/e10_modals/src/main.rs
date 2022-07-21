@@ -25,6 +25,8 @@ async fn test(
             ComponentTextBoxBuilder::default()
                 .placeholder("Some placeholder")
                 .max_length(100)
+                .label("My label")
+                .custom_id("MODAL_TEXT_BOX")
                 .required(true)
                 .build()
                 .unwrap(),
