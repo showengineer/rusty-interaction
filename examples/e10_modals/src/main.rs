@@ -23,11 +23,12 @@ async fn test(
         .title("My Test Modal")
         .add_component(
             ComponentTextBoxBuilder::default()
-                .placeholder("Some placeholder")
-                .max_length(100)
+                .placeholder("Some placeholder") 
+                .max_length(100) // Sets a maximum of 100 chars
                 .label("My label")
                 .custom_id("MODAL_TEXT_BOX")
                 .required(true)
+                .style(ComponentTextBoxStyle::Paragraph) // Sets the textbox to be a paragraph style textbox (multiline)
                 .build()
                 .unwrap(),
         )

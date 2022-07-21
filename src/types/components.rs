@@ -244,6 +244,7 @@ impl Builder<MessageComponent> for ComponentRowBuilder {
 
 #[cfg(feature = "builder")]
 impl ComponentRowBuilder {
+    /// Add a component to this row
     pub fn add_component(mut self, component: impl Into<MessageComponent>) -> Self{
         match self.obj.components.as_mut() {
             None => {
@@ -592,9 +593,15 @@ impl ComponentTextBoxBuilder {
         self
     }
 
-    // Set the textbox label. **MANDATORY**
+    /// Set the textbox label. **MANDATORY**
     pub fn label(mut self, label: impl Into<String>) -> Self{
         self.obj.label = label.into();
+        self
+    }
+
+    /// Sets the style of this textbox. See [`ComponentTextBoxStyle`] for types
+    pub fn style(mut self, style: ComponentTextBoxStyle) -> Self{
+        self.obj.style = style;
         self
     }
 
