@@ -2,7 +2,7 @@ use std::{error::Error, fmt};
 
 use serde::{Deserialize, Serialize};
 
-use super::components::MessageComponent;
+use super::components::{MessageComponent, ComponentRowBuilder};
 use serde_with::*;
 
 #[cfg(feature = "builder")]
@@ -40,6 +40,7 @@ impl Modal {
 /// Build a modal
 pub struct ModalBuilder {
     obj: Modal,
+    comps : ComponentRowBuilder
 }
 
 #[cfg(feature = "builder")]
@@ -69,11 +70,7 @@ impl ModalBuilder {
     /// ### Errors
     /// If the component count exceeds 5, this library will print out a warning and ignore the request.
     pub fn add_component(mut self, component: impl Into<MessageComponent>) -> Self {
-        if self.obj.components.len() >= 5 {
-            warn!("Exceeding maximum modal component count (5), ignoring");
-            return self;
-        }
-        self.obj.components.push(component.into());
+        self.comps = self.comps.add_component(component);
         self
     }
 }
@@ -88,7 +85,6 @@ pub enum ModalConversionError {
     MissingTitle,
     /// Missing components, modals need atleast **one** component
     MissingComponents,
-
     /// Too much components. Modals may only have up to five components.
     TooMuchComponents,
 }
@@ -120,18 +116,25 @@ impl Error for ModalConversionError {}
 impl Builder<Modal> for ModalBuilder {
     type Error = ModalConversionError;
 
-    fn build(self) -> Result<Modal, Self::Error> {
+    fn build(mut self) -> Result<Modal, Self::Error> {
         if self.obj.custom_id.len() < 1 {
             return Err(ModalConversionError::MissingCustomId);
         }
         if self.obj.title.len() < 1 {
             return Err(ModalConversionError::MissingTitle);
         }
-        if self.obj.components.len() < 1 {
+        /*if self.obj.components.len() < 1 {
             return Err(ModalConversionError::MissingComponents);
-        }
+        }*/
         if self.obj.components.len() > 5 {
             return Err(ModalConversionError::TooMuchComponents);
+        }
+
+        if let Ok(v) = self.comps.build(){
+            self.obj.components = vec![v];
+        }
+        else{
+            return Err(ModalConversionError::MissingComponents);
         }
 
         return Ok(self.obj);
