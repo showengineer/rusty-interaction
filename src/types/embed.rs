@@ -192,6 +192,14 @@ impl EmbedBuilder {
         self
     }
 
+    /// Add a description to the embed
+    pub fn description(mut self, description: impl ToString) -> Self {
+        let d = description.to_string();
+
+        self.obj.description = Some(d);
+        self
+    }
+
     /// Set the url of the title of this embed
     pub fn url(mut self, url: &str) -> Self {
         self.obj.url = Some(String::from(url));
