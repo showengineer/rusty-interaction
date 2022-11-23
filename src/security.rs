@@ -21,8 +21,10 @@ pub fn verify_discord_message(
     timestamp: &str,
     body: &str,
 ) -> Result<(), ValidationError> {
-    let signature_bytes = hex::decode(signature)
-        .map_err(|_| ValidationError::KeyConversionError { name: "Hex conversion error" })?;
+    let signature_bytes =
+        hex::decode(signature).map_err(|_| ValidationError::KeyConversionError {
+            name: "Hex conversion error",
+        })?;
 
     let signature = Signature::from_bytes(signature_bytes.as_slice()).map_err(|_| {
         ValidationError::KeyConversionError {
