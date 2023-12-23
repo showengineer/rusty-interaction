@@ -200,7 +200,7 @@ impl InteractionResponseBuilder {
                 d.content = Some(c.to_string());
                 self.data = Some(d);
             }
-            Some(mut d) => {
+            Some(d) => {
                 d.content = Some(c.to_string());
             }
         }
@@ -222,7 +222,7 @@ impl InteractionResponseBuilder {
                 }
                 self.data = Some(d);
             }
-            Some(mut d) => {
+            Some(d) => {
                 if let Some(mut flag) = d.flags {
                     if e {
                         flag |= 1 << 6;
@@ -250,7 +250,7 @@ impl InteractionResponseBuilder {
                 d.embeds = Some(vec![e.clone()]);
                 self.data = Some(d);
             }
-            Some(mut d) => {
+            Some(d) => {
                 if d.embeds.is_none() {
                     d.embeds = Some(vec![e.clone()]);
                 } else {
@@ -277,7 +277,7 @@ impl InteractionResponseBuilder {
                 d.components = Some(vec![component]);
                 self.data = Some(d);
             }
-            Some(mut d) => {
+            Some(d) => {
                 if d.components.is_none() {
                     d.components = Some(vec![component]);
                 } else {
@@ -561,7 +561,7 @@ impl FollowupMessage {
     /// If the deletion succeeded, you'll get an `Ok(())`. However, if this somehow fails, it will return `Err(Self)`.
     /// That means that if the deletion did not succeed, this reference does not go out of scope.
     ///
-    /// Errors get printed using the [`::log::debug!`] macro
+    /// Errors get printed using the [`debug!`] macro
     pub async fn delete_message(self) -> Result<(), Self> {
         let url = format!(
             "{}/webhooks/{:?}/{}/messages/{:?}",
