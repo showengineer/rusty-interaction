@@ -24,11 +24,12 @@ use std::fmt;
 
 use anymap::{any::CloneAny, Map};
 
-use ed25519_dalek::PublicKey;
-
-use rustls::ServerConfig;
+use ed25519_dalek::{PUBLIC_KEY_LENGTH, VerifyingKey};
 
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Mutex};
+use std::convert::TryInto;
+use hex::FromHex;
+use rustls::ServerConfig;
 
 type AnyMap = Map<dyn CloneAny + Send + Sync>;
 
@@ -93,7 +94,7 @@ pub enum ManipulationScope {
 pub struct InteractionHandler {
     application_id: Snowflake,
 
-    app_public_key: PublicKey,
+    app_public_key: VerifyingKey,
     client: Client,
 
     global_handles: HashMap<&'static str, HandlerFunction>,
@@ -127,11 +128,14 @@ impl InteractionHandler {
         pbk_str: impl AsRef<str>,
         token: Option<&String>,
     ) -> InteractionHandler {
-        let pbk_bytes =
-            hex::decode(pbk_str.as_ref()).expect("Failed to parse the public key from hexadecimal");
+        let bytes: Vec<u8> = FromHex::from_hex(pbk_str.as_ref())
+            .expect("Failed to parse the public key from hexadecimal");
+        let pbk_bytes: &[u8; PUBLIC_KEY_LENGTH] = &bytes[..PUBLIC_KEY_LENGTH]
+                .try_into()
+                .expect("Failed to convert public key to bytes");
 
         let app_public_key =
-            PublicKey::from_bytes(&pbk_bytes).expect("Failed to parse public key.");
+            VerifyingKey::from_bytes(pbk_bytes).expect("Failed to parse public key.");
 
         if let Some(token) = token {
             let mut headers = header::HeaderMap::new();

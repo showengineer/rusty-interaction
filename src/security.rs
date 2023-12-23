@@ -1,5 +1,4 @@
-use ed25519_dalek::Verifier;
-use ed25519_dalek::{PublicKey, Signature};
+use ed25519_dalek::{Verifier, VerifyingKey, Signature};
 
 /// If verification fails, it will return the `ValidationError` enum.
 pub enum ValidationError {
@@ -16,7 +15,7 @@ pub enum ValidationError {
 /// This verification is mandatory for every incoming Interaction.
 /// See [the developer docs](https://discord.com/developers/docs/interactions/slash-commands#security-and-authorization) for more info
 pub fn verify_discord_message(
-    public_key: PublicKey,
+    public_key: VerifyingKey,
     signature: &str,
     timestamp: &str,
     body: &str,
@@ -26,7 +25,7 @@ pub fn verify_discord_message(
             name: "Hex conversion error",
         })?;
 
-    let signature = Signature::from_bytes(signature_bytes.as_slice()).map_err(|_| {
+    let signature = Signature::from_slice(signature_bytes.as_slice()).map_err(|_| {
         ValidationError::KeyConversionError {
             name: "From bytes conversion error",
         }
