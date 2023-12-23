@@ -33,19 +33,15 @@ use rustls::ServerConfig;
 
 type AnyMap = Map<dyn CloneAny + Send + Sync>;
 
-/// Alias for InteractionResponse
-pub type HandlerResponse = Result<InteractionResponse, std::convert::Infallible>;
-
 type HandlerFunction = fn(
     &mut InteractionHandler,
     Context,
-) -> Pin<Box<dyn Future<Output = HandlerResponse> + Send + '_>>;
+) -> Pin<Box<dyn Future<Output = InteractionResponse> + Send + '_>>;
 
 macro_rules! match_handler_response {
     ($response:ident) => {
 
-        if let Ok(ref __unwrapped_response__) = $response{
-            match __unwrapped_response__.r#type {
+        match $response.r#type {
                 InteractionResponseType::None => {
                     Ok(HttpResponse::build(StatusCode::NO_CONTENT).finish())
                 }
@@ -55,20 +51,15 @@ macro_rules! match_handler_response {
                     If an application is first sending a deffered channel message response, this usually means the system
                     is still processing whatever it is doing.
                     See the spec: https://tools.ietf.org/html/rfc7231#section-6.3.3 */
-                    Ok(HttpResponse::build(StatusCode::ACCEPTED).json(__unwrapped_response__))
+                    Ok(HttpResponse::build(StatusCode::ACCEPTED).json($response))
                 }
                 _ => {
                     // Send out a response to Discord
-                    let r = HttpResponse::build(StatusCode::OK).json(__unwrapped_response__);
+                    let r = HttpResponse::build(StatusCode::OK).json($response);
 
                     Ok(r)
                 }
             }
-        }
-        else{
-            debug!("Responding with 500!");
-            Ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).finish())
-        }
 
     };
 }

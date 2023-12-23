@@ -153,14 +153,14 @@ impl InteractionResponseBuilder {
     }
 
     /// Return a pong with no data. Use with caution
-    pub fn pong(mut self) -> Result<InteractionResponse, std::convert::Infallible> {
+    pub fn pong(mut self) -> InteractionResponse {
         self.r#type = InteractionResponseType::Pong;
         self.data = None;
         self.finish()
     }
 
     /// Return without any data. Use with caution
-    pub fn none(mut self) -> Result<InteractionResponse, std::convert::Infallible> {
+    pub fn none(mut self) -> InteractionResponse {
         self.r#type = InteractionResponseType::None;
         self.data = None;
         self.finish()
@@ -292,8 +292,8 @@ impl InteractionResponseBuilder {
 
     /// Returns an `InteractionResponse`, consuming itself.
     /// You can't use the builder anymore after you called this function.
-    pub fn finish(self) -> Result<InteractionResponse, std::convert::Infallible> {
-        Ok(self.ret())
+    pub fn finish(self) -> InteractionResponse {
+        self.ret()
     }
 }
 
