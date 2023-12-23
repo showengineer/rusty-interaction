@@ -1,11 +1,7 @@
+use std::convert::TryFrom;
 use crate::security::*;
-
-use ed25519_dalek::PublicKey;
-
 #[cfg(feature = "handler")]
 use crate::handler::InteractionHandler;
-#[cfg(feature = "handler")]
-use crate::types;
 
 #[cfg(feature = "handler")]
 use crate::types::interaction::{
@@ -15,9 +11,8 @@ use crate::types::interaction::{
 use crate::*;
 
 #[cfg(feature = "handler")]
-use actix_web::{http, test, web, App, HttpRequest};
-#[cfg(feature = "handler")]
-use std::sync::Mutex;
+use actix_web::test;
+use ed25519_dalek::VerifyingKey;
 
 #[cfg(feature = "handler")]
 use log::error;
@@ -29,9 +24,9 @@ SECURITY TESTS
 #[test]
 // Discord interaction verification test OK 1
 fn crypto_verify_test_ok() {
-    let bytes = hex::decode(TEST_PUB_KEY).unwrap();
+    let bytes = hex::decode(TEST_PUB_KEY).unwrap().as_slice();
 
-    let pbk = PublicKey::from_bytes(&bytes).expect("Failed to convert public key.");
+    let pbk = VerifyingKey::try_from(&bytes).expect("Failed to convert public key.");
 
     let res = verify_discord_message(pbk,
         "c41278a0cf22bf8f3061756063cd7ef548a3df23d0ffc5496209aa0ad4d9593343801bf11e099f41bca1afcac2c70734eebafede3dec7aac1caa5d8fade5af0c",
@@ -56,8 +51,8 @@ fn crypto_verify_test_ok() {
 #[should_panic]
 // Discord interacton verification test invalid 1
 fn crypto_verify_test_fail() {
-    let bytes = hex::decode(TEST_PUB_KEY).unwrap();
-    let pbk = PublicKey::from_bytes(&bytes).expect("Failed to convert public key.");
+    let bytes = hex::decode(TEST_PUB_KEY).unwrap().as_slice();
+    let pbk = VerifyingKey::try_from(bytes).expect("Failed to convert public key.");
 
     let res = verify_discord_message(pbk,
         "69696969696969696696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696696969",
