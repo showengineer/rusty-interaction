@@ -351,19 +351,21 @@ pub enum AllowedMentionTypes {
     Everyone,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Default)]
 /// Representing the AllowedMentions data model
 pub struct AllowedMentions {
-    parse: Vec<AllowedMentionTypes>,
-    roles: Vec<Snowflake>,
-    users: Vec<Snowflake>,
-    replied_user: bool,
+    pub parse: Vec<AllowedMentionTypes>,
+    pub roles: Vec<Snowflake>,
+    pub users: Vec<Snowflake>,
+    pub replied_user: bool,
 }
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Default, Serialize, Deserialize, Debug)]
 /// Representing a webhook message
 pub struct WebhookMessage {
+    pub username: Option<String>,
+    pub avatar_url: Option<String>,
     /// The message contents
     pub content: Option<String>,
     /// Embeds in the message (max 10)
@@ -372,7 +374,7 @@ pub struct WebhookMessage {
     pub components: Option<Vec<MessageComponent>>,
     /// Used for files.
     pub payload_json: Option<String>,
-    allowed_mentions: Option<AllowedMentions>,
+    pub allowed_mentions: Option<AllowedMentions>,
 }
 #[cfg(feature = "handler")]
 impl WebhookMessage {
@@ -410,8 +412,7 @@ impl From<InteractionResponse> for WebhookMessage {
             content: data.content,
             embeds: data.embeds,
             components: data.components,
-            payload_json: None,
-            allowed_mentions: None,
+            ..Default::default()
         }
     }
 }

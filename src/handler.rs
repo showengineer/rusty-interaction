@@ -279,6 +279,10 @@ impl InteractionHandler {
         self.component_handles.insert(custom_id, func);
     }
 
+    pub fn client(&self) -> &Client {
+        &self.client
+    }
+
     #[cfg(feature = "extended-handler")]
     #[cfg_attr(docsrs, doc(cfg(feature = "extended-handler")))]
     /// Register a guild-specific command with Discord!
