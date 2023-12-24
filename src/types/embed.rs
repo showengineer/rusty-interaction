@@ -20,7 +20,6 @@ pub struct Embed {
     // Type field is not implemented since it's considered deprecated
     /// url of embed
     pub url: Option<String>,
-    #[serde_as(as = "Option<DisplayFromStr>")]
     #[serde(default)]
     /// Timestamp of embed content
     pub timestamp: Option<DateTime<Utc>>,
@@ -64,13 +63,14 @@ pub struct EmbedVideo {
     witdh: i32,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Default)]
 /// Representing image information in an [`Embed`]
 pub struct EmbedImage {
-    url: String,
-    proxy_url: String,
-    height: i32,
-    width: i32,
+    pub url: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub proxy_url: Option<String>,
+    pub height: i32,
+    pub width: i32,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
@@ -112,6 +112,7 @@ pub struct EmbedField {
     /// Value of the field
     value: String,
     /// Whether or not this field should display inline
+    #[serde(skip_serializing_if = "Option::is_none")]
     inline: Option<bool>,
 }
 #[cfg(feature = "builder")]
@@ -226,6 +227,16 @@ impl EmbedBuilder {
     /// Set the embed author
     pub fn author(mut self, author: EmbedAuthor) -> Self {
         self.obj.author = Some(author);
+        self
+    }
+
+    pub fn image(mut self, image: EmbedImage) -> Self {
+        self.obj.image = Some(image);
+        self
+    }
+
+    pub fn thumbnail(mut self, thumbnail: EmbedThumbnail) -> Self {
+        self.obj.thumbnail = Some(thumbnail);
         self
     }
 

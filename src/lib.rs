@@ -12,7 +12,7 @@
 mod macros;
 
 #[allow(dead_code)]
-const BASE_URL: &str = "https://discord.com/api/v9";
+pub const BASE_URL: &str = "https://discord.com/api/v10";
 
 #[cfg(feature = "types")]
 /// Exposes useful data models

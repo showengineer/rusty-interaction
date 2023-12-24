@@ -61,12 +61,9 @@ pub struct Member {
     #[serde_as(as = "Vec<DisplayFromStr>")]
     /// The member's assigned roles
     pub roles: Vec<Snowflake>,
-    #[serde_as(as = "DisplayFromStr")]
     /// When this user joined
     pub joined_at: DateTime<Utc>,
 
-    #[serde_as(as = "Option<DisplayFromStr>")]
-    #[serde(default)]
     /// When the member started boosting the server, if boosting
     pub premium_since: Option<DateTime<Utc>>,
     /// Is this member server deafened?
