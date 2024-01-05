@@ -6,19 +6,19 @@ use crate::types::Snowflake;
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Attachment {
-    id: Snowflake,
-    filename: String,
-    description: Option<String>,
-    content_type: Option<String>,
-    size: usize,
-    url: String,
-    proxy_url: String,
-    height: Option<usize>,
-    width: Option<usize>,
-    ephemeral: Option<bool>,
-    duration_secs: Option<f64>,
-    waveform: Option<String>,
-    flags: Option<i32>,
+    pub id: Snowflake,
+    pub filename: String,
+    pub description: Option<String>,
+    pub content_type: Option<String>,
+    pub size: usize,
+    pub url: String,
+    pub proxy_url: String,
+    pub height: Option<usize>,
+    pub width: Option<usize>,
+    pub ephemeral: Option<bool>,
+    pub duration_secs: Option<f64>,
+    pub waveform: Option<String>,
+    pub flags: Option<i32>,
 }
 
 impl PartialEq for Attachment {
