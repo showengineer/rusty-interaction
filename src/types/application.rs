@@ -216,6 +216,12 @@ pub enum ApplicationCommandOptionType {
     Channel = 7,
     /// A role
     Role = 8,
+    /// Includes users and roles
+    Mentionable = 9,
+    /// A number
+    Number = 10,
+    /// A file attachment
+    Attachment = 11,
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
