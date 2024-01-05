@@ -21,6 +21,7 @@ pub mod guild;
 //use interaction::{InteractionResponse, Interaction};
 
 pub mod modal;
+mod attachment;
 
 /// Discord's 'snowflake'. It's a 64bit unsigned integer that is mainly used for identifying anything Discord.
 pub type Snowflake = u64;

@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use serde_with::*;
@@ -9,6 +10,7 @@ use super::components::ComponentType;
 use super::user::*;
 use super::Snowflake;
 use serde_repr::*;
+use crate::types::attachment::Attachment;
 
 #[serde_as]
 #[skip_serializing_none]
@@ -238,9 +240,11 @@ pub struct ApplicationCommandOptionChoice {
 /// Stripped down version of ResolvedData
 pub struct ResolvedData {
     /// User map
-    pub users: Option<User>,
+    pub users: Option<HashMap<Snowflake, User>>,
     /// Member map
-    pub members: Option<Member>,
+    pub members: Option<HashMap<Snowflake, Member>>,
+
+    pub attachments: Option<HashMap<Snowflake, Attachment>>
 }
 
 #[serde_as]
@@ -262,7 +266,7 @@ pub struct ApplicationCommandInteractionData {
 
     /// converted users + roles + channels
     // Not including this yet
-    //pub resolved: Option<ResolvedData>,
+    pub resolved: Option<ResolvedData>,
 
     /// For components, the component type
     pub component_type: Option<ComponentType>,
