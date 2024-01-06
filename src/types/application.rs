@@ -236,14 +236,19 @@ pub struct ApplicationCommandOptionChoice {
     pub value: String,
 }
 
+#[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 /// Stripped down version of ResolvedData
 pub struct ResolvedData {
     /// User map
+    #[serde_as(as = "Option<HashMap<DisplayFromStr, _>>")]
     pub users: Option<HashMap<Snowflake, User>>,
     /// Member map
+    #[serde_as(as = "Option<HashMap<DisplayFromStr, _>>")]
     pub members: Option<HashMap<Snowflake, Member>>,
 
+    #[serde_as(as = "Option<HashMap<DisplayFromStr, _>>")]
     pub attachments: Option<HashMap<Snowflake, Attachment>>
 }
 

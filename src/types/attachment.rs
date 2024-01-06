@@ -1,11 +1,13 @@
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, skip_serializing_none};
+use serde_with::*;
+
 use crate::types::Snowflake;
 
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Attachment {
+    #[serde_as(as = "DisplayFromStr")]
     pub id: Snowflake,
     pub filename: String,
     pub description: Option<String>,
