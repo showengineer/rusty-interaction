@@ -24,9 +24,8 @@ SECURITY TESTS
 #[test]
 // Discord interaction verification test OK 1
 fn crypto_verify_test_ok() {
-    let bytes = hex::decode(TEST_PUB_KEY).unwrap().as_slice();
-
-    let pbk = VerifyingKey::try_from(&bytes).expect("Failed to convert public key.");
+    let bytes = hex::decode(TEST_PUB_KEY).expect("Failed to decode public key.");
+    let pbk = VerifyingKey::try_from(bytes.as_slice()).expect("Failed to convert public key.");
 
     let res = verify_discord_message(pbk,
         "c41278a0cf22bf8f3061756063cd7ef548a3df23d0ffc5496209aa0ad4d9593343801bf11e099f41bca1afcac2c70734eebafede3dec7aac1caa5d8fade5af0c",
@@ -48,11 +47,11 @@ fn crypto_verify_test_ok() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "Unexpected invalidation of signature")]
 // Discord interacton verification test invalid 1
 fn crypto_verify_test_fail() {
-    let bytes = hex::decode(TEST_PUB_KEY).unwrap().as_slice();
-    let pbk = VerifyingKey::try_from(bytes).expect("Failed to convert public key.");
+    let bytes = hex::decode(TEST_PUB_KEY).expect("Failed to decode public key.");
+    let pbk = VerifyingKey::try_from(bytes.as_slice()).expect("Failed to convert public key.");
 
     let res = verify_discord_message(pbk,
         "69696969696969696696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696969696696969",
