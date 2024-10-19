@@ -22,7 +22,7 @@ use reqwest::Client;
 use log::{debug, error};
 use std::fmt;
 
-use anymap::{any::CloneAny, Map};
+use anymap::{CloneAny, Map};
 
 use ed25519_dalek::{PUBLIC_KEY_LENGTH, VerifyingKey};
 
