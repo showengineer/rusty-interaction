@@ -1,5 +1,7 @@
 [![ci-img]][ci-link] [![cio-img]][cio-link] [![lic-img]][lic-link] [![doc-img]][doc-link]
 
+**OBSOLETE: I am dropping support of this library, as of 14-3-2025. I do not have the time anymore to maintain this lib. Feel free to fork and further develop**
+
 # Rusty Interaction
 This library provides types and helper functions for handling Discord's [Interactions](https://discord.com/developers/docs/interactions/slash-commands). It also provides an actix-web backend handler system to handle Interactions through your own API (instead of using the gateway).
 
